@@ -1,0 +1,127 @@
+		:host{
+			font-size: 12px;
+			font-family: open-sans, sans-serif;
+			display: block;
+			width: 100%;
+			height: 100%;
+
+		}
+      #component_list {
+        position: absolute;
+        top: 50px;
+        right: 10px;
+        z-index: 200;
+        
+      }		
+
+      #component_list /deep/ core-menu {
+      	background-color: rgba(255,255,255,0.8);
+      }
+
+      #container {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        background: url(grid.png) 0 0 repeat;
+
+      }
+
+      svg {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        margin: 0;
+        padding: 0;
+        z-index: 100;
+        pointer-events: none;
+      }
+
+      .wrapper {
+        border: 1px solid #eee;
+        display: inline-block;
+        position: absolute;
+        margin: 30px 20px;
+        margin-left: 60px;
+        min-height: 80px;
+        background-color: white;
+        overflow: hide;
+        min-width: 100px;
+        min-height: 40px;
+      }
+
+      .connectors-in {
+        position: absolute;
+        left: -15px;
+        top: 0px;
+      }
+
+      .connectors-out {
+        position: absolute;
+        right: -15px;
+        top: 0px;
+      }
+
+      .wrapper li {
+        list-style: none;
+        position: relative;
+        font-size: 9px;
+        margin: 2px auto;
+      }
+
+      .wrapper label{
+        position: absolute;
+        top: -15px;
+        left: -2px;
+        padding: 0;
+        font-size: 11px;
+        overflow: visible;
+        cursor: move;
+      }
+
+
+/*      .wrapper .resize {
+        position: absolute;
+        right: -5px;
+        bottom: -5px;
+        width: 5px;
+        height: 5px;
+        border-bottom: 1px  solid #aaa;
+        border-right: 1px  solid #aaa;
+        cursor: se-resize;
+       
+      }*/
+
+      .arrow {
+        width: 12px;
+        height: 12px;
+        cursor: move;
+      }
+
+      ul, li {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+
+
+      .inputMarker {
+          width: 0px; 
+          height: 0px; 
+          border-top: 5px solid transparent;
+          border-bottom: 5px solid transparent;
+  
+          border-left: 7px solid #555;
+          box-sizing: border-box;
+          
+      }
+
+      .outputMarker {
+          width: 0px; 
+          height: 0px; 
+          border-top: 5px solid transparent;
+          border-bottom: 5px solid transparent;
+          border-left: 7px solid #555;
+
+      }      

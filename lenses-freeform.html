@@ -1,0 +1,195 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<link rel="import" href="../th-component-list/th-component-list.html">
+
+<polymer-element name="lenses-freeform" attributes="">
+  <template>
+    <link rel="stylesheet" href="lenses-freeform.css">
+
+    <th-component-list id="component_list"></th-component-list>
+
+    <div id="container" on-dragover="{{dragOver}}" on-drop="{{droppedInContainer}}">
+      <svg id="svg"></svg>
+
+
+      <!-- Components and connector dots --> 
+      <!--<template if="{{_positioned}}">-->
+        <template repeat="{{el, index in _elements}}">
+          <div class="wrapper {{el.name}}" id="wrapper-{{el.element.id}}" on-click="{{wrapperClicked}}" on-dragStart="{{dragStartWrapper}}" 
+          on-th-output-changed="{{showOutputAvailable}}" on-th-input-changed="{{showInputAvailable}}" 
+          style="top: {{el.top}}px; left: {{el.left}}px" draggable="true">
+            <label>{{el.name}}</label>
+            <!--<core-icon-button icon="clear" class="deleteEl {{el.element.id}}" on-click="{{_deleteElement}}"></core-icon-button> -->
+            <div  class="deleteEl" component_id="{{el.element.id}}" on-click="{{_deleteElement}}">X</div>
+             
+            <div class="connectors-in" >
+              <!-- Input -->
+              
+              <ul>
+                <template repeat="{{ins in el.element.publish | _checkForInputAttr}}">
+                     
+                    <li class="{{el.element.id}}-{{ins}} arrow" on-dragover="{{dragOver}}" on-dragStart="{{dragStart}}" on-dragleave="{{dragLeave}}" on-drop="{{_makeConnection}}" draggable="true">
+                      <div class="inputMarker"></div>
+                      {{ins}}
+                    </li>
+                </template>
+              </ul>
+
+              <!-- Output -->
+            </div>
+            <content select="#{{el.id}}"></content>
+            <div class="connectors-out" >
+              <template if="{{el.element.publish | _checkForOutputAttr}}">
+                <div id="{{index}}"  class="{{el.element.id}} arrow" on-dragStart="{{dragStartOutput}}" on-drag="{{drag}}" on-dragEnd="{{dragEnd}}"  draggable="true" style="border-left-color: {{el.outputReady ? el.color : defaultColor}}; ">
+                  <div class="outputMarker"></div>
+                </div>
+              </template>
+              
+            </div>
+            <template if="{{!el.resizable}}">
+              <div class="resize"  draggable="true"  on-drag="{{dragResize}}" on-dragEnd="{{dragResizeEnd}}"></div>
+            </template>
+          </div>
+        </template>
+      <!--</template>-->
+    </div>    
+
+    <content></content>
+  </template>
+  <script src="../interact/interact.js"></script>
+  <script>
+    Polymer({
+
+      _elements: [],
+
+      domReady: function() {
+interact('.wrapper')
+  .draggable({
+snap: {
+      targets: [
+        interact.createSnapGrid({ x: 10, y: 10 })
+      ],
+      range: Infinity,
+      elementOrigin: { x: 0, y: 0 }
+    },
+    // enable inertial throwing
+    
+    inertia: true,
+    // keep the element within the area of it's parent
+    /*restrict: {
+      restriction: "parent",
+      endOnly: true,
+      elementRect: { top: 0, left: 0, bottom: 1, right: 1 }
+    },*/
+
+    // call this function on every dragmove event
+    onmove: function (event) {
+      var target = event.target,
+          // keep the dragged position in the data-x/data-y attributes
+          x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
+          y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+      // translate the element
+      target.style.webkitTransform =
+      target.style.transform =
+        'translate(' + x + 'px, ' + y + 'px)';
+
+      // update the posiion attributes
+      target.setAttribute('data-x', x);
+      target.setAttribute('data-y', y);
+    },
+    // call this function on every dragend event
+    onend: function (event) {
+      var textEl = event.target.querySelector('p');
+
+      textEl && (textEl.textContent =
+        'moved a distance of '
+        + (Math.sqrt(event.dx * event.dx +
+                     event.dy * event.dy)|0) + 'px');
+    }
+  });
+      },
+
+      droppedInContainer: function(e, detail, selection){
+        console.log('droppedInContainer');
+        var self = this;
+
+        var dataTransfer = e.dataTransfer.getData('text/plain');
+
+
+        if(dataTransfer && dataTransfer.length>0) {
+          var dataSeg = dataTransfer.split(',');
+        }
+
+
+          if(dataSeg.length==1) {
+            self.addNewElToConnector(dataSeg[0], e.offsetX, e.offsetY);
+
+            return;
+          }  
+      },
+      addNewElToConnector: function(newElName, left, top){
+
+
+        newEl = document.createElement(newElName);
+
+        this.$.component_list.checkAndImport(newEl, function() {
+
+          // newEl.setAttribute('_top', top);
+          // newEl.setAttribute('_left', left);
+
+          this.appendChild(newEl);
+
+          this._processNewElement(newEl, top, left);
+
+        }.bind(this));
+
+
+      }, 
+
+      _processNewElement: function(newEl, top, left) {
+
+          newEl.id = this._generateUniqueId(newEl.tagName.toLowerCase());
+
+          var elItem = {  element: newEl, 
+                                        id: newEl.id,
+                                        name: newEl.tagName.toLowerCase(), 
+                                        top: top,
+                                        left: left
+                                    };
+          this._elements.push(elItem);
+          console.log('this._elements',this._elements);
+
+
+
+      },
+      _checkForInputAttr: function(value){
+        var attrs = Object.keys(value).filter(function(item) {
+          return item.indexOf("input") > -1;
+
+        })
+        return attrs;
+        //return value && Object.keys(value).indexOf("input") > -1 ? true : false;
+      },
+      _checkForOutputAttr: function(value){
+        return value && Object.keys(value).indexOf("output") > -1 ? true : false;
+      },
+      _generateUniqueId: function(elName){
+          var self = this;
+          var num = 0;
+          var tagsWithSameName = self._elements.filter(function(elem){return elem.name == elName});
+          
+          if(tagsWithSameName){
+            num+= tagsWithSameName.length;
+          } 
+          
+          var uniqueId = elName + '-' + num;
+          
+          return uniqueId;
+      },      
+
+
+     
+    });
+  </script>
+</polymer-element>

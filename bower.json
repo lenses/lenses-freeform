@@ -1,0 +1,17 @@
+{
+  "name": "lenses-freeform",
+  "version": "0.0.0",
+  "keywords": [
+    "seed",
+    "polymer",
+    "web-components"
+  ],
+  "main": "lenses-freeform.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#^0.5.1",
+    "interact": "~1.2.3"
+  },
+  "devDependencies": {
+    "web-component-tester": "Polymer/web-component-tester#^2.0.0"
+  }
+}

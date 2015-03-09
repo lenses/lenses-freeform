@@ -8,11 +8,17 @@
 		}
       #component_list {
         position: absolute;
-        top: 50px;
+        top: 60px;
         right: 10px;
         z-index: 200;
         
-      }		
+      }	
+      .component-list-label	{
+        position: absolute;
+        top: 55px;
+        right: 60px;
+
+      }
 
       #component_list /deep/ core-menu {
       	background-color: rgba(255,255,255,0.8);
@@ -50,8 +56,8 @@
         min-width: 100px;
         min-height: 40px;
 
-          /* This makes things *much* easier */
-  box-sizing: border-box;
+        /* This makes things *much* easier?!?! */
+        box-sizing: border-box;
       }
 
      .wrapper .resize {
@@ -64,7 +70,12 @@
         border-right: 1px  solid #aaa;
         cursor: se-resize;
        
-      }      
+      }  
+
+      .selected-element {
+        border: 1px solid #888;
+        z-index: 200;
+      }          
 
       .connectors-in {
         position: absolute;

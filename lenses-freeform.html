@@ -6,9 +6,10 @@
   <template>
     <link rel="stylesheet" href="lenses-freeform.css">
 
+    <label class="component-list-label">Drag components into canvas:</label>
     <th-component-list id="component_list"></th-component-list>
 
-    <div id="container" on-dragover="{{dragOver}}" on-drop="{{droppedInContainer}}">
+    <div id="container"  on-drop="{{droppedInContainer}}">
       <svg id="svg"></svg>
 
 
@@ -16,7 +17,7 @@
       <!--<template if="{{_positioned}}">-->
 
         <template repeat="{{el, index in _elements}}">
-          <div class="wrapper {{el.name}}" id="wrapper-{{el.element.id}}" on-click="{{wrapperClicked}}" style="top: {{el.top}}px; left: {{el.left}}px" on-click="{{wrapperClicked}}" on-dragStart="{{dragStartWrapper}}" on-drag="{{dragWrapper}}" on-dragend="{{dragEndWrapper}}" draggable="true">
+          <div class="wrapper {{el.name}}" id="wrapper-{{el.element.id}}" on-click="{{wrapperClicked}}" style="top: {{el.top}}px; left: {{el.left}}px" on-click="{{wrapperClicked}}" on-dragStart="{{dragStartWrapper}}" on-drag="{{dragWrapper}}" on-dragend="{{dragEndWrapper}}" draggable="true" on-drop="{{droppedOnInArrow}}">
 
           
             <label>{{el.name}}</label>
@@ -29,7 +30,8 @@
               <ul>
                 <template repeat="{{ins in el.element.publish | _checkForInputAttr}}">
                      
-                    <li class="{{el.element.id}}-{{ins}} arrow in-arrow" ondragover="{{dragOverInArrow}}" ondrop="{{droppedOnInArrow}}">
+                    <li class="{{el.element.id}}-{{ins}} arrow in-arrow" on-dragover="{{dragOverInArrow}}" 
+                    on-drop="{{droppedOnInArrow}}" ondrop="console.log('drop');">
                       <div class="inputMarker"></div>
                       <!--{{ins}}-->
                     </li>
@@ -41,7 +43,9 @@
             <content select="#{{el.id}}"></content>
             <div class="connectors-out" >
               <template if="{{el.element.publish | _checkForOutputAttr}}">
-                <div id="{{index}}"  class="{{el.element.id}} arrow out-arrow" draggable="true">
+                <div id="{{index}}"  class="{{el.element.id}} arrow out-arrow" 
+                  on-drag="{{dragOutArrow}}" on-dragStart="{{dragOutArrowStart}}" on-dragEnd="{{dragOutArrowEnd}}"  
+                  draggable="true">
                   <div class="outputMarker"></div>
                 </div>
               </template>
@@ -58,223 +62,42 @@
 
     <content></content>
   </template>
-  <script src="../interact/interact.js"></script>
   <script>
     Polymer({
 
       _elements: [],
+      _connections: [],
 
       _snapX: 10,
       _snapY: 10,
 
       domReady: function() {
 
-        /*
         
-        interact('.wrapper')
-          .draggable({
-            snap: {
-                  targets: [
-                    interact.createSnapGrid({ x: 10, y: 10 })
-                  ],
-                  range: Infinity,
-                  elementOrigin: { x: 0, y: 0 }
 
-            },
-    
-            inertia: false,
-            // keep the element within the area of it's parent
-     
-            // call this function on every dragmove event
-            onmove: function (event) {
-
-              console.log(event);
-              
-              var target = event.target,
-                  // keep the dragged position in the data-x/data-y attributes
-                  x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
-                  y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
-
-              // translate the element
-              target.style.webkitTransform =
-              target.style.transform =
-                'translate(' + x + 'px, ' + y + 'px)';
-
-              // update the posiion attributes
-              target.setAttribute('data-x', x);
-              target.setAttribute('data-y', y);
-              
-            },
-            // call this function on every dragend event
-            onend: function (event) {
-              
-            }
-          });
-*/
-/*
-        interact('.resize')
-          .draggable({
- 
-    
-            inertia: false,
-            onmove: function (event) {
-
-              
-            },
-            // call this function on every dragend event
-            onend: function (event) {
-              console.log('RESIZE', event);
-
-              var target = event.target,
-                  // keep the dragged position in the data-x/data-y attributes
-                  x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
-                  y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
-
-              var wrapper = target.parentNode;
-
-              var computedStyles = window.getComputedStyle(wrapper, null);
-              
-
-              wrapperWidth = computedStyles.getPropertyValue('width'); //wrapper.style.width.replace('px', '') || wrapper.style.minWidth.replace('px', '') || 100;
-              wrapperHeight = computedStyles.getPropertyValue('height');//wrapper.style.height.replace('px', '') || wrapper.style.minHeight.replace('px', '') || 40;
-
-              console.log(wrapperWidth, wrapperHeight, event.dx, event.dy, wrapper, wrapper.style);
-
-              // translate the element
-              wrapper.style.width = parseFloat(wrapperWidth) + parseFloat(event.dx) + 'px'
-              wrapper.style.height = parseFloat(wrapperHeight) + parseFloat(event.dy) + 'px'
-
-              console.log(wrapper.style.width, wrapper.style.height);
-
-            
-            }
-          });
-
-*/
-
-        // interact('.out-arrow')
-        //   .draggable({
-        //     onstart: function(event) {
-
-        //       console.log('arrow start', event);
-
-        //       this._addBezierPath( event.x0 , event.y0 , event.x0 , event.y0 , 70, 'temp_path');
-        //     }.bind(this),
-        //     onmove: function (event) {
-
-            
-
-        //     var target = event.target,
-        //         // keep the dragged position in the data-x/data-y attributes
-        //         x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
-        //         y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
-      
-        //     // translate the element
-        //     target.style.webkitTransform =
-        //     target.style.transform =
-        //       'translate(' + x + 'px, ' + y + 'px)';
-      
-        //     // update the posiion attributes
-        //     target.setAttribute('data-x', x);
-        //     target.setAttribute('data-y', y);    
-
-                      
-
-        //       var tempPath = this.shadowRoot.querySelector('#temp_path');
-
-             
-
-        //       var newPath = this._createBezierPath( event.x0 , event.y0 , event.clientX , event.clientY , 70);
-        //       tempPath.setAttribute('d',newPath);
-
-              
-        //     }.bind(this),
-        //     // call this function on every dragend event
-        //     onend: function (event) {
-             
-        //       var tempPath = this.shadowRoot.querySelector('#temp_path');
-        //       if(tempPath) {
-        //         tempPath.parentNode.removeChild(tempPath);
-        //       }
-
-
-            
-        //     }.bind(this)
-        //   });
-
-          /*
-
-          interact('.in-arrow').dropzone({
-            // only accept elements matching this CSS selector
-            //accept: '.out-arrow',
-            // Require a 75% element overlap for a drop to be possible
-            overlap: 0.5,
-
-            // listen for drop related events:
-
-            ondropactivate: function (event) {
-              // add active dropzone feedback
-              console.log('ondropactivate', event);
-              event.target.classList.add('drop-active');
-            },
-            ondragenter: function (event) {
-              
-              console.log('enter', event);
-
-              var draggableElement = event.relatedTarget,
-                  dropzoneElement = event.target;
-
-              // feedback the possibility of a drop
-              dropzoneElement.classList.add('drop-target');
-              draggableElement.classList.add('can-drop');
-              draggableElement.textContent = 'Dragged in';
-            },
-            ondragleave: function (event) {
-
-              console.log('leave', event);
-
-              // remove the drop feedback style
-              event.target.classList.remove('drop-target');
-              event.relatedTarget.classList.remove('can-drop');
-              event.relatedTarget.textContent = 'Dragged out';
-            },
-            ondrop: function (event) {
-
-              console.log('drop', event);
-
-              this._addBezierPath( event.x0 , event.y0 , event.x0 , event.y0 , 70);
-
-              event.relatedTarget.textContent = 'Dropped';
-            },
-            ondropdeactivate: function (event) {
-              // remove active dropzone feedback
-              event.target.classList.remove('drop-active');
-              event.target.classList.remove('drop-target');
-            }
-          });
-
-        */
 
 
       },
 
       droppedInContainer: function(e, detail, selection){
-        console.log('droppedInContainer');
+        console.log('droppedInContainer....');
         var self = this;
 
         var dataTransfer = e.dataTransfer.getData('text/plain');
 
-
+        //data added by th-component-list //TODO make better
         if(dataTransfer && dataTransfer.length>0) {
           var dataSeg = dataTransfer.split(',');
+
+
+          if(dataSeg.length==1) {
+            self.addNewElToConnector(dataSeg[0], Math.round(e.offsetX/10)*10, Math.round(e.offsetY/10)*10);
+
+            return;
+          } 
+
         }
 
-
-        if(dataSeg.length==1) {
-          self.addNewElToConnector(dataSeg[0], Math.round(e.offsetX/10)*10, Math.round(e.offsetY/10)*10);
-
-          return;
-        }  
       },
       addNewElToConnector: function(newElName, left, top){
 
@@ -391,17 +214,6 @@
 
         },
 */
-        dragOverInArrow: function(e, details, selection) {
-
-          console.log('dragOverInArrow', e);
-
-        },                     
-
-        droppedOnInArrow: function(e, details, selection) {
-
-          console.log('droppedOnInArrow', e);
-
-        }, 
 
         dragStartWrapper: function(e, details, selection) {
           
@@ -430,6 +242,11 @@
         },                            
 
         dragWrapper: function(e, details, selection) {
+
+          if(e.path[0].classList && e.path[0].classList.length>0 && 
+            (e.path[0].classList.contains('resize') || e.path[0].classList.contains('arrow'))) {
+            return false;
+          }
 
           var target = e.target,
               dx = e.x - (target.getAttribute('start-x') || 0),
@@ -464,6 +281,8 @@
                 target.setAttribute('start-x', e.x);
                 target.setAttribute('start-y', e.y);
 
+                this._drawConnections();
+
               }
                 
             
@@ -472,36 +291,257 @@
         dragEndWrapper: function(e, details, selection) {
           
           
-          console.log('start', e, details, selection);
-
-
           //if resize is being dragged don't do anything (stopPropagation is not doing anything)
-          if(e.path[0].classList && e.path[0].classList.length>0 && e.path[0].classList.contains('resize')) {
-            return false;
-          }
+          // if(e.path[0].classList && e.path[0].classList.length>0 && e.path[0].classList.contains('resize')) {
+          //   return false;
+          // }
 
-          /*
-          var style = window.getComputedStyle(e.target, null),
-              left = parseInt(style.getPropertyValue("left"),10),
-              top = parseInt(style.getPropertyValue("top"),10);
-
-          //if position left/top doens't exist 0 instead of NaN
-          var offset_data = ((isNaN(left) ? 0 : left) - e.clientX) +
-                        ',' + ((isNaN(top) ? 0 : top) - e.clientY) +
-                        ',' + selection.id;
-          e.dataTransfer.setData("text/plain",offset_data);
-
-          */
-         
           var target = e.target;
-         // target.setAttribute('start-x',0);
-         // target.setAttribute('start-y',0);
-         // 
-              target.setAttribute('residue-x', 0 );
-              target.setAttribute('residue-y', 0);
+          target.setAttribute('residue-x', 0 );
+          target.setAttribute('residue-y', 0);
 
           
-        },           
+        }, 
+
+        wrapperClicked: function(e, detail, selection) {
+          var wrapperEl = selection;
+          if(this._selWrapper) {
+            this._selWrapper.classList.remove('selected-element');
+          }
+          this._selWrapper = wrapperEl;
+          this._selWrapper.classList.add('selected-element');
+
+          var elementId = wrapperEl.id;
+          elementId = elementId.substring(8, elementId.length);
+
+          this._selElement = this.findElById(elementId).element;
+
+          // if(this.$.input_table) {
+          //   this.$.input_table.input = this._selElement.input;
+          // }
+          // if(this.$.output_table) {
+          //   this.$.output_table.input = this._selElement.output;
+          // }
+
+        },         
+
+        dragOutArrowStart: function(e, details, selection) {
+
+          this.draggedEl = selection;
+          //to stop wrapper drag to be called
+          e.stopPropagation();
+
+          if(!this.svgTop || !this.svgLeft) {
+
+            var svgRect = this.$.svg.getBoundingClientRect();
+            this.svgTop = svgRect.top;
+            this.svgLeft = svgRect.left;
+
+          }
+
+
+          this.startPointX = e.x - this.svgLeft;
+          this.startPointY = e.y - this.svgTop;
+
+          // create temp bezier
+          this._addBezierPath( this.startPointX , this.startPointY , this.startPointX , this.startPointY , 70, 'temp_path');
+          //this._addBezierPath( event.x0 , event.y0 , event.x0 , event.y0 , 70, 'temp_path');
+
+        },
+
+        dragOutArrow: function(e, details, selection) {
+
+          var tempPath = this.shadowRoot.querySelector('#temp_path');
+
+          // the last dragMove call passes e.x=0 and e.y=0 which causes neg x,y values. this if avoids that
+          if(e.x!==0 ||  e.y!==0)
+          {
+
+            var newPath = this._createBezierPath( this.startPointX, this.startPointY , e.x - this.svgLeft  , e.y - this.svgTop  , 70);
+            tempPath.setAttribute('d',newPath);
+          }               
+
+        },
+
+        dragOutArrowEnd: function(e, details, selection) {
+
+          var tempPath = this.shadowRoot.querySelector('#temp_path');
+          if(tempPath) {
+            tempPath.parentNode.removeChild(tempPath);
+          }
+               
+
+        },
+
+        dragOverInArrow: function(e, details, selection) {
+
+          //console.log('dragOverInArrow', e);
+          
+          //important! needed to allow drop
+          e.preventDefault();
+
+        },                     
+
+        droppedOnInArrow: function(e, details, selection) {
+
+          console.log('droppedOnInArrow', e);
+          var self = this;
+
+          var className = selection.classList[0],
+              targetElementId = className.substring(0, className.lastIndexOf('-') ),   
+              targetField = className.substring(className.lastIndexOf('-') + 1, className.length ),      
+              source = self.findElById(self.draggedEl.classList[0]),
+              target = self.findElById(targetElementId);
+
+          console.log(selection.classList[0],targetElementId,targetField,target);
+
+
+          this._connectAttributes(source, 'output', target, targetField);
+
+        // self._connections.push({source: source, target: target});
+
+        // }
+
+          self._drawConnections();
+
+          e.stopPropagation();          
+
+        }, 
+
+
+
+
+
+
+        /**
+         * The functions which sets the connection (two way binging) between two element attrubutes
+         * There is not really a sourc/target distinction in the observer since it is a two way binging (in theory)
+         * but the distinction is conceptual and in UI.
+         * @param  {[type]} source      Source element
+         * @param  {[type]} sourceField The attribute to connect from source element
+         * @param  {[type]} target      Target element
+         * @param  {[type]} targetField The attribute to connect from target element
+         * @return {None}             
+         */
+        _connectAttributes: function(source, sourceField, target, targetField) {
+          var self = this;
+
+          //find the index of connection which has the same target
+          var connWithSameTargetIndex = self._connections.reduce(function(value, conn, index) {
+              console.log(conn);
+              if (conn.target.id===target.id && conn.target.field===targetField) {
+                return index;
+              }
+
+          }, -1);
+          // and remove it from connections array
+          if(connWithSameTargetIndex>-1) {
+            self._connections.splice(connWithSameTargetIndex,1);
+          }
+
+
+          if (source === target){ //if a bubble was dropped on itself
+            alert('You cannot make a connection within the same element');
+            return false;
+          } else { 
+
+            // make the connection in the elements array
+            //target.inputConnectedTo = source;  // not needed
+              
+            var observer = new PathObserver(source.element, sourceField);  
+              
+            observer.open(function(newValue, oldValue) {
+               target.element[targetField] = newValue;
+            });
+
+            var srcClone = {id: source.id, name: source.name, element: source.element};
+            var targetClone = {id: target.id, name: target.name, element: target.element};
+
+
+            
+            target.element[targetField] = source.element[sourceField]; 
+
+            targetClone.field = targetField;
+
+            //self.updateConnections();
+            
+            //push the connections anyways because it will be deleted above.
+            self._connections.push({source: srcClone, target: targetClone});
+
+            
+            return true;
+          }
+
+        },
+
+        _drawConnections: function() {
+
+          var self = this;
+
+
+          var arrowOffsetY = 7;
+          var arrowOffsetX = 7;
+          var bezierCurveX = 70;  // the larger the value the smoother the curve
+
+
+          //clear all paths. since it is not done offten it is fine to do it in a not optimized way
+          self.$.svg.innerHTML = '';
+
+          for (var i = 0; i < self._connections.length; i++) {
+
+
+            var conn = self._connections[i];
+
+            console.log('connection ', conn);
+
+
+            var srcEl = conn.source.element || self.querySelector('#'+conn.source.id); //TODO do this in initialization method
+            var targetEl = conn.target.element || self.querySelector('#'+conn.target.id);
+
+
+            var srcWrapper = self.shadowRoot.querySelector('#wrapper-'+srcEl.id);
+            var targetWrapper = self.shadowRoot.querySelector('#wrapper-'+targetEl.id);
+
+
+            // var srcRect = srcEl.getBoundingClientRect();
+            // var targetRect = targetEl.getBoundingClientRect();
+
+            var srcRect = srcWrapper.getBoundingClientRect();
+            var targetRect = targetWrapper.getBoundingClientRect();
+
+
+            var svgRect = self.$.svg.getBoundingClientRect();
+
+            var otherInputOffset = (conn.target.field==='input') ? 0 : 16;
+
+            var startX = srcRect.right - svgRect.left + arrowOffsetX; //srcRect.left + srcRect.width + 30 - containerOffsetX;
+            var startY = srcRect.top - svgRect.top + arrowOffsetY;
+            var endX = targetRect.left  - svgRect.left - arrowOffsetX;
+            var endY = targetRect.top  - svgRect.top + arrowOffsetY + otherInputOffset;
+
+
+            self._addBezierPath(startX, startY, endX, endY , bezierCurveX);
+            
+          }        
+
+        },
+
+        findElById: function(id){
+          var self = this;
+          element = self._elements.filter(function(el){
+            return el.id === id;
+          })[0];
+
+          return element;
+        },
+
+
+
+
+
+
+
+
 
         _createBezierPath: function(startX, startY, endX, endY, handleOffsetX) {
 

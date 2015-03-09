@@ -1,5 +1,9 @@
 <link rel="import" href="../polymer/polymer.html">
 
+
+<link rel="import" href="../th-data-table/th-data-table.html">
+
+
 <link rel="import" href="../th-component-list/th-component-list.html">
 
 <polymer-element name="lenses-freeform" attributes="">
@@ -8,6 +12,13 @@
 
     <label class="component-list-label">Drag components into canvas:</label>
     <th-component-list id="component_list"></th-component-list>
+
+    <div id="input_preview" class="data-preview">
+      <template if="{{_showDataTable && _selElement.input && _selElement.input.length>0}}">
+        <label>selected component input</label>
+        <th-data-table id="input_table" input="{{_selElement.input}}" class="table"  minimal="true"></th-data-table>
+      </template>
+    </div>
 
     <div id="container"  on-drop="{{droppedInContainer}}">
       <svg id="svg"></svg>
@@ -58,9 +69,16 @@
           </div>
         </template>
       <!--</template>-->
-    </div>    
+    </div> 
 
-    <content></content>
+    <div id="output_preview" class="data-preview">
+      <template if="{{_showDataTable && _selElement.output && _selElement.output.length>0}}">
+        <label>selected component output</label>
+        <th-data-table id="output_table" input="{{_selElement.output}}" class="table"  minimal="true"></th-data-table>
+      </template>
+    </div>       
+
+    
   </template>
   <script>
     Polymer({
@@ -68,8 +86,12 @@
       _elements: [],
       _connections: [],
 
+      _selElement: null,
+
       _snapX: 10,
       _snapY: 10,
+
+      _showDataTable: true,
 
       domReady: function() {
 
@@ -140,30 +162,6 @@
 
 
       },
-      _checkForInputAttr: function(value){
-        var attrs = Object.keys(value).filter(function(item) {
-          return item.indexOf("input") > -1;
-
-        })
-        return attrs;
-        //return value && Object.keys(value).indexOf("input") > -1 ? true : false;
-      },
-      _checkForOutputAttr: function(value){
-        return value && Object.keys(value).indexOf("output") > -1 ? true : false;
-      },
-      _generateUniqueId: function(elName){
-          var self = this;
-          var num = 0;
-          var tagsWithSameName = self._elements.filter(function(elem){return elem.name == elName});
-          
-          if(tagsWithSameName){
-            num+= tagsWithSameName.length;
-          } 
-          
-          var uniqueId = elName + '-' + num;
-          
-          return uniqueId;
-      }, 
 
       dragResize: function(e, details, selection) {
 
@@ -538,48 +536,72 @@
 
 
 
+      _checkForInputAttr: function(value){
+        var attrs = Object.keys(value).filter(function(item) {
+          return item.indexOf("input") > -1;
+
+        })
+        return attrs;
+        //return value && Object.keys(value).indexOf("input") > -1 ? true : false;
+      },
+      _checkForOutputAttr: function(value){
+        return value && Object.keys(value).indexOf("output") > -1 ? true : false;
+      },
+      _generateUniqueId: function(elName){
+          var self = this;
+          var num = 0;
+          var tagsWithSameName = self._elements.filter(function(elem){return elem.name == elName});
+          
+          if(tagsWithSameName){
+            num+= tagsWithSameName.length;
+          } 
+          
+          var uniqueId = elName + '-' + num;
+          
+          return uniqueId;
+      }, 
 
 
 
 
 
-        _createBezierPath: function(startX, startY, endX, endY, handleOffsetX) {
+      _createBezierPath: function(startX, startY, endX, endY, handleOffsetX) {
 
-            // make handleOffsetX larger when source element is on the right side of target
-            if(startX > endX) {
-              handleOffsetX *= 2;
-            }
-            var distance = Math.sqrt(Math.pow(endX-startX, 2) + Math.pow(endY-startY,2));
-            // decrease handleOffsetX when too close...
-            if(distance<100) {
-               handleOffsetX /= 2;
-            }
-            if(distance<50) {
-               handleOffsetX /= 4;
-            }
-            var path = "M"+parseInt(startX)+","+parseInt(startY)+
-                       " C"+parseInt(startX + handleOffsetX)+","+parseInt(startY)+
-                       " "+parseInt(endX - handleOffsetX)+","+parseInt(endY)+
-                       " "+parseInt(endX)+","+parseInt(endY);
-            return path;
-        },
+          // make handleOffsetX larger when source element is on the right side of target
+          if(startX > endX) {
+            handleOffsetX *= 2;
+          }
+          var distance = Math.sqrt(Math.pow(endX-startX, 2) + Math.pow(endY-startY,2));
+          // decrease handleOffsetX when too close...
+          if(distance<100) {
+             handleOffsetX /= 2;
+          }
+          if(distance<50) {
+             handleOffsetX /= 4;
+          }
+          var path = "M"+parseInt(startX)+","+parseInt(startY)+
+                     " C"+parseInt(startX + handleOffsetX)+","+parseInt(startY)+
+                     " "+parseInt(endX - handleOffsetX)+","+parseInt(endY)+
+                     " "+parseInt(endX)+","+parseInt(endY);
+          return path;
+      },
 
-        _addBezierPath: function(startX, startY, endX, endY, handleOffsetX, id) {
+      _addBezierPath: function(startX, startY, endX, endY, handleOffsetX, id) {
 
-            var aLine = document.createElementNS('http://www.w3.org/2000/svg', 'path'); 
-            var path = this._createBezierPath(startX, startY, endX, endY, handleOffsetX);
+          var aLine = document.createElementNS('http://www.w3.org/2000/svg', 'path'); 
+          var path = this._createBezierPath(startX, startY, endX, endY, handleOffsetX);
 
-            aLine.setAttribute('d',path);
-            aLine.setAttribute('stroke', '#555');// conn.source.color);
-            aLine.setAttribute('fill', 'none');
-            if(id) {
-              aLine.setAttribute('id', id);
-            }
-            
+          aLine.setAttribute('d',path);
+          aLine.setAttribute('stroke', '#555');// conn.source.color);
+          aLine.setAttribute('fill', 'none');
+          if(id) {
+            aLine.setAttribute('id', id);
+          }
+          
 
-            this.$.svg.appendChild(aLine);
+          this.$.svg.appendChild(aLine);
 
-        },
+      },
 
 
 

@@ -44,6 +44,38 @@
         pointer-events: none;
       }
 
+
+      .data-preview {
+        position: fixed;
+        max-height: 100px;
+        overflow-y: scroll;
+        overflow-x: hide;
+        z-index: 100;
+        width: 100%;
+        background-color: rgba(255,255,255,0.9);
+        border: 1px solid #AAA;
+        transition: height 0.5s;
+        transition: max-height 0.5s;
+      }
+
+      .data-preview label {
+        color: #2fa3af;
+        font-size: 11px;
+      }
+
+      .data-preview .table {
+        margin-top: -5px;
+      }
+
+      #input_preview {
+        top: 0;
+        left: 0;
+      }
+      #output_preview {
+        bottom: 0;
+        left: 0;
+      }      
+
       .wrapper {
         border: 1px solid #eee;
         display: inline-block;
@@ -122,12 +154,10 @@
       .arrow {
         width: 12px;
         height: 12px;
-        cursor: move;
       }
 
       .out-arrow {
-      	-webkit-transform: translate(0px, 0px);
-    transform: translate(0px, 0px);
+        cursor: move;
       }
 
       ul, li {

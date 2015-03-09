@@ -14,10 +14,11 @@
 
       <!-- Components and connector dots --> 
       <!--<template if="{{_positioned}}">-->
+
         <template repeat="{{el, index in _elements}}">
-          <div class="wrapper {{el.name}}" id="wrapper-{{el.element.id}}" on-click="{{wrapperClicked}}" on-dragStart="{{dragStartWrapper}}" 
-          on-th-output-changed="{{showOutputAvailable}}" on-th-input-changed="{{showInputAvailable}}" 
-          style="top: {{el.top}}px; left: {{el.left}}px" draggable="true">
+          <div class="wrapper {{el.name}}" id="wrapper-{{el.element.id}}" on-click="{{wrapperClicked}}" style="top: {{el.top}}px; left: {{el.left}}px" >
+
+          
             <label>{{el.name}}</label>
             <!--<core-icon-button icon="clear" class="deleteEl {{el.element.id}}" on-click="{{_deleteElement}}"></core-icon-button> -->
             <div  class="deleteEl" component_id="{{el.element.id}}" on-click="{{_deleteElement}}">X</div>
@@ -28,9 +29,9 @@
               <ul>
                 <template repeat="{{ins in el.element.publish | _checkForInputAttr}}">
                      
-                    <li class="{{el.element.id}}-{{ins}} arrow" on-dragover="{{dragOver}}" on-dragStart="{{dragStart}}" on-dragleave="{{dragLeave}}" on-drop="{{_makeConnection}}" draggable="true">
+                    <li class="{{el.element.id}}-{{ins}} arrow in-arrow" ondragover="{{dragOverInArrow}}" ondrop="{{droppedOnInArrow}}">
                       <div class="inputMarker"></div>
-                      {{ins}}
+                      <!--{{ins}}-->
                     </li>
                 </template>
               </ul>
@@ -40,15 +41,16 @@
             <content select="#{{el.id}}"></content>
             <div class="connectors-out" >
               <template if="{{el.element.publish | _checkForOutputAttr}}">
-                <div id="{{index}}"  class="{{el.element.id}} arrow" on-dragStart="{{dragStartOutput}}" on-drag="{{drag}}" on-dragEnd="{{dragEnd}}"  draggable="true" style="border-left-color: {{el.outputReady ? el.color : defaultColor}}; ">
+                <div id="{{index}}"  class="{{el.element.id}} arrow out-arrow" draggable="true">
                   <div class="outputMarker"></div>
                 </div>
               </template>
               
             </div>
             <template if="{{!el.resizable}}">
-              <div class="resize"  draggable="true"  on-drag="{{dragResize}}" on-dragEnd="{{dragResizeEnd}}"></div>
+              <div class="resize" draggable="true" ></div>
             </template>
+          
           </div>
         </template>
       <!--</template>-->
@@ -63,51 +65,194 @@
       _elements: [],
 
       domReady: function() {
-interact('.wrapper')
-  .draggable({
-snap: {
-      targets: [
-        interact.createSnapGrid({ x: 10, y: 10 })
-      ],
-      range: Infinity,
-      elementOrigin: { x: 0, y: 0 }
-    },
-    // enable inertial throwing
+
+        /*
+        
+        interact('.wrapper')
+          .draggable({
+            snap: {
+                  targets: [
+                    interact.createSnapGrid({ x: 10, y: 10 })
+                  ],
+                  range: Infinity,
+                  elementOrigin: { x: 0, y: 0 }
+
+            },
     
-    inertia: true,
-    // keep the element within the area of it's parent
-    /*restrict: {
-      restriction: "parent",
-      endOnly: true,
-      elementRect: { top: 0, left: 0, bottom: 1, right: 1 }
-    },*/
+            inertia: false,
+            // keep the element within the area of it's parent
+     
+            // call this function on every dragmove event
+            onmove: function (event) {
 
-    // call this function on every dragmove event
-    onmove: function (event) {
-      var target = event.target,
-          // keep the dragged position in the data-x/data-y attributes
-          x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
-          y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+              console.log(event);
+              
+              var target = event.target,
+                  // keep the dragged position in the data-x/data-y attributes
+                  x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
+                  y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
 
-      // translate the element
-      target.style.webkitTransform =
-      target.style.transform =
-        'translate(' + x + 'px, ' + y + 'px)';
+              // translate the element
+              target.style.webkitTransform =
+              target.style.transform =
+                'translate(' + x + 'px, ' + y + 'px)';
 
-      // update the posiion attributes
-      target.setAttribute('data-x', x);
-      target.setAttribute('data-y', y);
-    },
-    // call this function on every dragend event
-    onend: function (event) {
-      var textEl = event.target.querySelector('p');
+              // update the posiion attributes
+              target.setAttribute('data-x', x);
+              target.setAttribute('data-y', y);
+              
+            },
+            // call this function on every dragend event
+            onend: function (event) {
+              
+            }
+          });
+*/
+/*
+        interact('.resize')
+          .draggable({
+ 
+    
+            inertia: false,
+            onmove: function (event) {
 
-      textEl && (textEl.textContent =
-        'moved a distance of '
-        + (Math.sqrt(event.dx * event.dx +
-                     event.dy * event.dy)|0) + 'px');
-    }
-  });
+              
+            },
+            // call this function on every dragend event
+            onend: function (event) {
+              console.log('RESIZE', event);
+
+              var target = event.target,
+                  // keep the dragged position in the data-x/data-y attributes
+                  x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
+                  y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+              var wrapper = target.parentNode;
+
+              var computedStyles = window.getComputedStyle(wrapper, null);
+              
+
+              wrapperWidth = computedStyles.getPropertyValue('width'); //wrapper.style.width.replace('px', '') || wrapper.style.minWidth.replace('px', '') || 100;
+              wrapperHeight = computedStyles.getPropertyValue('height');//wrapper.style.height.replace('px', '') || wrapper.style.minHeight.replace('px', '') || 40;
+
+              console.log(wrapperWidth, wrapperHeight, event.dx, event.dy, wrapper, wrapper.style);
+
+              // translate the element
+              wrapper.style.width = parseFloat(wrapperWidth) + parseFloat(event.dx) + 'px'
+              wrapper.style.height = parseFloat(wrapperHeight) + parseFloat(event.dy) + 'px'
+
+              console.log(wrapper.style.width, wrapper.style.height);
+
+            
+            }
+          });
+
+*/
+
+        // interact('.out-arrow')
+        //   .draggable({
+        //     onstart: function(event) {
+
+        //       console.log('arrow start', event);
+
+        //       this._addBezierPath( event.x0 , event.y0 , event.x0 , event.y0 , 70, 'temp_path');
+        //     }.bind(this),
+        //     onmove: function (event) {
+
+            
+
+        //     var target = event.target,
+        //         // keep the dragged position in the data-x/data-y attributes
+        //         x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
+        //         y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+      
+        //     // translate the element
+        //     target.style.webkitTransform =
+        //     target.style.transform =
+        //       'translate(' + x + 'px, ' + y + 'px)';
+      
+        //     // update the posiion attributes
+        //     target.setAttribute('data-x', x);
+        //     target.setAttribute('data-y', y);    
+
+                      
+
+        //       var tempPath = this.shadowRoot.querySelector('#temp_path');
+
+             
+
+        //       var newPath = this._createBezierPath( event.x0 , event.y0 , event.clientX , event.clientY , 70);
+        //       tempPath.setAttribute('d',newPath);
+
+              
+        //     }.bind(this),
+        //     // call this function on every dragend event
+        //     onend: function (event) {
+             
+        //       var tempPath = this.shadowRoot.querySelector('#temp_path');
+        //       if(tempPath) {
+        //         tempPath.parentNode.removeChild(tempPath);
+        //       }
+
+
+            
+        //     }.bind(this)
+        //   });
+
+          /*
+
+          interact('.in-arrow').dropzone({
+            // only accept elements matching this CSS selector
+            //accept: '.out-arrow',
+            // Require a 75% element overlap for a drop to be possible
+            overlap: 0.5,
+
+            // listen for drop related events:
+
+            ondropactivate: function (event) {
+              // add active dropzone feedback
+              console.log('ondropactivate', event);
+              event.target.classList.add('drop-active');
+            },
+            ondragenter: function (event) {
+              
+              console.log('enter', event);
+
+              var draggableElement = event.relatedTarget,
+                  dropzoneElement = event.target;
+
+              // feedback the possibility of a drop
+              dropzoneElement.classList.add('drop-target');
+              draggableElement.classList.add('can-drop');
+              draggableElement.textContent = 'Dragged in';
+            },
+            ondragleave: function (event) {
+
+              console.log('leave', event);
+
+              // remove the drop feedback style
+              event.target.classList.remove('drop-target');
+              event.relatedTarget.classList.remove('can-drop');
+              event.relatedTarget.textContent = 'Dragged out';
+            },
+            ondrop: function (event) {
+
+              console.log('drop', event);
+
+              this._addBezierPath( event.x0 , event.y0 , event.x0 , event.y0 , 70);
+
+              event.relatedTarget.textContent = 'Dropped';
+            },
+            ondropdeactivate: function (event) {
+              // remove active dropzone feedback
+              event.target.classList.remove('drop-active');
+              event.target.classList.remove('drop-target');
+            }
+          });
+
+        */
+
+
       },
 
       droppedInContainer: function(e, detail, selection){
@@ -123,7 +268,7 @@ snap: {
 
 
           if(dataSeg.length==1) {
-            self.addNewElToConnector(dataSeg[0], e.offsetX, e.offsetY);
+            self.addNewElToConnector(dataSeg[0], Math.round(e.offsetX/10)*10, Math.round(e.offsetY/10)*10);
 
             return;
           }  
@@ -137,6 +282,10 @@ snap: {
 
           // newEl.setAttribute('_top', top);
           // newEl.setAttribute('_left', left);
+
+
+          newEl.style.width = '100%';
+          newEl.style.height = '100%';
 
           this.appendChild(newEl);
 
@@ -158,6 +307,8 @@ snap: {
                                         left: left
                                     };
           this._elements.push(elItem);
+          
+
           console.log('this._elements',this._elements);
 
 
@@ -186,7 +337,108 @@ snap: {
           var uniqueId = elName + '-' + num;
           
           return uniqueId;
-      },      
+      }, 
+
+      dragResize: function(e, details, selection) {
+
+          var self = this;
+
+          console.log('dragResize');
+
+          var wrapper = selection.parentNode;
+          //var styles = window.getComputedStyle(wrapper);
+          // var wrapperTop = parseInt(styles.top.replace('px',''));
+          // var wrapperLeft = parseInt(styles.left.replace('px',''));
+
+          // var w =  e.x - wrapperLeft - 65,
+          //     h = e.y - wrapperTop - 172;
+
+          var wrapperTop = parseInt(wrapper.getBoundingClientRect().top),
+              wrapperLeft = parseInt(wrapper.getBoundingClientRect().left);
+          
+
+          var w =  e.x - wrapperLeft,
+              h = e.y - wrapperTop;
+
+
+           wrapper.style.width = w +'px';
+           wrapper.style.height = h +'px';
+
+          var elementInsideId = wrapper.id.replace('wrapper-','');
+          var elementInside = this.querySelector('#'+elementInsideId);
+
+
+          self._drawConnections();
+
+          e.stopPropagation();
+          e.preventDefault();
+
+        },
+/*
+        dragResizeEnd: function(e, details, selection) {
+          
+          var wrapper = selection.parentNode;
+
+          var elementInsideId = wrapper.id.replace('wrapper-','');
+          var elementInside = this.querySelector('#'+elementInsideId);
+
+          if(typeof elementInside.resize ==='function') {
+            elementInside.resize();
+          }
+
+        },
+*/
+        dragOverInArrow: function(e, details, selection) {
+
+          console.log('dragOverInArrow', e);
+
+        },                     
+
+        droppedOnInArrow: function(e, details, selection) {
+
+          console.log('droppedOnInArrow', e);
+
+        },                     
+
+
+        _createBezierPath: function(startX, startY, endX, endY, handleOffsetX) {
+
+            // make handleOffsetX larger when source element is on the right side of target
+            if(startX > endX) {
+              handleOffsetX *= 2;
+            }
+            var distance = Math.sqrt(Math.pow(endX-startX, 2) + Math.pow(endY-startY,2));
+            // decrease handleOffsetX when too close...
+            if(distance<100) {
+               handleOffsetX /= 2;
+            }
+            if(distance<50) {
+               handleOffsetX /= 4;
+            }
+            var path = "M"+parseInt(startX)+","+parseInt(startY)+
+                       " C"+parseInt(startX + handleOffsetX)+","+parseInt(startY)+
+                       " "+parseInt(endX - handleOffsetX)+","+parseInt(endY)+
+                       " "+parseInt(endX)+","+parseInt(endY);
+            return path;
+        },
+
+        _addBezierPath: function(startX, startY, endX, endY, handleOffsetX, id) {
+
+            var aLine = document.createElementNS('http://www.w3.org/2000/svg', 'path'); 
+            var path = this._createBezierPath(startX, startY, endX, endY, handleOffsetX);
+
+            aLine.setAttribute('d',path);
+            aLine.setAttribute('stroke', '#555');// conn.source.color);
+            aLine.setAttribute('fill', 'none');
+            if(id) {
+              aLine.setAttribute('id', id);
+            }
+            
+
+            this.$.svg.appendChild(aLine);
+
+        },
+
 
 
      

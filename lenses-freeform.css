@@ -42,14 +42,29 @@
         border: 1px solid #eee;
         display: inline-block;
         position: absolute;
-        margin: 30px 20px;
-        margin-left: 60px;
+        /*margin: 30px 20px;
+        margin-left: 60px;*/
         min-height: 80px;
         background-color: white;
         overflow: hide;
         min-width: 100px;
         min-height: 40px;
+
+          /* This makes things *much* easier */
+  box-sizing: border-box;
       }
+
+     .wrapper .resize {
+        position: absolute;
+        right: -5px;
+        bottom: -5px;
+        width: 5px;
+        height: 5px;
+        border-bottom: 1px  solid #aaa;
+        border-right: 1px  solid #aaa;
+        cursor: se-resize;
+       
+      }      
 
       .connectors-in {
         position: absolute;
@@ -99,6 +114,11 @@
         cursor: move;
       }
 
+      .out-arrow {
+      	-webkit-transform: translate(0px, 0px);
+    transform: translate(0px, 0px);
+      }
+
       ul, li {
         list-style: none;
         margin: 0;
@@ -124,4 +144,21 @@
           border-bottom: 5px solid transparent;
           border-left: 7px solid #555;
 
-      }      
+      }   
+
+      .deleteEl {
+
+        width: 12px;
+        height: 12px;
+        float: right;
+        display: inline-block;
+        position: absolute;
+        top: -15px;
+        right: -15px;
+        cursor: pointer;
+        vertical-align: middle;
+        padding: 1px;
+        text-align: center;
+
+
+      }         

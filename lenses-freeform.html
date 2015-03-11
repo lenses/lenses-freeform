@@ -10,12 +10,17 @@
   <template>
     <link rel="stylesheet" href="lenses-freeform.css">
 
+    <core-icon-button id="showDataBtn" class="active" icon="view-module" on-click="{{showDataBtn}}" alt="show component data">
+      <span>show component input/output</span>
+    </core-icon-button>
+
+
     <label class="component-list-label">Drag components into canvas:</label>
     <th-component-list id="component_list"></th-component-list>
 
     <div id="input_preview" class="data-preview">
       <template if="{{_showDataTable && _selElement.input && _selElement.input.length>0}}">
-        <label>selected component input</label>
+        <label>INPUT</label>
         <th-data-table id="input_table" input="{{_selElement.input}}" class="table"  minimal="true"></th-data-table>
       </template>
     </div>
@@ -42,8 +47,10 @@
                 <template repeat="{{ins in el.element.publish | _checkForInputAttr}}">
                      
                     <li class="{{el.element.id}}-{{ins}} arrow in-arrow" on-dragover="{{dragOverInArrow}}" 
-                    on-drop="{{droppedOnInArrow}}" ondrop="console.log('drop');">
-                      <div class="inputMarker"></div>
+                    on-drop="{{droppedOnInArrow}}" on-dragenter="{{dragEnterInArrow}}" on-dragleave="{{dragLeaveInArrow}}" on-click="{{arrowClicked}}">
+                      <div class="inputMarker">
+                        <span class="drop-zone"></span>
+                      </div>
                       <!--{{ins}}-->
                     </li>
                 </template>
@@ -56,13 +63,13 @@
               <template if="{{el.element.publish | _checkForOutputAttr}}">
                 <div id="{{index}}"  class="{{el.element.id}} arrow out-arrow" 
                   on-drag="{{dragOutArrow}}" on-dragStart="{{dragOutArrowStart}}" on-dragEnd="{{dragOutArrowEnd}}"  
-                  draggable="true">
+                   on-click="{{arrowClicked}}" draggable="true">
                   <div class="outputMarker"></div>
                 </div>
               </template>
               
             </div>
-            <template if="{{!el.resizable}}">
+            <template if="{{el.resizable}}">
               <div class="resize" draggable="true" ></div>
             </template>
           
@@ -73,7 +80,7 @@
 
     <div id="output_preview" class="data-preview">
       <template if="{{_showDataTable && _selElement.output && _selElement.output.length>0}}">
-        <label>selected component output</label>
+        <label>OUTPUT</label>
         <th-data-table id="output_table" input="{{_selElement.output}}" class="table"  minimal="true"></th-data-table>
       </template>
     </div>       
@@ -90,16 +97,113 @@
 
       _snapX: 10,
       _snapY: 10,
-
       _showDataTable: true,
+
 
       domReady: function() {
 
         
+          this.addEventListener('core-resize', function() {
+            this._drawConnections();
+          });
 
 
 
       },
+
+
+      addNewElToConnector: function(newElName, left, top){
+
+
+        newEl = document.createElement(newElName);
+
+        this.$.component_list.checkAndImport(newEl, function() {
+
+          // newEl.setAttribute('_top', top);
+          // newEl.setAttribute('_left', left);
+
+
+          newEl.style.width = '100%';
+          newEl.style.height = '100%';
+
+
+
+          this.appendChild(newEl);
+
+          this._processNewElement(newEl, top, left);
+
+        }.bind(this));
+
+
+      }, 
+
+      _processNewElement: function(newEl, top, left) {
+
+          newEl.id = this._generateUniqueId(newEl.tagName.toLowerCase());
+
+
+          var elItem = {  element: newEl, 
+                                        id: newEl.id,
+                                        name: newEl.tagName.toLowerCase(), 
+                                        top: top,
+                                        left: left
+                                    };
+
+
+          var info = this.$.component_list.getComponentInfo(newEl.tagName.toLowerCase());
+          if(info.resizable || info.category==='visualize') {
+            elItem.resizable = true;
+          }
+
+          this._elements.push(elItem);
+          
+
+          console.log('this._elements',this._elements);
+
+
+
+      },
+
+        _deleteElement: function(e) {
+
+          if(confirm('Do you want to remove this element from the sketch?')) {
+
+            var self = this;
+            var compId = e.target.getAttribute('component_id');
+            var ebmededEl = self.querySelector('#'+compId);
+            var elInArray = self.findElById(compId);
+
+            //remove all connections
+            self.removeAllConnectionsFromElement(compId)
+
+            // remove element from elements array (which removes it from the shadowDOM)
+            var filteredEls = self._elements.filter(function(el) {
+                return el.element.id!==compId;
+            });
+            self._elements = filteredEls;
+
+            // remove elements from th-connector 
+            self.removeChild(ebmededEl);
+          }
+
+
+        },
+
+        removeAllConnectionsFromElement: function(elId) {
+
+          var goodConnections = this._connections.filter(function (conn, index) {
+            
+            //filter if element is source or target of a connection
+            return !(conn.source.id===elId || conn.target.id === elId)
+             
+          });
+
+          this._connections = goodConnections;
+
+          this._drawConnections();
+
+
+        },              
 
       droppedInContainer: function(e, detail, selection){
         console.log('droppedInContainer....');
@@ -120,48 +224,7 @@
 
         }
 
-      },
-      addNewElToConnector: function(newElName, left, top){
-
-
-        newEl = document.createElement(newElName);
-
-        this.$.component_list.checkAndImport(newEl, function() {
-
-          // newEl.setAttribute('_top', top);
-          // newEl.setAttribute('_left', left);
-
-
-          newEl.style.width = '100%';
-          newEl.style.height = '100%';
-
-          this.appendChild(newEl);
-
-          this._processNewElement(newEl, top, left);
-
-        }.bind(this));
-
-
-      }, 
-
-      _processNewElement: function(newEl, top, left) {
-
-          newEl.id = this._generateUniqueId(newEl.tagName.toLowerCase());
-
-          var elItem = {  element: newEl, 
-                                        id: newEl.id,
-                                        name: newEl.tagName.toLowerCase(), 
-                                        top: top,
-                                        left: left
-                                    };
-          this._elements.push(elItem);
-          
-
-          console.log('this._elements',this._elements);
-
-
-
-      },
+      },      
 
       dragResize: function(e, details, selection) {
 
@@ -378,12 +441,21 @@
           //important! needed to allow drop
           e.preventDefault();
 
-        },                     
+        },  
+
+        dragEnterInArrow: function(e, details, selection) {
+          e.target.classList.add('drag-over');
+        },                  
+
+        dragLeaveInArrow: function(e, details, selection) {
+          e.target.classList.remove('drag-over');
+        },                  
 
         droppedOnInArrow: function(e, details, selection) {
 
-          console.log('droppedOnInArrow', e);
           var self = this;
+
+          e.target.classList.remove('drag-over');
 
           var className = selection.classList[0],
               targetElementId = className.substring(0, className.lastIndexOf('-') ),   
@@ -405,6 +477,21 @@
           e.stopPropagation();          
 
         }, 
+
+        arrowClicked: function(e, details, selection) {
+          console.log(e);
+          e.stopPropagation();
+        },      
+
+        showDataBtn: function() {
+            this._showDataTable = !this._showDataTable;
+            this.$.showDataBtn.classList.toggle('active');
+            [].forEach.call(this.shadowRoot.querySelectorAll('.data-preview'), function(el) {
+              console.log(el.style.maxHeight,el.style.opacity);
+              el.style.maxHeight = el.style.maxHeight=='0px' ? '100px' : '0px';
+            });
+        },
+
 
 
 

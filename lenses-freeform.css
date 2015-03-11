@@ -8,15 +8,15 @@
 		}
       #component_list {
         position: absolute;
-        top: 60px;
-        right: 10px;
+        top: 80px;
+        right: 12px;
         z-index: 200;
         
       }	
       .component-list-label	{
         position: absolute;
-        top: 55px;
-        right: 60px;
+        top: 75px;
+        right: 62px;
 
       }
 
@@ -44,6 +44,38 @@
         pointer-events: none;
       }
 
+      #showDataBtn {
+        position: fixed;
+        top: 5px;
+        right: 10px;
+        z-index: 300;
+        background-color: #FFF;
+        border: 1px solid #EEE;
+      }
+
+      #showDataBtn span {
+        position: absolute;
+        display: none;
+        font-size: 11px;
+        left: -24px;
+        text-align: center;
+        top: 43px;
+        width: 77px;
+        color: #888;        
+      }
+
+      #showDataBtn:hover span {
+        
+        display: block;
+      }
+
+      core-icon-button.active, #showDataBtn.active {
+        background-color: #EEE;
+        border: 1px solid #888;
+
+      }      
+
+
 
       .data-preview {
         position: fixed;
@@ -54,13 +86,16 @@
         width: 100%;
         background-color: rgba(255,255,255,0.9);
         border: 1px solid #AAA;
-        transition: height 0.5s;
-        transition: max-height 0.5s;
+        transition: height 0.3s;
+        transition: max-height 0.3s;
       }
 
       .data-preview label {
-        color: #2fa3af;
+        color: #888;
         font-size: 11px;
+        margin: 2px;
+        display: inline-block;
+        font-weight: bold;
       }
 
       .data-preview .table {
@@ -111,7 +146,7 @@
 
       .connectors-in {
         position: absolute;
-        left: -15px;
+        left: -12px;
         top: 0px;
       }
 
@@ -154,6 +189,7 @@
       .arrow {
         width: 12px;
         height: 12px;
+        cursor: pointer;
       }
 
       .out-arrow {
@@ -178,6 +214,25 @@
           
       }
 
+      .connectors-in .drop-zone {
+        width: 18px;
+        height: 18px;
+        border: 1px solid #74E8CD;
+        display: none;
+        border-radius: 50%;
+        top: -5px;
+        position: absolute;
+        left: -7px;
+        pointer-events: none;
+
+      }
+
+      .drag-over .drop-zone  {
+        display: inline-block !important;
+          
+      }
+
+
       .outputMarker {
           width: 0px; 
           height: 0px; 
@@ -195,11 +250,12 @@
         display: inline-block;
         position: absolute;
         top: -15px;
-        right: -15px;
+        right: -14px;
         cursor: pointer;
         vertical-align: middle;
         padding: 1px;
         text-align: center;
+        font-size: 9px;
 
 
       }         

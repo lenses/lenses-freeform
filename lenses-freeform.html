@@ -6,6 +6,7 @@
 
 <link rel="import" href="../th-component-list/th-component-list.html">
 
+
 <polymer-element name="lenses-freeform" attributes="">
   <template>
     <link rel="stylesheet" href="lenses-freeform.css">
@@ -25,7 +26,7 @@
       </template>
     </div>
 
-    <div id="container"  on-drop="{{droppedInContainer}}">
+    <div id="container"  on-drop="{{droppedInContainer}}" on-dragover="{{draggedOverContainer}}">
       <svg id="svg"></svg>
 
 
@@ -102,13 +103,10 @@
 
       domReady: function() {
 
-        
+
           this.addEventListener('core-resize', function() {
             this._drawConnections();
           });
-
-
-
       },
 
 
@@ -151,6 +149,7 @@
 
 
           var info = this.$.component_list.getComponentInfo(newEl.tagName.toLowerCase());
+
           if(info.resizable || info.category==='visualize') {
             elItem.resizable = true;
           }
@@ -164,49 +163,55 @@
 
       },
 
-        _deleteElement: function(e) {
+      _deleteElement: function(e) {
 
-          if(confirm('Do you want to remove this element from the sketch?')) {
+        if(confirm('Do you want to remove this element from the sketch?')) {
 
-            var self = this;
-            var compId = e.target.getAttribute('component_id');
-            var ebmededEl = self.querySelector('#'+compId);
-            var elInArray = self.findElById(compId);
+          var self = this;
+          var compId = e.target.getAttribute('component_id');
+          var ebmededEl = self.querySelector('#'+compId);
+          var elInArray = self.findElById(compId);
 
-            //remove all connections
-            self.removeAllConnectionsFromElement(compId)
+          //remove all connections
+          self.removeAllConnectionsFromElement(compId)
 
-            // remove element from elements array (which removes it from the shadowDOM)
-            var filteredEls = self._elements.filter(function(el) {
-                return el.element.id!==compId;
-            });
-            self._elements = filteredEls;
-
-            // remove elements from th-connector 
-            self.removeChild(ebmededEl);
-          }
-
-
-        },
-
-        removeAllConnectionsFromElement: function(elId) {
-
-          var goodConnections = this._connections.filter(function (conn, index) {
-            
-            //filter if element is source or target of a connection
-            return !(conn.source.id===elId || conn.target.id === elId)
-             
+          // remove element from elements array (which removes it from the shadowDOM)
+          var filteredEls = self._elements.filter(function(el) {
+              return el.element.id!==compId;
           });
+          self._elements = filteredEls;
 
-          this._connections = goodConnections;
+          // remove elements from th-connector 
+          self.removeChild(ebmededEl);
+        }
 
-          this._drawConnections();
+
+      },
+
+      removeAllConnectionsFromElement: function(elId) {
+
+        var goodConnections = this._connections.filter(function (conn, index) {
+          
+          //filter if element is source or target of a connection
+          return !(conn.source.id===elId || conn.target.id === elId)
+           
+        });
+
+        this._connections = goodConnections;
+
+        this._drawConnections();
 
 
-        },              
+      },
+
+      draggedOverContainer: function(e) {
+        // Needed to enable droppedInContainer
+        e.preventDefault();
+      },
 
       droppedInContainer: function(e, detail, selection){
         console.log('droppedInContainer....');
+        console.log(e);
         var self = this;
 
         var dataTransfer = e.dataTransfer.getData('text/plain');
@@ -224,7 +229,7 @@
 
         }
 
-      },      
+      },
 
       dragResize: function(e, details, selection) {
 
@@ -436,8 +441,8 @@
 
         dragOverInArrow: function(e, details, selection) {
 
-          //console.log('dragOverInArrow', e);
-          
+          // console.log('dragOverInArrow', e);
+
           //important! needed to allow drop
           e.preventDefault();
 
@@ -612,6 +617,7 @@
         },
 
         findElById: function(id){
+
           var self = this;
           element = self._elements.filter(function(el){
             return el.id === id;
@@ -688,9 +694,7 @@
 
           this.$.svg.appendChild(aLine);
 
-      },
-
-
+      }
 
      
     });

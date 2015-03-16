@@ -79,7 +79,7 @@
 
       .data-preview {
         position: fixed;
-        max-height: 100px;
+        /*max-height: 100px;*/
         overflow-y: scroll;
         overflow-x: hide;
         z-index: 100;
@@ -87,19 +87,25 @@
         background-color: rgba(255,255,255,0.9);
         border: 1px solid #AAA;
         transition: height 0.3s;
-        transition: max-height 0.3s;
+        height: 0;
+      }
+
+      .visible {
+        height: 90px;
       }
 
       .data-preview label {
-        color: #888;
+        color: #555;
         font-size: 11px;
-        margin: 2px;
+        margin: 2px 0 0 3px;
         display: inline-block;
         font-weight: bold;
       }
 
       .data-preview .table {
         margin-top: -5px;
+        display: block;
+        width: 99.9%;
       }
 
       #input_preview {
@@ -258,4 +264,56 @@
         font-size: 9px;
 
 
-      }         
+      }  
+
+      /*
+      
+        Styles for inside of the components.
+
+       */
+
+      *::shadow .th-container  {
+        font-size: 12px;
+        font-family: arial;
+      }
+      *::shadow .th-container p.info {
+        width: 170px;
+      }
+
+      *::shadow .th-container p.info:hover {
+        display: block;
+      }
+
+
+      *::shadow .th-container .selector {
+        min-height: 10px;
+        display: inline-block;
+        max-height: 123px;
+        overflow-y: scroll; 
+      }
+
+      *::shadow .th-container .selector .col {
+        padding: 1px;
+        border: 1px solid #EEE;
+      }
+      *::shadow .th-container .selector .core-selected {
+        background-color: #ccc;
+
+      }
+      *::shadow .th-container .label {
+        display: block;
+        color: #2fa3af;
+      }
+
+      *::shadow .th-container input.short-input {
+        border: 1px solid #eee;
+        padding: 3px;
+        width: 5em; 
+      }
+      *::shadow .th-container core-icon-button {
+        margin: 0;
+
+      }
+      *::shadow .th-container .columnName {
+        border-radius: 0;
+      }               

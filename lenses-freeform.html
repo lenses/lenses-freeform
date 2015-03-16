@@ -19,7 +19,7 @@
     <label class="component-list-label">Drag components into canvas:</label>
     <th-component-list id="component_list"></th-component-list>
 
-    <div id="input_preview" class="data-preview">
+    <div id="input_preview" class="data-preview {{{visible: _showDataTable && _selElement.input && _selElement.input.length>0 } | tokenList }}">
       <template if="{{_showDataTable && _selElement.input && _selElement.input.length>0}}">
         <label>INPUT</label>
         <th-data-table id="input_table" input="{{_selElement.input}}" class="table"  minimal="true"></th-data-table>
@@ -34,7 +34,7 @@
       <!--<template if="{{_positioned}}">-->
 
         <template repeat="{{el, index in _elements}}">
-          <div class="wrapper {{el.name}}" id="wrapper-{{el.element.id}}" on-click="{{wrapperClicked}}" style="top: {{el.top}}px; left: {{el.left}}px" on-click="{{wrapperClicked}}" on-dragStart="{{dragStartWrapper}}" on-drag="{{dragWrapper}}" on-dragend="{{dragEndWrapper}}" draggable="true" on-drop="{{droppedOnInArrow}}">
+          <div class="wrapper {{el.name}}" id="wrapper-{{el.element.id}}" on-click="{{wrapperClicked}}" style="top: {{el.top}}px; left: {{el.left}}px" on-click="{{wrapperClicked}}" on-dragStart="{{dragStartWrapper}}" on-drag="{{dragWrapper}}" on-dragend="{{dragEndWrapper}}" draggable="true"><!-- on-drop="{{droppedOnInArrow}}" needed? -->
 
           
             <label>{{el.name}}</label>
@@ -63,7 +63,7 @@
             <div class="connectors-out" >
               <template if="{{el.element.publish | _checkForOutputAttr}}">
                 <div id="{{index}}"  class="{{el.element.id}} arrow out-arrow" 
-                  on-drag="{{dragOutArrow}}" on-dragStart="{{dragOutArrowStart}}" on-dragEnd="{{dragOutArrowEnd}}"  
+                  on-drag="{{dragOutArrow}}" on-dragstart="{{dragOutArrowStart}}" on-dragend="{{dragOutArrowEnd}}"  
                    on-click="{{arrowClicked}}" draggable="true">
                   <div class="outputMarker"></div>
                 </div>
@@ -71,7 +71,7 @@
               
             </div>
             <template if="{{el.resizable}}">
-              <div class="resize" draggable="true" ></div>
+              <div class="resize" draggable="true" on-dragStart="{{dragStartResize}}" on-drag="{{dragResize}}" on-dragend="{{dragEndResize}}"></div>
             </template>
           
           </div>
@@ -79,7 +79,7 @@
       <!--</template>-->
     </div> 
 
-    <div id="output_preview" class="data-preview">
+    <div id="output_preview" class="data-preview {{{visible: _showDataTable && _selElement.input && _selElement.input.length>0 } | tokenList }}">
       <template if="{{_showDataTable && _selElement.output && _selElement.output.length>0}}">
         <label>OUTPUT</label>
         <th-data-table id="output_table" input="{{_selElement.output}}" class="table"  minimal="true"></th-data-table>
@@ -214,6 +214,12 @@
         console.log(e);
         var self = this;
 
+        //dont know why this method is being called instead of resizedragend?!
+        if(e.path && e.path.length>0 &&  e.path[0].classList.contains('resize')>0) {
+          self.dragResizeEnd(e, detail, selection);
+
+        }
+
         var dataTransfer = e.dataTransfer.getData('text/plain');
 
         //data added by th-component-list //TODO make better
@@ -231,11 +237,13 @@
 
       },
 
+      dragStartResize: function(e, details, selection) {
+         e.stopPropagation();
+      },
+
       dragResize: function(e, details, selection) {
 
           var self = this;
-
-          console.log('dragResize');
 
           var wrapper = selection.parentNode;
           //var styles = window.getComputedStyle(wrapper);
@@ -265,11 +273,20 @@
           e.stopPropagation();
           e.preventDefault();
 
+
         },
-/*
+
         dragResizeEnd: function(e, details, selection) {
-          
-          var wrapper = selection.parentNode;
+
+          console.log('dragresizeend');
+
+          var wrapper = null;
+
+          if(e.path && e.path.length>0 &&  e.path[0].classList.contains('resize')>0) {
+            
+            wrapper = e.path[0].parentNode;
+
+          }
 
           var elementInsideId = wrapper.id.replace('wrapper-','');
           var elementInside = this.querySelector('#'+elementInsideId);
@@ -279,7 +296,7 @@
           }
 
         },
-*/
+
 
         dragStartWrapper: function(e, details, selection) {
           
@@ -582,7 +599,7 @@
 
             var conn = self._connections[i];
 
-            console.log('connection ', conn);
+            //console.log('connection ', conn);
 
 
             var srcEl = conn.source.element || self.querySelector('#'+conn.source.id); //TODO do this in initialization method

@@ -1,0 +1,145 @@
+<!--
+    @license
+    Copyright (c) 2014 Thelma Project Authors. All rights reserved.
+    This code may only be used under the MIT license found at http://thelmanews.github.io/LICENSE.txt
+    The complete set of authors may be found at http://thelmanews.github.io//AUTHORS.txt
+    The complete set of contributors may be found at http://thelmanews.github.io/CONTRIBUTORS.txt
+-->
+<!doctype html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <title>lenses-freeform Demo</title>
+
+  <script src="../webcomponentsjs/webcomponents.js"></script>
+  <link rel="import" href="lenses-freeform.html">
+  <link rel="import" href="../th-component-list/th-component-list.html">
+
+  <link rel="import" href="../th-mapbox/th-mapbox.html">
+  <link rel="import" href="../th-geocoder-firebase/th-geocoder-firebase.html">
+  <link rel="import" href="../th-csv/th-csv.html">
+  <link rel="import" href="../th-enigma/th-enigma.html">
+  <link rel="import" href="../th-google-map/th-google-map.html">
+  <link rel="import" href="../th-map-us/th-map-us.html">
+  <link rel="import" href="../th-table-data/th-table-data.html">
+  <link rel="import" href="../th-array-function/th-array-function.html">
+  <link rel="import" href="../th-n-bar-chart/th-n-bar-chart.html">
+  <link rel="import" href="../th-chart-data-filter/th-chart-data-filter.html">
+
+</head>
+<style type="text/css">
+  h1 {
+    margin: 10px;
+    text-align: center;
+    color: #5E5E5E;
+    font-family: 'proxima-nova', sans-serif;
+  }
+  p {
+    margin-left: 30px;
+  }
+
+  a, a:visited {
+    color: #2fa3af;
+    text-decoration: none;
+  }
+  div {
+    background-color:#FEFEFE;
+    padding: 5px;
+  }
+
+  body {
+    font-family: 'proxima-nova', sans-serif;
+    color: #5E5E5E;
+    margin: 0;
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    font-size: 14px;
+  }
+
+  th-component-list {
+    z-index: 100;
+    position: absolute;
+    right: 0px;
+    top: 0px;
+  }
+
+  #recreate {
+    position: absolute;
+    top: 100px;
+    z-index: 100;
+  }
+
+</style>
+
+
+  <input type="button" id="recreate" value="recreate">
+
+
+
+  <lenses-freeform >
+      
+       
+
+
+      <!--
+
+      <th-chart-data-filter style="min-width: 150px"></th-chart-data-filter>
+      <th-array-function style="min-width: 150px;"></th-array-function>
+
+      <th-mapbox width="375" height="400" accessToken="pk.eyJ1IjoidGhlbG1hIiwiYSI6Ikd3RUlsTTQifQ.i6bojdSBKd6JHENLKsRjTA" mapId="examples.map-i87786ca" geolocation="false" showSwipeBar="false" animateOnInit="true" startingLat="38.8922" startingLng="-77.0348"></th-mapbox>
+    -->
+      <!--<th-n-bar-chart  chartHeight="400" chartWidth="375" animateOnInit="true"></th-n-bar-chart> --> 
+  </lenses-freeform>
+
+</body>
+<script>
+    document.querySelector('#recreate').addEventListener('click', function (e) {
+
+      var connector = document.querySelector('lenses-freeform');
+
+      var elementsJSON, connectionsJSON;
+
+      var dumped = connector.dumpStateDataAsString();
+
+      console.log('DUMPED' + dumped);
+
+      var elements = connector._elements;
+      var connections = connector._connections;
+
+
+
+        connector.remove();
+
+
+
+        console.log('###################### RECREATE ######################################');
+
+
+        //settimeout just for the visual effect.
+        setTimeout(function() {
+
+
+          var newConnector = document.createElement('lenses-freeform');
+
+          var data = JSON.parse(dumped);
+          
+          var elements = data.elements;
+
+          var connections = data.connections;
+
+          newConnector.scaffoldFromData(elements, connections)
+
+          document.body.appendChild(newConnector);      
+
+
+
+        },1000);
+
+
+    });
+
+</script>
+</html>

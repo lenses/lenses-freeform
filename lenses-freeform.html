@@ -34,7 +34,7 @@
       <!--<template if="{{_positioned}}">-->
 
         <template repeat="{{el, index in _elements}}">
-          <div class="wrapper {{el.name}}" id="wrapper-{{el.element.id}}" on-click="{{wrapperClicked}}" style="top: {{el.top}}px; left: {{el.left}}px" on-click="{{wrapperClicked}}" on-dragStart="{{dragStartWrapper}}" on-drag="{{dragWrapper}}" on-dragend="{{dragEndWrapper}}" draggable="true"><!-- on-drop="{{droppedOnInArrow}}" needed? -->
+          <div class="wrapper {{el.name}}" id="wrapper-{{el.element.id}}" component-id="{{el.element.id}}" on-click="{{wrapperClicked}}" style="top: {{el.top}}px; left: {{el.left}}px; transform: {{el.transform}}" on-click="{{wrapperClicked}}" on-dragStart="{{dragStartWrapper}}" on-drag="{{dragWrapper}}" on-dragend="{{dragEndWrapper}}" draggable="true"><!-- on-drop="{{droppedOnInArrow}}" needed? -->
 
           
             <label>{{el.name}}</label>
@@ -78,7 +78,7 @@
         </template>
     </div> 
 
-    <div id="output_preview" class="data-preview {{{visible: _showDataTable && _selElement.input && _selElement.input.length>0 } | tokenList }}">
+    <div id="output_preview" class="data-preview {{{visible: _showDataTable && _selElement.output && _selElement.output.length>0 } | tokenList }}">
       <template if="{{_showDataTable && _selElement.output && _selElement.output.length>0}}">
         <label>OUTPUT</label>
         <th-data-table id="output_table" input="{{_selElement.output}}" class="table"  minimal="true"></th-data-table>
@@ -112,7 +112,7 @@
       addNewElToConnector: function(newElName, left, top){
 
 
-        newEl = document.createElement(newElName);
+        var newEl = document.createElement(newElName);
 
         this.$.component_list.checkAndImport(newEl, function() {
 
@@ -262,7 +262,7 @@
            wrapper.style.width = w +'px';
            wrapper.style.height = h +'px';
 
-          var elementInsideId = wrapper.id.replace('wrapper-','');
+          var elementInsideId = wrapper.getAttribute('component-id');//wrapper.id.replace('wrapper-','');
           var elementInside = this.querySelector('#'+elementInsideId);
 
 
@@ -349,9 +349,15 @@
               // last dragMove call passes e.x=0 and e.y=0 which causes neg x,y values. this if avoids that
               if(e.x!==0 ||  e.y!==0)
               {
-              
+              /*
                 target.style.webkitTransform =
-                target.style.transform = 'translate(' + sx + 'px, ' + sy + 'px)';
+                      target.style.transform = 'translate(' + sx + 'px, ' + sy + 'px)';
+              */
+
+                var componentId = target.getAttribute('component-id');
+                console.log('component-id', componentId);
+
+                this.findElById(componentId).transform = 'translate(' + sx + 'px, ' + sy + 'px)';
 
                 // update the posiion attributes
                 // 
@@ -522,128 +528,261 @@
 
 
 
-        /**
-         * The functions which sets the connection (two way binging) between two element attrubutes
-         * There is not really a sourc/target distinction in the observer since it is a two way binging (in theory)
-         * but the distinction is conceptual and in UI.
-         * @param  {[type]} source      Source element
-         * @param  {[type]} sourceField The attribute to connect from source element
-         * @param  {[type]} target      Target element
-         * @param  {[type]} targetField The attribute to connect from target element
-         * @return {None}             
-         */
-        _connectAttributes: function(source, sourceField, target, targetField) {
-          var self = this;
+      /**
+       * The functions which sets the connection (two way binging) between two element attrubutes
+       * There is not really a sourc/target distinction in the observer since it is a two way binging (in theory)
+       * but the distinction is conceptual and in UI.
+       * @param  {[type]} source      Source element
+       * @param  {[type]} sourceField The attribute to connect from source element
+       * @param  {[type]} target      Target element
+       * @param  {[type]} targetField The attribute to connect from target element
+       * @return {None}             
+       */
+      _connectAttributes: function(source, sourceField, target, targetField) {
+        var self = this;
 
-          //find the index of connection which has the same target
-          var connWithSameTargetIndex = self._connections.reduce(function(value, conn, index) {
-              console.log(conn);
-              if (conn.target.id===target.id && conn.target.field===targetField) {
-                return index;
-              }
+        //find the index of connection which has the same target
+        var connWithSameTargetIndex = self._connections.reduce(function(value, conn, index) {
+            console.log(conn);
+            if (conn.target.id===target.id && conn.target.field===targetField) {
+              return index;
+            }
 
-          }, -1);
-          // and remove it from connections array
-          if(connWithSameTargetIndex>-1) {
-            self._connections.splice(connWithSameTargetIndex,1);
+        }, -1);
+        // and remove it from connections array
+        if(connWithSameTargetIndex>-1) {
+          self._connections.splice(connWithSameTargetIndex,1);
+        }
+
+
+        if (source === target){ //if a bubble was dropped on itself
+          alert('You cannot make a connection within the same element');
+          return false;
+        } else { 
+
+          // make the connection in the elements array
+          //target.inputConnectedTo = source;  // not needed
+            
+          var observer = new PathObserver(source.element, sourceField);  
+            
+          observer.open(function(newValue, oldValue) {
+             target.element[targetField] = newValue;
+          });
+
+          var srcClone = {id: source.id, name: source.name, element: source.element};
+          var targetClone = {id: target.id, name: target.name, element: target.element};
+
+
+          
+          target.element[targetField] = source.element[sourceField]; 
+
+          targetClone.field = targetField;
+
+          //self.updateConnections();
+          
+          //push the connections anyways because it will be deleted above.
+          self._connections.push({source: srcClone, target: targetClone});
+
+          
+          return true;
+        }
+
+      },
+
+      _drawConnections: function() {
+
+        var self = this;
+
+
+        var arrowOffsetY = 7;
+        var arrowOffsetX = 7;
+        var bezierCurveX = 70;  // the larger the value the smoother the curve
+
+
+        //clear all paths. since it is not done offten it is fine to do it in a not optimized way
+        self.$.svg.innerHTML = '';
+
+        for (var i = 0; i < self._connections.length; i++) {
+
+
+          var conn = self._connections[i];
+
+          //console.log('connection ', conn);
+
+
+          var srcEl = conn.source.element || self.querySelector('#'+conn.source.id); //TODO do this in initialization method
+          var targetEl = conn.target.element || self.querySelector('#'+conn.target.id);
+
+
+          var srcWrapper = self.shadowRoot.querySelector('#wrapper-'+srcEl.id);
+          var targetWrapper = self.shadowRoot.querySelector('#wrapper-'+targetEl.id);
+
+
+          // var srcRect = srcEl.getBoundingClientRect();
+          // var targetRect = targetEl.getBoundingClientRect();
+
+          var srcRect = srcWrapper.getBoundingClientRect();
+          var targetRect = targetWrapper.getBoundingClientRect();
+
+
+          var svgRect = self.$.svg.getBoundingClientRect();
+
+          var otherInputOffset = (conn.target.field==='input') ? 0 : 16;
+
+          var startX = srcRect.right - svgRect.left + arrowOffsetX; //srcRect.left + srcRect.width + 30 - containerOffsetX;
+          var startY = srcRect.top - svgRect.top + arrowOffsetY;
+          var endX = targetRect.left  - svgRect.left - arrowOffsetX;
+          var endY = targetRect.top  - svgRect.top + arrowOffsetY + otherInputOffset;
+
+
+          self._addBezierPath(startX, startY, endX, endY , bezierCurveX);
+          
+        }        
+
+      },
+
+
+      /**
+       * Sacffold a new th-connector from state data. Usage: 
+       *  var newConnector = document.createElement('th-connector');
+       *  newConnector.scaffoldFromData(elements, connections)
+       *  where elements and connections are parsed json files coming form dumpStateDataAsString
+       * @param  {Object} elements    elements state data
+       * @param  {Object} connections connections
+       * @return {None}             
+       */
+      
+      scaffoldFromData: function(elements, connections) {
+
+        //this._elements = elements;
+
+         elements.forEach(function(el) {
+            var alreadyExist = this.querySelector('#'+el.id);
+            if(!alreadyExist) {
+              var domEl =  document.createElement(el.name);
+
+              this.$.component_list.checkAndImport(domEl, function() {
+
+                console.log(domEl.publish);
+
+                domEl.style.width = '100%';
+                domEl.style.height = '100%';
+
+                domEl.id = el.id;
+                
+                if(el.name==='th-table-data') {
+                  domEl.output = el.output;
+                }
+                else {
+                  Object.keys(domEl.publish).forEach(function(attr) {
+
+
+                    if(attr!=='input' && attr!=='output' && el[attr]) {
+                      domEl[attr] = el[attr]; 
+                    }
+
+                               
+
+
+                  });
+                }
+                this.appendChild(domEl);
+                //this._elements.push(el);
+
+                console.log(domEl);
+                console.log(this._elements);
+
+
+             }.bind(this));
+
+            }
+
+          }.bind(this));
+
+         //delay to make sure position of elements are final
+         setTimeout(function() {
+
+          this.setConnections(connections);         
+
+         }.bind(this),500);
+
+
+        //newConnector._drawConnections()
+
+      },
+
+      setConnections: function(connections) {
+        this._connections = connections;
+
+
+        this._connections.forEach(function(connection) {
+          if(!connection.source.element) {
+            connection.source.element = this.querySelector('#'+connection.source.id);
           }
-
-
-          if (source === target){ //if a bubble was dropped on itself
-            alert('You cannot make a connection within the same element');
-            return false;
-          } else { 
-
-            // make the connection in the elements array
-            //target.inputConnectedTo = source;  // not needed
-              
-            var observer = new PathObserver(source.element, sourceField);  
-              
-            observer.open(function(newValue, oldValue) {
-               target.element[targetField] = newValue;
-            });
-
-            var srcClone = {id: source.id, name: source.name, element: source.element};
-            var targetClone = {id: target.id, name: target.name, element: target.element};
-
-
-            
-            target.element[targetField] = source.element[sourceField]; 
-
-            targetClone.field = targetField;
-
-            //self.updateConnections();
-            
-            //push the connections anyways because it will be deleted above.
-            self._connections.push({source: srcClone, target: targetClone});
-
-            
-            return true;
+          if(!connection.target.element) {
+            connection.target.element = this.querySelector('#'+connection.target.id);
           }
+          this._connectAttributes(connection.source, 'output', connection.target, 'input');
+        }.bind(this));
 
-        },
+        this._drawConnections();
+      },      
 
-        _drawConnections: function() {
+      dumpStateDataAsString: function() {
+        var self = this;
 
-          var self = this;
+        var toDumpEls = _.map(this._elements, function(el) {
+          var domObject = el.element;
+          var cloned = _.clone(el);  
+          console.log(domObject.publish);         
+          Object.keys(domObject.publish).forEach(function(attr) {
 
-
-          var arrowOffsetY = 7;
-          var arrowOffsetX = 7;
-          var bezierCurveX = 70;  // the larger the value the smoother the curve
-
-
-          //clear all paths. since it is not done offten it is fine to do it in a not optimized way
-          self.$.svg.innerHTML = '';
-
-          for (var i = 0; i < self._connections.length; i++) {
-
-
-            var conn = self._connections[i];
-
-            //console.log('connection ', conn);
-
-
-            var srcEl = conn.source.element || self.querySelector('#'+conn.source.id); //TODO do this in initialization method
-            var targetEl = conn.target.element || self.querySelector('#'+conn.target.id);
+            //ignore input attribute and output (except where the component is th-table-data)
+            if(attr==='chartData' || attr==='input' || (attr==='output' && el.name!=='th-table-data')) {
+              return;
+            }
+           
+            cloned[attr] = domObject[attr];
 
 
-            var srcWrapper = self.shadowRoot.querySelector('#wrapper-'+srcEl.id);
-            var targetWrapper = self.shadowRoot.querySelector('#wrapper-'+targetEl.id);
+          });
+          return cloned;
+
+        });
+
+        var retObj = {elements: toDumpEls, connections: this._connections};
+
+        var ret = JSON.stringify(retObj, this.removeDomObjects);
+
+        //var connectionsJSON = JSON.stringify(this._connections , this.removeDomObjects);
+
+         
+
+        return ret;
+
+      }, 
 
 
-            // var srcRect = srcEl.getBoundingClientRect();
-            // var targetRect = targetEl.getBoundingClientRect();
-
-            var srcRect = srcWrapper.getBoundingClientRect();
-            var targetRect = targetWrapper.getBoundingClientRect();
+      removeDomObjects: function(key, value) {
 
 
-            var svgRect = self.$.svg.getBoundingClientRect();
+          if(value instanceof HTMLElement) 
+            return undefined;
+          else
+            return value;
 
-            var otherInputOffset = (conn.target.field==='input') ? 0 : 16;
-
-            var startX = srcRect.right - svgRect.left + arrowOffsetX; //srcRect.left + srcRect.width + 30 - containerOffsetX;
-            var startY = srcRect.top - svgRect.top + arrowOffsetY;
-            var endX = targetRect.left  - svgRect.left - arrowOffsetX;
-            var endY = targetRect.top  - svgRect.top + arrowOffsetY + otherInputOffset;
+      },              
 
 
-            self._addBezierPath(startX, startY, endX, endY , bezierCurveX);
-            
-          }        
+      findElById: function(id){
 
-        },
+        var self = this;
+        element = self._elements.filter(function(el){
+          return el.id === id;
+        })[0];
 
-        findElById: function(id){
-
-          var self = this;
-          element = self._elements.filter(function(el){
-            return el.id === id;
-          })[0];
-
-          return element;
-        },
+        return element;
+      },
 
 
 
@@ -653,6 +792,10 @@
        * @return {Object}           list of attributes that are input.
        */
       _checkForInputAttr: function(published){
+        console.log('published',published);
+        if(!published) {
+          return false;
+        }
         var attrs = Object.keys(published).filter(function(item) {
           return item.indexOf("input") > -1;
 
@@ -666,7 +809,12 @@
        * @return {boolean}       True if component has output attribute (only one)
        */
       _checkForOutputAttr: function(published){
-        return published && Object.keys(published).indexOf("output") > -1 ? true : false;
+        console.log('published',published);
+        if(!published) {
+          return false;
+        }
+
+        return Object.keys(published).indexOf("output") > -1 ? true : false;
       },
 
       /**

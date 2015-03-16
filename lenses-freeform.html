@@ -132,29 +132,23 @@
 
       _processNewElement: function(newEl, top, left) {
 
-          newEl.id = this._generateUniqueId(newEl.tagName.toLowerCase());
+        newEl.id = this._generateUniqueId(newEl.tagName.toLowerCase());
+
+        var elItem = {  element: newEl, 
+                                      id: newEl.id,
+                                      name: newEl.tagName.toLowerCase(), 
+                                      top: top,
+                                      left: left
+                                  };
 
 
-          var elItem = {  element: newEl, 
-                                        id: newEl.id,
-                                        name: newEl.tagName.toLowerCase(), 
-                                        top: top,
-                                        left: left
-                                    };
+        var info = this.$.component_list.getComponentInfo(newEl.tagName.toLowerCase());
 
+        if(info.resizable || info.category==='visualize') {
+          elItem.resizable = true;
+        }
 
-          var info = this.$.component_list.getComponentInfo(newEl.tagName.toLowerCase());
-
-          if(info.resizable || info.category==='visualize') {
-            elItem.resizable = true;
-          }
-
-          this._elements.push(elItem);
-          
-
-          console.log('this._elements',this._elements);
-
-
+        this._elements.push(elItem);
 
       },
 
@@ -276,8 +270,6 @@
 
         dragResizeEnd: function(e, details, selection) {
 
-          console.log('dragresizeend');
-
           var wrapper = null;
 
           if(e.path && e.path.length>0 &&  e.path[0].classList.contains('resize')>0) {
@@ -297,16 +289,6 @@
 
 
         dragStartWrapper: function(e, details, selection) {
-          
-          
-          console.log('start', e, details, selection);
-
-
-          //if resize is being dragged don't do anything (stopPropagation is not doing anything)
-          
-          // if(e.path[0].classList && e.path[0].classList.length>0 && e.path[0].classList.contains('resize')) {
-          //   return false;
-          // }
 
           var target = e.target;
           target.setAttribute('start-x', e.x);
@@ -355,7 +337,6 @@
               */
 
                 var componentId = target.getAttribute('component-id');
-                console.log('component-id', componentId);
 
                 this.findElById(componentId).transform = 'translate(' + sx + 'px, ' + sy + 'px)';
 
@@ -462,8 +443,6 @@
 
         dragOverInArrow: function(e, details, selection) {
 
-          // console.log('dragOverInArrow', e);
-
           //important! needed to allow drop
           e.preventDefault();
 
@@ -489,14 +468,8 @@
               source = self.findElById(self.draggedEl.classList[0]),
               target = self.findElById(targetElementId);
 
-          console.log(selection.classList[0],targetElementId,targetField,target);
-
 
           this._connectAttributes(source, 'output', target, targetField);
-
-        // self._connections.push({source: source, target: target});
-
-        // }
 
           self._drawConnections();
 
@@ -517,7 +490,6 @@
             this._showDataTable = !this._showDataTable;
             this.$.showDataBtn.classList.toggle('active');
             [].forEach.call(this.shadowRoot.querySelectorAll('.data-preview'), function(el) {
-              console.log(el.style.maxHeight,el.style.opacity);
               el.style.maxHeight = el.style.maxHeight=='0px' ? '100px' : '0px';
             });
         },
@@ -543,7 +515,6 @@
 
         //find the index of connection which has the same target
         var connWithSameTargetIndex = self._connections.reduce(function(value, conn, index) {
-            console.log(conn);
             if (conn.target.id===target.id && conn.target.field===targetField) {
               return index;
             }
@@ -607,9 +578,6 @@
 
           var conn = self._connections[i];
 
-          //console.log('connection ', conn);
-
-
           var srcEl = conn.source.element || self.querySelector('#'+conn.source.id); //TODO do this in initialization method
           var targetEl = conn.target.element || self.querySelector('#'+conn.target.id);
 
@@ -663,8 +631,6 @@
 
               this.$.component_list.checkAndImport(domEl, function() {
 
-                console.log(domEl.publish);
-
                 domEl.style.width = '100%';
                 domEl.style.height = '100%';
 
@@ -688,10 +654,6 @@
                 }
                 this.appendChild(domEl);
                 //this._elements.push(el);
-
-                console.log(domEl);
-                console.log(this._elements);
-
 
              }.bind(this));
 
@@ -734,7 +696,6 @@
         var toDumpEls = _.map(this._elements, function(el) {
           var domObject = el.element;
           var cloned = _.clone(el);  
-          console.log(domObject.publish);         
           Object.keys(domObject.publish).forEach(function(attr) {
 
             //ignore input attribute and output (except where the component is th-table-data)
@@ -792,7 +753,6 @@
        * @return {Object}           list of attributes that are input.
        */
       _checkForInputAttr: function(published){
-        console.log('published',published);
         if(!published) {
           return false;
         }
@@ -809,7 +769,6 @@
        * @return {boolean}       True if component has output attribute (only one)
        */
       _checkForOutputAttr: function(published){
-        console.log('published',published);
         if(!published) {
           return false;
         }

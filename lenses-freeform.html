@@ -52,7 +52,8 @@
                     <li class="{{el.element.id}}-{{ins}} arrow in-arrow" on-dragover="{{dragOverInArrow}}" 
                     on-drop="{{droppedOnInArrow}}" on-dragenter="{{dragEnterInArrow}}" on-dragleave="{{dragLeaveInArrow}}" on-click="{{arrowClicked}}">
                       <div class="inputMarker">
-                        <span class="drop-zone"></span>
+                        <div class="delete" on-click="{{deleteConnection}}">x</div>
+                        <span class="drop-zone">{{ins}}</span>
                       </div>
                       <!--{{ins}}-->
                     </li>
@@ -485,9 +486,82 @@
         }, 
 
         arrowClicked: function(e, details, selection) {
-          console.log(e);
+          //e.stopPropagation();
+
+          var wrapper = null;
+          for(var i = 0; i< e.path.length && !wrapper; i++) {
+            if(e.path[i].classList.contains('wrapper')) {
+              wrapper = e.path[i];
+            }
+          } 
+          var sourceTarget = e.path[0].classList.contains('inputMarker') ? 'target' : 'source';
+          var elementInsideId = wrapper.getAttribute('component-id');
+
+          //var elementInside = this.findElById(elementInsideId);
+
+
+          var connection = this._connections.filter(function(conn) {
+            if(conn[sourceTarget].id===elementInsideId) {
+              return true;
+            }
+
+          });
+
+
+          if(connection.length>0) {
+
+            var marker = e.path[0];
+            var bezierCssPath = '#container #svg #'+connection[0].source.id+'-'+connection[0].target.id;
+            var bezier = this.shadowRoot.querySelector(bezierCssPath);
+
+            if(connection[0].highlighted) {
+              connection[0].highlighted = false;
+
+              marker.classList.remove('highlighted');
+              bezier.classList.remove('highlighted');
+
+            }
+            else {
+
+              connection[0].highlighted = true;
+
+              marker.classList.add('highlighted');
+              bezier.classList.add('highlighted');
+
+            }
+
+          }
+
+
+        },
+
+        deleteConnection: function(e, details, selection) {
           e.stopPropagation();
-        },      
+          if(confirm('Are you sure you want to delete the highlighted connection?')) {
+
+            var wrapper = null;
+            for(var i = 0; i< e.path.length && !wrapper; i++) {
+              if(e.path[i].classList.contains('wrapper')) {
+                wrapper = e.path[i];
+              }
+            } 
+            var elementInsideId = wrapper.getAttribute('component-id');
+            this._connections = this._connections.filter(function(connection) {
+              return connection.target.id!==elementInsideId;
+            });
+
+            var marker = e.path[1]; 
+            marker.classList.remove('highlighted');
+
+
+
+            this._drawConnections();
+
+
+          }
+        },
+
+
 
 
       /********************** Event Handlers End ********************************/
@@ -610,7 +684,7 @@
           var endY = targetRect.top  - svgRect.top + arrowOffsetY + otherInputOffset;
 
 
-          self._addBezierPath(startX, startY, endX, endY , bezierCurveX);
+          self._addBezierPath(startX, startY, endX, endY , bezierCurveX, srcEl.id + '-' + targetEl.id, conn.highlighted);
           
         }        
 
@@ -827,7 +901,7 @@
           return path;
       },
 
-      _addBezierPath: function(startX, startY, endX, endY, handleOffsetX, id) {
+      _addBezierPath: function(startX, startY, endX, endY, handleOffsetX, id, highlighted) {
 
           var aLine = document.createElementNS('http://www.w3.org/2000/svg', 'path'); 
           var path = this._createBezierPath(startX, startY, endX, endY, handleOffsetX);
@@ -837,6 +911,10 @@
           aLine.setAttribute('fill', 'none');
           if(id) {
             aLine.setAttribute('id', id);
+          }
+
+          if(highlighted) {
+            aLine.classList.add('highlighted');
           }
           
 

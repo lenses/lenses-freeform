@@ -1,10 +1,10 @@
 <link rel="import" href="../polymer/polymer.html">
 
 
-<link rel="import" href="../th-data-table/th-data-table.html">
+<link rel="import" href="../lens-data-table/lens-data-table.html">
 
 
-<link rel="import" href="../th-component-list/th-component-list.html">
+<link rel="import" href="../lenses-component-list/lenses-component-list.html">
 
 
 <polymer-element name="lenses-freeform" attributes="">
@@ -17,12 +17,12 @@
 
 
     <label class="component-list-label">Drag components into canvas:</label>
-    <th-component-list id="component_list"></th-component-list>
+    <lenses-component-list id="component_list"></lenses-component-list>
 
     <div id="input_preview" class="data-preview {{{visible: _showDataTable && _selElement.input && _selElement.input.length>0 } | tokenList }}">
       <template if="{{_showDataTable && _selElement.input && _selElement.input.length>0}}">
         <label>INPUT</label>
-        <th-data-table id="input_table" input="{{_selElement.input}}" class="table"  minimal="true"></th-data-table>
+        <lens-data-table id="input_table" input="{{_selElement.input}}" class="table"  minimal="true"></lens-data-table>
       </template>
     </div>
 
@@ -84,7 +84,7 @@
     <div id="output_preview" class="data-preview {{{visible: _showDataTable && _selElement.output && _selElement.output.length>0 } | tokenList }}">
       <template if="{{_showDataTable && _selElement.output && _selElement.output.length>0}}">
         <label>OUTPUT</label>
-        <th-data-table id="output_table" input="{{_selElement.output}}" class="table"  minimal="true"></th-data-table>
+        <lens-data-table id="output_table" input="{{_selElement.output}}" class="table"  minimal="true"></lens-data-table>
       </template>
     </div>       
 
@@ -217,7 +217,7 @@
 
         var dataTransfer = e.dataTransfer.getData('text/plain');
 
-        //data added by th-component-list //TODO make better
+        //data added by lenses-component-list //TODO make better
         if(dataTransfer && dataTransfer.length>0) {
           var dataSeg = dataTransfer.split(',');
 

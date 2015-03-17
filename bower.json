@@ -9,7 +9,9 @@
   "main": "lenses-freeform.html",
   "dependencies": {
     "polymer": "Polymer/polymer#~0.5.1",
-    "interact": "~1.2.3"
+    "lens-data-table": "lenses/lens-data-table",
+    "lenses-component-list": "lenses/lenses-component-list"
+
   },
   "devDependencies": {
     "web-component-tester": "Polymer/web-component-tester#^2.0.0"

@@ -34,7 +34,9 @@
       <!--<template if="{{_positioned}}">-->
 
         <template repeat="{{el, index in _elements}}">
-          <div class="wrapper {{el.name}}" id="wrapper-{{el.element.id}}" component-id="{{el.element.id}}" on-click="{{wrapperClicked}}" style="top: {{el.top}}px; left: {{el.left}}px; transform: {{el.transform}}" on-click="{{wrapperClicked}}" on-dragStart="{{dragStartWrapper}}" on-drag="{{dragWrapper}}" on-dragend="{{dragEndWrapper}}" draggable="true"><!-- on-drop="{{droppedOnInArrow}}" needed? -->
+          <div class="wrapper {{el.name}}" id="wrapper-{{el.element.id}}" component-id="{{el.element.id}}" on-click="{{wrapperClicked}}" 
+          style="top: {{el.top}}px; left: {{el.left}}px; transform: {{el.transform}}; width: {{el.width}}px; height: {{el.height}}px" 
+          on-click="{{wrapperClicked}}" on-dragStart="{{dragStartWrapper}}" on-drag="{{dragWrapper}}" on-dragend="{{dragEndWrapper}}" draggable="true"><!-- on-drop="{{droppedOnInArrow}}" needed? -->
 
           
             <label>{{el.name}}</label>
@@ -253,11 +255,16 @@
               h = e.y - wrapperTop;
 
 
-           wrapper.style.width = w +'px';
-           wrapper.style.height = h +'px';
+          // wrapper.style.width = w +'px';
+          // wrapper.style.height = h +'px';
 
           var elementInsideId = wrapper.getAttribute('component-id');//wrapper.id.replace('wrapper-','');
           var elementInside = this.querySelector('#'+elementInsideId);
+
+          var element = this.findElById(elementInsideId);
+
+          element.width = w; 
+          element.height = h; 
 
 
           self._drawConnections();

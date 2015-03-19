@@ -128,10 +128,10 @@
         /*margin: 30px 20px;
         margin-left: 60px;*/
         min-height: 80px;
-        background-color: white;
+        background-color: rgba(255,255,255,0.85);
         overflow: hide;
-        min-width: 100px;
-        min-height: 40px;
+        min-width: 110px;
+        min-height: 30px;
 
         /* This makes things *much* easier?!?! */
         box-sizing: border-box;
@@ -290,7 +290,57 @@
         font-size: 9px;
 
 
-      }  
+      } 
+/*
+      .wrapper .setting-toggle {
+        cursor: pointer;
+        padding: 2px;
+        font-weight: bold;
+        display: inline;
+
+      } 
+
+      .wrapper .setting-toggle::before {
+        content: '+';
+        width: 9px;
+        display: inline-block;        
+      } 
+
+      .wrapper .open::before {
+        content: '-';
+        
+      } 
+  */
+ 
+      .setting-btn {
+        color: #555;
+        margin: 2px;
+        padding: 2px;
+        border: 1px solid #FFF;
+      }
+
+      .setting-btn:hover {
+        box-shadow: 0 0 0 0;
+        border: 1px solid #EEE;
+      }
+
+      .setting-btn /deep/ core-icon {
+        width: 20px;
+        height: 20px;
+      }
+
+      core-icon-button.open {
+        background-color: #D5D5D5;
+        border: 1px solid #AAA;
+      }
+
+      .settings-collapse {
+        position: absolute;
+        background: rgba(255,255,255,0.85);
+        border: 1px solid #eee;
+        width: 350px;
+      }
+
 
       /*
       

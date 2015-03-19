@@ -62,7 +62,20 @@
 
               <!-- Output -->
             </div>
-            <content select="#{{el.id}}"></content>
+            <!--
+            <div class="setting-toggle {{ {open: el.settingOpen } | tokenList}}" collapse-id="collapse-{{el.id}}" component-id="{{el.id}}"
+             on-click="{{toggleSetting}}"></div>
+           -->
+            <!-- for components with settings (all non-resizables?) -->
+            <template if="{{!el.resizable}}">
+              <core-icon-button icon="settings" class="setting-btn {{ {open: el.settingOpen } | tokenList}}"
+                                collapse-id="collapse-{{el.id}}" component-id="{{el.id}}"
+               on-click="{{toggleSetting}}"></core-icon-button>
+            </template>
+            <!-- for resizable components-->
+            <template if="{{el.resizable}}">
+                <content select="#{{el.id}}"></content>
+            </template>
             <div class="connectors-out" >
               <template if="{{el.element.publish | _checkForOutputAttr}}">
                 <div id="{{index}}"  class="{{el.element.id}} arrow out-arrow" 
@@ -78,10 +91,19 @@
             </template>
           
           </div>
+
+           <template if="{{!el.resizable}}">
+              <core-collapse class="settings-collapse" id="collapse-{{el.id}}"
+                style="top: {{el.top+35}}px; left: {{el.left}}px; transform: {{el.transform}}; width: {{el.width}}px; height: {{el.height}}px">
+                <content select="#{{el.id}}"></content>
+              </core-collapse>
+           </template>
+
         </template>
     </div> 
 
-    <div id="output_preview" class="data-preview {{{visible: _showDataTable && _selElement.output && _selElement.output.length>0 } | tokenList }}">
+    <div id="output_preview" 
+         class="data-preview {{{visible: _showDataTable && _selElement.output && _selElement.output.length>0 } | tokenList }}">
       <template if="{{_showDataTable && _selElement.output && _selElement.output.length>0}}">
         <label>OUTPUT</label>
         <lens-data-table id="output_table" input="{{_selElement.output}}" class="table"  minimal="true"></lens-data-table>
@@ -195,7 +217,6 @@
 
 
       },
-
 
       /********************** Event Handlers Start ********************************/
 
@@ -560,6 +581,20 @@
 
           }
         },
+
+      toggleSetting: function(e, detail, selection) {
+        var button = e.path[0],
+            collapseId = button.getAttribute('collapse-id'),
+            componentId = button.getAttribute('component-id'),
+            elementInfo = this.findElById(componentId);
+        console.log(e,collapseId);
+
+        var collapse = this.shadowRoot.querySelector('#'+collapseId);
+        collapse.toggle();
+
+        elementInfo.settingOpen =! elementInfo.settingOpen;
+      },
+
 
 
 

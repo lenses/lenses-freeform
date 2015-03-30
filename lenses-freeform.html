@@ -40,7 +40,6 @@
 
           
             <label>{{el.name}}</label>
-            <!--<core-icon-button icon="clear" class="deleteEl {{el.element.id}}" on-click="{{_deleteElement}}"></core-icon-button> -->
             <div  class="deleteEl" component_id="{{el.element.id}}" on-click="{{_deleteElement}}">X</div>
              
             <div class="connectors-in" >
@@ -55,17 +54,12 @@
                         <div class="delete" on-click="{{deleteConnection}}">x</div>
                         <span class="drop-zone">{{ins}}</span>
                       </div>
-                      <!--{{ins}}-->
                     </li>
                 </template>
               </ul>
 
               <!-- Output -->
             </div>
-            <!--
-            <div class="setting-toggle {{ {open: el.settingOpen } | tokenList}}" collapse-id="collapse-{{el.id}}" component-id="{{el.id}}"
-             on-click="{{toggleSetting}}"></div>
-           -->
             <!-- for components with settings (all non-resizables?) -->
             <template if="{{!el.resizable}}">
               <core-icon-button icon="settings" class="setting-btn {{ {open: el.settingOpen } | tokenList}}"

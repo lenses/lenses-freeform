@@ -92,10 +92,13 @@
         border: 1px solid #AAA;
         transition: height 0.3s;
         height: 0;
+        margin: 2px;
+        width: 99%;
       }
 
       .visible {
-        height: 90px;
+        height: 100px;
+        padding: 3px;
       }
 
       .data-preview label {
@@ -338,7 +341,7 @@
         position: absolute;
         background: rgba(255,255,255,0.85);
         border: 1px solid #eee;
-        width: 350px;
+        width: 300px;
       }
 
 

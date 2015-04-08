@@ -34,7 +34,7 @@
       <!--<template if="{{_positioned}}">-->
 
         <template repeat="{{el, index in _elements}}">
-          <div class="wrapper {{el.name}}" id="wrapper-{{el.element.id}}" component-id="{{el.element.id}}" on-click="{{wrapperClicked}}" 
+          <div class="wrapper {{el.name}}" id="wrapper-{{el.id}}" component-id="{{el.id}}" on-click="{{wrapperClicked}}" 
           style="top: {{el.top}}px; left: {{el.left}}px; transform: {{el.transform}}; width: {{el.width}}px; height: {{el.height}}px" 
           on-click="{{wrapperClicked}}" on-dragStart="{{dragStartWrapper}}" on-drag="{{dragWrapper}}" on-dragend="{{dragEndWrapper}}" draggable="true"><!-- on-drop="{{droppedOnInArrow}}" needed? -->
 
@@ -87,7 +87,7 @@
           </div>
 
            <template if="{{!el.resizable}}">
-              <core-collapse class="settings-collapse" id="collapse-{{el.id}}"
+              <core-collapse class="settings-collapse" id="collapse-{{el.id}}" opened="{{el.settingOpen}}"
                 style="top: {{el.top+35}}px; left: {{el.left}}px; transform: {{el.transform}}; width: {{el.width}}px; height: {{el.height}}px">
                 <content select="#{{el.id}}"></content>
               </core-collapse>
@@ -129,7 +129,6 @@
 
 
       addNewElToConnector: function(newElName, left, top){
-
 
         var newEl = document.createElement(newElName);
 
@@ -222,8 +221,7 @@
       },
 
       droppedInContainer: function(e, detail, selection){
-        console.log('droppedInContainer....');
-        console.log(e);
+
         var self = this;
 
         //dont know why this method is being called instead of resizedragend?!
@@ -580,15 +578,13 @@
 
       toggleSetting: function(e, detail, selection) {
         var button = e.path[0],
-            collapseId = button.getAttribute('collapse-id'),
             componentId = button.getAttribute('component-id'),
             elementInfo = this.findElById(componentId);
-        console.log(e,collapseId);
 
-        var collapse = this.shadowRoot.querySelector('#'+collapseId);
-        collapse.toggle();
 
-        elementInfo.settingOpen =! elementInfo.settingOpen;
+          elementInfo.settingOpen =! elementInfo.settingOpen;
+
+
       },
 
 
@@ -698,9 +694,6 @@
           var targetWrapper = self.shadowRoot.querySelector('#wrapper-'+targetEl.id);
 
 
-          // var srcRect = srcEl.getBoundingClientRect();
-          // var targetRect = targetEl.getBoundingClientRect();
-
           var srcRect = srcWrapper.getBoundingClientRect();
           var targetRect = targetWrapper.getBoundingClientRect();
 
@@ -734,11 +727,12 @@
       
       scaffoldFromData: function(elements, connections) {
 
-        //this._elements = elements;
+        this._elements = elements;
 
          elements.forEach(function(el) {
             var alreadyExist = this.querySelector('#'+el.id);
             if(!alreadyExist) {
+
               var domEl =  document.createElement(el.name);
 
               this.$.component_list.checkAndImport(domEl, function() {
@@ -764,8 +758,9 @@
 
                   });
                 }
+
+                el.element = domEl;
                 this.appendChild(domEl);
-                //this._elements.push(el);
 
              }.bind(this));
 
@@ -778,7 +773,7 @@
 
           this.setConnections(connections);         
 
-         }.bind(this),500);
+         }.bind(this),1000);
 
 
         //newConnector._drawConnections()

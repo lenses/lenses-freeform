@@ -395,4 +395,24 @@
       }
       *::shadow .th-container .columnName {
         border-radius: 0;
-      }               
+      }      
+
+
+   /* ----- media queries ----- */
+
+   @media screen 
+  and (max-width: 550px) {
+
+    body {
+      color: red;
+    }
+
+
+    #component_list, .component-list-label {
+          
+      opacity: 0.15;
+      z-index: 0;
+          
+    } 
+
+}         

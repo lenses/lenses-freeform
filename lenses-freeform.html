@@ -26,7 +26,7 @@
       </template>
     </div>
 
-    <div id="container"  on-drop="{{droppedInContainer}}" on-dragover="{{draggedOverContainer}}">
+    <div id="container"  on-mousedown="{{clickInContainer}}" on-drop="{{droppedInContainer}}" on-dragover="{{draggedOverContainer}}">
       <svg id="svg"></svg>
 
 
@@ -245,6 +245,15 @@
 
         }
 
+      },
+
+      clickInContainer: function(e) {
+        var className = e.toElement.className;
+        console.log(className.baseVal);
+        if ( className.baseVal && className.baseVal.indexOf('cnxn') > -1 ) {
+          console.log('clicked on connection');
+          // this.clickedOnConnection(e);
+        }
       },
 
       dragStartResize: function(e, details, selection) {
@@ -934,10 +943,14 @@
 
           aLine.setAttribute('d',path);
           aLine.setAttribute('stroke', '#555');// conn.source.color);
+          aLine.setAttributeNS(null, 'stroke-width', '5');
           aLine.setAttribute('fill', 'none');
           if(id) {
             aLine.setAttribute('id', id);
           }
+
+          // add class "cnxn"
+          aLine.setAttribute('class', 'cnxn');
 
           if(highlighted) {
             aLine.classList.add('highlighted');

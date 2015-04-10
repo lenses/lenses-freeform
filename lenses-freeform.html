@@ -249,10 +249,36 @@
 
       clickInContainer: function(e) {
         var className = e.toElement.className;
-        console.log(className.baseVal);
+
         if ( className.baseVal && className.baseVal.indexOf('cnxn') > -1 ) {
           console.log('clicked on connection');
-          // this.clickedOnConnection(e);
+          this.clickedOnConnection(e);
+        } else {
+          this._clearHighlightedConnections();
+        }
+      },
+
+      clickedOnConnection: function(e) {
+
+        var bezier = this.shadowRoot.querySelector('#'+e.toElement.id);
+        console.log(bezier);
+
+        if (String(bezier.classList).indexOf('highlight') > -1 ) {
+          // console.log('delete');
+          this.deleteBezier(e, bezier);
+        } else {
+          // if not highlighted, then highlight
+          this._clearHighlightedConnections();
+          bezier.classList.add('highlighted');
+          this._highlightedConnection = bezier;
+        }
+
+      },
+
+      _clearHighlightedConnections: function() {
+        if (this._highlightedConnection) {
+          this._highlightedConnection.classList.remove('highlighted');
+          this._highlightedConnect = null;
         }
       },
 
@@ -564,37 +590,60 @@
           if(confirm('Are you sure you want to delete the highlighted connection?')) {
 
             var wrapper = null;
+
             for(var i = 0; i< e.path.length && !wrapper; i++) {
               if(e.path[i].classList.contains('wrapper')) {
                 wrapper = e.path[i];
               }
             } 
             var elementInsideId = wrapper.getAttribute('component-id');
-            this._connections = this._connections.filter(function(connection) {
-              return connection.target.id!==elementInsideId;
-            });
 
-            var marker = e.path[1]; 
-            marker.classList.remove('highlighted');
-
-
-
-            this._drawConnections();
-
+            this.deleteConnectionByID(e, elementInsideId)
 
           }
         },
 
-      toggleSetting: function(e, detail, selection) {
-        var button = e.path[0],
-            componentId = button.getAttribute('component-id'),
-            elementInfo = this.findElById(componentId);
+        deleteBezier: function(e, bezier) {
+          var srcId, dstId;
+
+          if(confirm('Are you sure you want to delete the highlighted connection?')) {
+            var idSplit = bezier.id.split('-');
+
+            // split ID at number to determine srcId and dstId
+            var i = 0;
+            while(isNaN( (Number(idSplit[i])))) {
+              i++;
+            }
+
+            dstId = idSplit.slice(i+1).join('-');
+            srcId = idSplit.slice(0, i).join('-');
+
+            this.deleteConnectionByID(e, dstId);
+          }
+        },
+
+        deleteConnectionByID: function(e, dstId) {
+
+          this._connections = this._connections.filter(function(connection) {
+            return connection.target.id!==dstId;
+          });
+
+          var marker = e.path[1]; 
+          marker.classList.remove('highlighted');
+
+          this._drawConnections();
+        },
+
+        toggleSetting: function(e, detail, selection) {
+          var button = e.path[0],
+              componentId = button.getAttribute('component-id'),
+              elementInfo = this.findElById(componentId);
 
 
-          elementInfo.settingOpen =! elementInfo.settingOpen;
+            elementInfo.settingOpen =! elementInfo.settingOpen;
 
 
-      },
+        },
 
 
 

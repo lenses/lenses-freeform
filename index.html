@@ -29,6 +29,10 @@
 
       }
 
+      a, a:hover, a:visited {
+        color: #333;
+      }
+
       .lens-example {
         width: 1000px;
         height: 700px;
@@ -47,6 +51,10 @@
       }
       .examples h3 {
         margin-bottom: .4em;
+      }
+      .examples .info {
+        font-size: 0.8em;
+        margin-top: 2px;
       }
       h3.explore {
         text-align: center;
@@ -70,7 +78,7 @@
       }
       .open-demo, .open-demo:hover, .open-demo:visited {
         color: #333;
-        text-decoration: none;
+        text-decoration: underline;
         font-size: 0.9em;
       }
 
@@ -119,8 +127,14 @@
       <ul class="examples">
         <li>
           <h3>Iris dataset visualization</h3>
-          <a href="demo-iris.html" class="open-demo" target="_blank">click here to open demo in a new tab</a>
+          <a href="demo-iris.html" class="open-demo" target="_blank">Open demo in a new tab</a>
           <iframe src="demo-iris.html" class="lens-example"></iframe>
+        </li>
+        <li>
+          <h3>Car displacement vs MPG and HP</h3>
+          <a href="demo-cars.html" class="open-demo" target="_blank">Open demo in a new tab</a>
+          <div class="info">Data source: <a href="http://bl.ocks.org/mbostock/7586334" target="_blank">http://bl.ocks.org/mbostock/7586334</a></div>
+          <iframe src="demo-cars.html" class="lens-example"></iframe>
         </li>
       </ul>
       <div class="developed">

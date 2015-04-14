@@ -808,7 +808,7 @@
           Object.keys(domObject.publish).forEach(function(attr) {
 
             //ignore input attribute and output (except where the component is th-table-data)
-            if(attr==='chartData' || attr==='input' || (attr==='output' && el.name!=='th-table-data')) {
+            if(attr==='chartData' || attr.indexOf('input')===0 || (attr==='output' && el.name!=='th-table-data')) {
               return;
             }
            

@@ -128,7 +128,7 @@
       },
 
 
-      addNewElToConnector: function(newElName, left, top){
+      addNewElToLens: function(newElName, left, top){
 
         var newEl = document.createElement(newElName);
 
@@ -156,7 +156,9 @@
                                       id: newEl.id,
                                       name: newEl.tagName.toLowerCase(), 
                                       top: top,
-                                      left: left
+                                      left: left,
+                                      //trying to use transform instead of top/left
+                                      //transform: 'translate(' + top + 'px, ' + left + 'px)' 
                                   };
 
 
@@ -238,7 +240,7 @@
 
 
           if(dataSeg.length==1) {
-            self.addNewElToConnector(dataSeg[0], Math.round(e.offsetX/10)*10, Math.round(e.offsetY/10)*10);
+            self.addNewElToLens(dataSeg[0], Math.round(e.offsetX/10)*10, Math.round(e.offsetY/10)*10);
 
             return;
           } 
@@ -849,7 +851,7 @@
           if(!connection.target.element) {
             connection.target.element = this.querySelector('#'+connection.target.id);
           }
-          this._connectAttributes(connection.source, 'output', connection.target, 'input');
+          this._connectAttributes(connection.source, 'output', connection.target, connection.target.field || 'input');
         }.bind(this));
 
         this._drawConnections();
@@ -864,7 +866,7 @@
           Object.keys(domObject.publish).forEach(function(attr) {
 
             //ignore input attribute and output (except where the component is th-table-data)
-            if(attr==='chartData' || attr==='input' || (attr==='output' && el.name!=='th-table-data')) {
+            if(attr==='chartData' || attr.indexOf('input')===0 || (attr==='output' && el.name!=='th-table-data')) {
               return;
             }
            

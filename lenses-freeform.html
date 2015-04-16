@@ -7,7 +7,8 @@
 <link rel="import" href="../lenses-component-list/lenses-component-list.html">
 
 
-<polymer-element name="lenses-freeform" attributes="">
+<polymer-element name="lenses-freeform" attributes="" on-keydown="{{keydownHandler}}">
+
   <template>
     <link rel="stylesheet" href="lenses-freeform.css">
 
@@ -40,7 +41,7 @@
 
           
             <label>{{el.name}}</label>
-            <div  class="deleteEl" component_id="{{el.element.id}}" on-click="{{_deleteElement}}">X</div>
+            <div  class="deleteEl" component_id="{{el.element.id}}" on-click="{{_deleteElementEvent}}">X</div>
              
             <div class="connectors-in" >
               <!-- Input -->
@@ -121,12 +122,16 @@
 
       domReady: function() {
 
-
-          this.addEventListener('core-resize', function() {
-            this._drawConnections();
-          });
+        this.addEventListener('core-resize', function() {
+          this._drawConnections();
+        });
       },
 
+      ready: function() {
+        this.focus();
+        this.tabIndex = 0;
+
+      },
 
       addNewElToLens: function(newElName, left, top){
 
@@ -174,12 +179,19 @@
 
       },
 
-      _deleteElement: function(e) {
+      // when delete button is clicked
+      _deleteElementEvent: function(e) {
 
+        var self = this;
+        var compId = e.target.getAttribute('component_id');
+        self._deleteElementById(compId);
+
+      },
+
+      _deleteElementById: function(compId) {
         if(confirm('Do you want to remove this element from the sketch?')) {
 
           var self = this;
-          var compId = e.target.getAttribute('component_id');
           var ebmededEl = self.querySelector('#'+compId);
           var elInArray = self.findElById(compId);
 
@@ -192,11 +204,9 @@
           });
           self._elements = filteredEls;
 
-          // remove elements from th-connector 
+          // remove elements from lens-connector 
           self.removeChild(ebmededEl);
         }
-
-
       },
 
       removeAllConnectionsFromElement: function(elId) {
@@ -267,7 +277,7 @@
 
         if (String(bezier.classList).indexOf('highlight') > -1 ) {
           // console.log('delete');
-          this.deleteBezier(e, bezier);
+          this._deleteBezier(e, bezier);
         } else {
           // if not highlighted, then highlight
           this._clearHighlightedConnections();
@@ -280,7 +290,7 @@
       _clearHighlightedConnections: function() {
         if (this._highlightedConnection) {
           this._highlightedConnection.classList.remove('highlighted');
-          this._highlightedConnect = null;
+          this._highlightedConnection = null;
         }
       },
 
@@ -588,24 +598,40 @@
         },
 
         deleteConnection: function(e, details, selection) {
-          e.stopPropagation();
           if(confirm('Are you sure you want to delete the highlighted connection?')) {
 
-            var wrapper = null;
+            if (e) {
+              e.stopPropagation();
+            }
+            var elementInsideId;
 
-            for(var i = 0; i< e.path.length && !wrapper; i++) {
-              if(e.path[i].classList.contains('wrapper')) {
-                wrapper = e.path[i];
+            // figure out the source
+            var src;
+            if (this._highlightedConnection) {
+              var splitID = this._highlightedConnection.id.split('-');
+              src = splitID[0]+'-'+splitID[1]+'-'+splitID[2];
+              console.log(src);
+              elementInsideId = splitID[3] + '-' + splitID[4] + '-' + splitID[5];
+            }
+            else {
+              var wrapper = null;
+              for(var i = 0; i< e.path.length && !wrapper; i++) {
+                if(e.path[i].classList.contains('wrapper')) {
+                  wrapper = e.path[i];
+                }
               }
-            } 
-            var elementInsideId = wrapper.getAttribute('component-id');
+              elementInsideId = wrapper.getAttribute('component-id');
+            }
 
+            if (!e){
+              e = undefined;
+            }
             this.deleteConnectionByID(e, elementInsideId)
 
           }
         },
 
-        deleteBezier: function(e, bezier) {
+        _deleteBezier: function(e, bezier) {
           var srcId, dstId;
 
           if(confirm('Are you sure you want to delete the highlighted connection?')) {
@@ -621,17 +647,23 @@
             srcId = idSplit.slice(0, i).join('-');
 
             this.deleteConnectionByID(e, dstId);
+
+            this._clearHighlightedConnections();
+
           }
         },
 
         deleteConnectionByID: function(e, dstId) {
-
           this._connections = this._connections.filter(function(connection) {
             return connection.target.id!==dstId;
           });
 
-          var marker = e.path[1]; 
-          marker.classList.remove('highlighted');
+          console.log(this._connections);
+
+          if (e) {
+            var marker = e.path[1]; 
+            marker.classList.remove('highlighted');
+          }
 
           this._drawConnections();
         },
@@ -647,7 +679,37 @@
 
         },
 
+        keydownHandler: function(e) {
+          var self = this;
+          var focusedArea = e.path['0'].localName;
 
+          // make sure it is not a text or input area
+          if (focusedArea.indexOf('text') > -1 || focusedArea.indexOf('input') > 1) {
+            console.log('in a text area');
+            return;
+          }
+          console.log(e.which);
+          switch(e.which) {
+
+            // if deleteKey:
+            case(8):
+              e.preventDefault();
+              e.stopPropagation();
+              // if bezier was selected, delete that. Otherwise, delete element
+              if (self._highlightedConnection) {
+                self._deleteBezier(e, self._highlightedConnection);
+              } else if (self._selElement) {
+                self._deleteElementById(self._selElement.id);
+              }
+              break;
+
+            // if Option Key...
+            case(18):
+              console.log('option key');
+            default:
+              break;
+          } 
+        },
 
 
 
@@ -915,7 +977,7 @@
 
 
       /**
-       * Checks if a componenet has output attributes (any attribute which is named input*)
+       * Checks if a componenet has input attributes (any attribute which is named input*)
        * @param  {Object} published Object containing all published attributes
        * @return {Object}           list of attributes that are input.
        */
@@ -1014,5 +1076,6 @@
 
      
     });
+
   </script>
 </polymer-element>

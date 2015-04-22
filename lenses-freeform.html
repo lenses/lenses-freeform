@@ -115,7 +115,7 @@
       _connections: [],
 
       _selElement: null,
-      _selWrapper: null,
+      _selWrappers: [],
       _highlightedConnection: null,
 
       _snapX: 10,
@@ -279,12 +279,13 @@
           this._clearHighlightedConnections();
         }
 
-        // change selElement
-        this._clearSelElement();
-
         // start drag
         if (e.target.id === 'container') {
           this.dragStartSVG(e);
+
+          // change selElement
+          this._clearSelElement();
+
         }
       },
 
@@ -313,10 +314,12 @@
       },
 
       _clearSelElement: function() {
-        if(this._selWrapper) {
-          this._selWrapper.classList.remove('selected-element');
-          this._selWrapper = null;
+        if(this._selWrappers) {
+          for (var i in this._selWrappers) {
+            this._selWrappers[i].classList.remove('selected-element');
+          }
         }
+        this._selWrappers = [];
         this._selElement = null;
       },
 
@@ -473,15 +476,28 @@
         wrapperClicked: function(e, detail, selection) {
           var wrapperEl = selection;
 
-          this._clearSelElement();
-
-          this._selWrapper = wrapperEl;
-          this._selWrapper.classList.add('selected-element');
-
           var elementId = wrapperEl.id;
           elementId = elementId.substring(8, elementId.length);
 
-          this._selElement = this.findElById(elementId).element;
+          var el = this.findElById(elementId).element
+
+          if (this._selElement != el) {
+            console.log('change');
+            console.log(this._selElement );
+            console.log(el);
+
+            this._clearSelElement();
+            this._selElement = el;
+
+          }
+
+          if (this._selWrappers.indexOf(wrapperEl) === -1) {
+            wrapperEl.classList.add('selected-element');
+            this._selWrappers.push(wrapperEl);
+          }
+
+
+
 
           // if(this.$.input_table) {
           //   this.$.input_table.input = this._selElement.input;

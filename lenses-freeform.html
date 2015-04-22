@@ -282,10 +282,6 @@
         // start drag
         if (e.target.id === 'container') {
           this.dragStartSVG(e);
-
-          // change selElement
-          this._clearSelElement();
-
         }
       },
 
@@ -313,6 +309,7 @@
         }
       },
 
+      // clear all _selWrappers and _selElement
       _clearSelElement: function() {
         if(this._selWrappers) {
           for (var i in this._selWrappers) {
@@ -390,8 +387,6 @@
         dragStartWrapper: function(e, details, selection) {
 
           var target = e.target;
-          target.setAttribute('start-x', e.x);
-          target.setAttribute('start-y', e.y);
 
           var dragImgEl = document.createElement('span');
           dragImgEl.setAttribute('style','opacity: 0' );
@@ -401,10 +396,18 @@
           document.body.appendChild(dragImgEl);
           e.dataTransfer.setDragImage(dragImgEl,-200,-200);
 
+
+          // set start-x and start-y
+          this._dragStartWrapperTarget(target, e.x, e.y);
+
           // make this the _selElement and _selWrapper
           this.wrapperClicked(e, details, selection);
+        },
 
-        },                            
+        _dragStartWrapperTarget: function(target, x, y) {
+          target.setAttribute('start-x', x);
+          target.setAttribute('start-y', y);
+        },
 
         dragWrapper: function(e, details, selection) {
 
@@ -454,8 +457,6 @@
                 this._drawConnections();
 
               }
-                
-            
         }, 
 
         dragEndWrapper: function(e, details, selection) {
@@ -469,9 +470,7 @@
           var target = e.target;
           target.setAttribute('residue-x', 0 );
           target.setAttribute('residue-y', 0);
-
-          
-        }, 
+        },
 
         wrapperClicked: function(e, detail, selection) {
           var wrapperEl = selection;
@@ -497,8 +496,6 @@
           }
 
 
-
-
           // if(this.$.input_table) {
           //   this.$.input_table.input = this._selElement.input;
           // }
@@ -508,9 +505,8 @@
 
         },
 
-        // SVG drag events
+        // SVG drag events, also called on mousedown
         dragStartSVG: function(e, details, selection) {
-          console.log('drag start SVG');
           this._makeDragArea = true;
           this._selectingElByDrag = false;
 
@@ -519,23 +515,28 @@
           this.$.svgSelLayer.insertBefore(this._dragArea, this.$.svgSelLayer.firstChild);
         },
 
+        // called when makeDragArea is true
         dragSVG: function(e, details, selection) {
           if (this._makeDragArea) {
-            console.log('drag svg: ' + e.target.id);
+            // console.log('drag svg: ' + e.target.id);
             this._updateDragArea(e, this._dragArea);
           }
         },
 
+        // also called on mouseup
         dragEndSVG: function(e, details, selection) {
 
           if (!this._dragArea) {
             return;
           }
 
+          // remember the old sel el
+          var oldSelElement = this._selElement;
+
           // dimension of the rectangle:
           var dragRect = this._dragArea.getBoundingClientRect();
 
-          // find any elements that intersect with the drag area
+          // find any elements that intersect with the drag area, sort out which are _selElement and _selWrappers
           for (var i in this._elements) {
             var el = this._elements[i];
 
@@ -551,6 +552,20 @@
             if (overlap) {
               wrapperEl.classList.add('selected-element');
               this._selWrappers.push(wrapperEl);
+
+              // remember selected element if it overlaps
+              if (el.element === oldSelElement) {
+                this._selElement = el.element;
+              }
+            }
+
+            // otherwise remove selection
+            else {
+              if ( wrapperEl.classList.contains('selected-element') ){
+                wrapperEl.classList.remove('selected-element');
+              } if (this._selElement === el.element) {
+                this._selElement = null;
+              }
             }
 
           }
@@ -1183,9 +1198,6 @@
           
           return uniqueId;
       }, 
-
-
-
 
 
       _createBezierPath: function(startX, startY, endX, endY, handleOffsetX) {

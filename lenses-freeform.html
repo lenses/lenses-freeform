@@ -27,7 +27,8 @@
       </template>
     </div>
 
-    <div id="container"  on-mousedown="{{clickInContainer}}" on-drop="{{droppedInContainer}}" on-dragover="{{draggedOverContainer}}">
+    <div id="container"  on-mousedown="{{clickInContainer}}" on-drop="{{droppedInContainer}}" on-dragover="{{draggedOverContainer}}" on-mouseup="{{dragEndSVG}}" on-mousemove="{{dragSVG}}">
+      <svg id="svgSelLayer" style="z-index:1000;"></svg>
       <svg id="svg"></svg>
 
 
@@ -37,7 +38,7 @@
         <template repeat="{{el, index in _elements}}">
           <div class="wrapper {{el.name}}" id="wrapper-{{el.id}}" component-id="{{el.id}}" on-click="{{wrapperClicked}}" 
           style="top: {{el.top}}px; left: {{el.left}}px; transform: {{el.transform}}; width: {{el.width}}px; height: {{el.height}}px" 
-          on-click="{{wrapperClicked}}" on-dragStart="{{dragStartWrapper}}" on-drag="{{dragWrapper}}" on-dragend="{{dragEndWrapper}}" draggable="true"><!-- on-drop="{{droppedOnInArrow}}" needed? -->
+          on-click="{{wrapperClicked}}" on-dragStart="{{dragStartWrapper}}" on-drag="{{dragWrapper}}" on-dragend="{{dragEndWrapper}}" draggable="true"><!-- on-mouseover="{{dragOverWrapper}}" on-drop="{{droppedOnInArrow}}" needed? -->
 
           
             <label>{{el.name}}</label>
@@ -114,11 +115,18 @@
       _connections: [],
 
       _selElement: null,
+      _selWrapper: null,
+      _highlightedConnection: null,
 
       _snapX: 10,
       _snapY: 10,
       _showDataTable: true,
 
+      // if dragging in container, drag area allows selection of multiple elements
+      _makeDragArea: false,
+      
+      // state to determine whether we are selecting or de-selecting elements during multi-drag
+      _selectingElByDrag: false,
 
       domReady: function() {
 
@@ -131,6 +139,8 @@
         this.focus();
         this.tabIndex = 0;
 
+        // for testing:
+        window.ff = this;
       },
 
       addNewElToLens: function(newElName, left, top){
@@ -268,6 +278,14 @@
         } else {
           this._clearHighlightedConnections();
         }
+
+        // change selElement
+        this._clearSelElement();
+
+        // start drag
+        if (e.target.id === 'container') {
+          this.dragStartSVG(e);
+        }
       },
 
       clickedOnConnection: function(e) {
@@ -292,6 +310,14 @@
           this._highlightedConnection.classList.remove('highlighted');
           this._highlightedConnection = null;
         }
+      },
+
+      _clearSelElement: function() {
+        if(this._selWrapper) {
+          this._selWrapper.classList.remove('selected-element');
+          this._selWrapper = null;
+        }
+        this._selElement = null;
       },
 
       dragStartResize: function(e, details, selection) {
@@ -370,8 +396,11 @@
 
           // add it to the document
           document.body.appendChild(dragImgEl);
-          e.dataTransfer.setDragImage(dragImgEl,-200,-200);          
-          
+          e.dataTransfer.setDragImage(dragImgEl,-200,-200);
+
+          // make this the _selElement and _selWrapper
+          this.wrapperClicked(e, details, selection);
+
         },                            
 
         dragWrapper: function(e, details, selection) {
@@ -443,9 +472,9 @@
 
         wrapperClicked: function(e, detail, selection) {
           var wrapperEl = selection;
-          if(this._selWrapper) {
-            this._selWrapper.classList.remove('selected-element');
-          }
+
+          this._clearSelElement();
+
           this._selWrapper = wrapperEl;
           this._selWrapper.classList.add('selected-element');
 
@@ -461,7 +490,84 @@
           //   this.$.output_table.input = this._selElement.output;
           // }
 
-        },         
+        },
+
+        // SVG drag events
+        dragStartSVG: function(e, details, selection) {
+          console.log('drag start SVG');
+          this._makeDragArea = true;
+          this._selectingElByDrag = false;
+
+          this._dragArea = this._createDragArea(e, details, selection);
+
+          this.$.svgSelLayer.insertBefore(this._dragArea, this.$.svgSelLayer.firstChild);
+        },
+
+        dragSVG: function(e, details, selection) {
+          if (this._makeDragArea) {
+            console.log('drag svg: ' + e.target.id);
+            this._updateDragArea(e, this._dragArea);
+          }
+        },
+
+        dragEndSVG: function(e, details, selection) {
+          this._makeDragArea = false;
+          this._dragArea = null;
+          this._clearDragArea();
+        },
+
+        // handle selecting elements by their wrapper during drag
+        dragOverWrapper: function(e, details, selection) {
+          // if (this._makeDragArea) {
+          //   if (!this._selectingElByDrag) {
+          //     this._selectingElByDrag = true;
+          //   }
+
+          //   console.log('drag over: ' + e.target.id);
+          // }
+        },
+
+        // create a rectangle to show drag area
+        _createDragArea: function(e) {
+          var x = e.x, y = e.y;
+          var svgns = "http://www.w3.org/2000/svg";
+          var rect = document.createElementNS(svgns, 'rect');
+          rect.setAttributeNS(null, 'opacity', 0.2);
+          rect.setAttributeNS(null, 'x', x);
+          rect.setAttributeNS(null, 'y', y);
+          rect.setAttributeNS(null, 'width', '0');
+          rect.setAttributeNS(null, 'height', '0');
+          rect.setAttributeNS(null, 'fill', '#D1D1D1');
+          rect.startX = x;
+          rect.startY = y;
+          return rect;
+        },
+
+        // update drag rectangle
+        _updateDragArea: function(e, rect) {
+          var svgns = "http://www.w3.org/2000/svg";
+          var startX = rect.startX;
+          var startY = rect.startY;
+          var deltaX = e.x - startX;
+          var deltaY = e.y - startY;
+
+          if (deltaX < 0) {
+            rect.setAttributeNS(null, 'x', startX + deltaX);
+            deltaX = Math.abs(deltaX);
+          }
+
+          if (deltaY < 0) {
+            rect.setAttributeNS(null, 'y', startY + deltaY);
+            deltaY = Math.abs(deltaY);
+          }
+
+          rect.setAttributeNS(null, 'width', deltaX);
+          rect.setAttributeNS(null, 'height', deltaY);
+        },
+
+        _clearDragArea: function(rect) {
+          this.$.svgSelLayer.innerHTML = '';
+        },
 
         dragOutArrowStart: function(e, details, selection) {
 
@@ -688,7 +794,7 @@
             console.log('in a text area');
             return;
           }
-          console.log(e.which);
+
           switch(e.which) {
 
             // if deleteKey:

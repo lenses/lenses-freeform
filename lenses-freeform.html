@@ -519,9 +519,47 @@
         },
 
         dragEndSVG: function(e, details, selection) {
+
+          if (!this._dragArea) {
+            return;
+          }
+
+          // dimension of the rectangle:
+          var dragRect = this._dragArea.getBoundingClientRect();
+
+          // find any elements that intersect with the drag area
+          for (var i in this._elements) {
+            var el = this._elements[i];
+
+            var wrapperEl = this.shadowRoot.querySelector('#wrapper-' + el.id);
+
+            // get element dimensions
+            var elRect = wrapperEl.getBoundingClientRect();
+
+            // compare and if there is overlap, add class
+            var overlap = this._boundingRectOverlap(elRect, dragRect);
+
+            // select elements that overlap
+            if (overlap) {
+              wrapperEl.classList.add('selected-element');
+              this._selWrappers.push(wrapperEl);
+            }
+
+          }
+
           this._makeDragArea = false;
           this._dragArea = null;
           this._clearDragArea();
+
+        },
+
+        // helper method
+        _boundingRectOverlap: function(rect1, rect2) {
+          var overlap = !(rect1.right < rect2.left || 
+                          rect1.left > rect2.right || 
+                          rect1.bottom < rect2.top || 
+                          rect1.top > rect2.bottom)
+          return overlap;
         },
 
         // handle selecting elements by their wrapper during drag
@@ -1184,9 +1222,9 @@
 
           this.$.svg.appendChild(aLine);
 
-      }
+      },
 
-     
+
     });
 
   </script>

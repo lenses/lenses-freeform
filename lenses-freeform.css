@@ -40,12 +40,21 @@
         left: 0;
         margin: 0;
         padding: 0;
-        z-index: 100;
+        z-index: 0;
         pointer-events: none;
       }
 
       svg .highlighted {
         stroke: #74E8CD;
+      }
+
+      .cnxn {
+        pointer-events: visibleStroke;
+        z-index:101;
+        opacity: 0.4;
+        stroke-width: 2px;
+        stroke: #888;
+        cursor: pointer;
       }
 
       #showDataBtn {

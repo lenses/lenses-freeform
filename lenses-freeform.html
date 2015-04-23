@@ -445,15 +445,18 @@
               // var rect1 = wrapper.getBoundingClientRect();
               // var rect2 = target.getBoundingClientRect();
               // var dist = this._boundingRectDistance(rect1, rect2);
-              // var dist = wrapper._dragOffset;
+              var dist = wrapper._dragOffset;
               // console.log(dist);
 
-              // var relEv = {
-              //   "x" : e.x  + dist[0],
-              //   "y" : e.y  + dist[1]
-              // }
+              var relEv = {
+                "x" : e.x  + dist[0],
+                "y" : e.y  + dist[1]
+              }
+              // var _dx = e.x - (wrapper.getAttribute('start-x') || 0);
+              // var _dy = e.y - (wrapper.getAttribute('start-y') || 0);
               var _dx = e.x - (wrapper.getAttribute('start-x') || 0);
               var _dy = e.y - (wrapper.getAttribute('start-y') || 0);
+
 
               this._dragWrapperTarget(e, wrapper, _dx, _dy);
             }
@@ -486,83 +489,11 @@
             // 
             target.setAttribute('data-x', sx);
             target.setAttribute('data-y', sy);
-            
+
             target.setAttribute('start-x', e.x);
             target.setAttribute('start-y', e.y);
           }
         },
-
-        // dragWrapper: function(e, details, selection) {
-
-        //   if(e.path[0].classList && e.path[0].classList.length>0 && 
-        //     (e.path[0].classList.contains('resize') || e.path[0].classList.contains('arrow'))) {
-        //     return false;
-        //   }
-
-        //   var target = e.target,
-        //       dx = e.x - (target.getAttribute('start-x') || 0),
-        //       dy = e.y - (target.getAttribute('start-y') || 0);
-
-        //   for (var i = 0; i < this._selWrappers.length; i++) {
-        //     var wrapper = this._selWrappers[i];
-            
-        //     if (wrapper === target) {
-        //       this._dragWrapperTarget(wrapper, dx, dy, e);
-        //     } 
-        //     // else {
-        //     //   var rect1 = wrapper.getBoundingClientRect();
-        //     //   var rect2 = target.getBoundingClientRect();
-        //     //   var dist = this._boundingRectDistance(rect1, rect2);
-        //     //   var dx = e.x - (wrapper.getAttribute('start-x') || 0);
-        //     //   var dy = e.y - (wrapper.getAttribute('start-y') || 0);
-        //     //   var placeholderEvent = {
-        //     //     "x" : e.x - dist[0],
-        //     //     "y" : e.x - dist[0]
-        //     //   }
-        //     //   this._dragWrapperTarget(wrapper, dx, dy, placeholderEvent);
-        //     // }
-        //   }
-
-        //   this._drawConnections();
-        // }, 
-
-        // // drag any target based on its starting position, independent of any event. Called by dragWrapper
-        // _dragWrapperTarget: function(target, dx, dy, e) {
-        //     // keep the dragged position in the data-x/data-y attributes, add snap residue from previous drag
-        //     var x = (parseFloat(target.getAttribute('data-x')) || 0) + dx + (parseFloat(target.getAttribute('residue-x')) || 0);
-        //     var y = (parseFloat(target.getAttribute('data-y')) || 0) + dy + (parseFloat(target.getAttribute('residue-y')) || 0);
-
-        //     sx = Math.round(x/this._snapX)*this._snapX;
-        //     sy = Math.round(y/this._snapY)*this._snapY;
-
-        //     target.setAttribute('residue-x', x - sx );
-        //     target.setAttribute('residue-y', y - sy);
-
-
-        //     // translate the element. 
-        //     // last dragMove call passes e.x=0 and e.y=0 which causes neg x,y values. this if avoids that
-        //     if(e.x!==0 ||  e.y!==0)
-        //     {
-        //     /*
-        //       target.style.webkitTransform =
-        //             target.style.transform = 'translate(' + sx + 'px, ' + sy + 'px)';
-        //     */
-
-        //       var componentId = target.getAttribute('component-id');
-
-        //       this.findElById(componentId).transform = 'translate(' + sx + 'px, ' + sy + 'px)';
-
-        //       // update the posiion attributes
-        //       // 
-        //       target.setAttribute('data-x', sx);
-        //       target.setAttribute('data-y', sy);
-              
-
-        //       target.setAttribute('start-x', e.x);
-        //       target.setAttribute('start-y', e.y);
-
-        //     }
-        // },
 
         dragEndWrapper: function(e, details, selection) {
           
@@ -590,7 +521,9 @@
             console.log(this._selElement );
             console.log(el);
 
-            if ( el.element.classList.contains('selected-element') ) {
+            // unhighlight other selected element if this was not one of them
+
+            if ( wrapperEl.classList.contains('selected-element') ) {
               console.log('already selected');
             } else {
               this._clearSelElement();

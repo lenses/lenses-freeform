@@ -268,6 +268,9 @@
         } else {
           this._clearHighlightedConnections();
         }
+
+        this._clearSelElement();
+
       },
 
       clickedOnConnection: function(e) {
@@ -286,6 +289,14 @@
         }
 
       },
+
+      _clearSelElement: function() {
+        if(this._selWrapper) {
+          this._selWrapper.classList.remove('selected-element');
+          this._selWrapper = null;
+        }
+        this._selElement = null;
+      },      
 
       _clearHighlightedConnections: function() {
         if (this._highlightedConnection) {

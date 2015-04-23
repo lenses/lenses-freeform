@@ -51,6 +51,10 @@
       .cnxn {
         pointer-events: visibleStroke;
         z-index:101;
+        opacity: 0.4;
+        stroke-width: 2px;
+        stroke: #888;
+        cursor: pointer;
       }
 
       #showDataBtn {

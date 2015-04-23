@@ -1282,8 +1282,6 @@
           var path = this._createBezierPath(startX, startY, endX, endY, handleOffsetX);
 
           aLine.setAttribute('d',path);
-          aLine.setAttribute('stroke', '#555');// conn.source.color);
-          aLine.setAttributeNS(null, 'stroke-width', '5');
           aLine.setAttribute('fill', 'none');
           if(id) {
             aLine.setAttribute('id', id);

@@ -28,8 +28,8 @@
     </div>
 
     <div id="container"  on-mousedown="{{clickInContainer}}" on-drop="{{droppedInContainer}}" on-dragover="{{draggedOverContainer}}" on-mouseup="{{dragEndSVG}}" on-mousemove="{{dragSVG}}">
-      <svg id="svgSelLayer" style="z-index:1000;"></svg>
-      <svg id="svg"></svg>
+<!--       <svg id="svg" style="z-index:1000;"></svg>
+ -->      <svg id="svg"></svg>
 
 
       <!-- Components and connector dots --> 
@@ -529,7 +529,7 @@
 
           this._dragArea = this._createDragArea(e, details, selection);
 
-          this.$.svgSelLayer.insertBefore(this._dragArea, this.$.svgSelLayer.firstChild);
+          this.$.svg.insertBefore(this._dragArea, this.$.svg.firstChild);
         },
 
         // called when makeDragArea is true
@@ -590,8 +590,8 @@
           }
 
           this._makeDragArea = false;
+          this._clearDragArea(this._dragArea);
           this._dragArea = null;
-          this._clearDragArea();
 
         },
 
@@ -654,7 +654,8 @@
         },
 
         _clearDragArea: function(rect) {
-          this.$.svgSelLayer.innerHTML = '';
+          //this.$.svg.innerHTML = '';
+          this.$.svg.removeChild(rect);
         },
 
         dragOutArrowStart: function(e, details, selection) {

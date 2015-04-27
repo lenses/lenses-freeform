@@ -27,8 +27,9 @@
       </template>
     </div>
 
-    <div id="container"  on-mousedown="{{clickInContainer}}" on-drop="{{droppedInContainer}}" on-dragover="{{draggedOverContainer}}">
-      <svg id="svg"></svg>
+    <div id="container"  on-mousedown="{{clickInContainer}}" on-drop="{{droppedInContainer}}" on-dragover="{{draggedOverContainer}}" on-mouseup="{{dragEndSVG}}" on-mousemove="{{dragSVG}}">
+<!--       <svg id="svg" style="z-index:1000;"></svg>
+ -->      <svg id="svg"></svg>
 
 
       <!-- Components and connector dots --> 
@@ -37,7 +38,7 @@
         <template repeat="{{el, index in _elements}}">
           <div class="wrapper {{el.name}}" id="wrapper-{{el.id}}" component-id="{{el.id}}" on-click="{{wrapperClicked}}" 
           style="top: {{el.top}}px; left: {{el.left}}px; transform: {{el.transform}}; width: {{el.width}}px; height: {{el.height}}px" 
-          on-click="{{wrapperClicked}}" on-dragStart="{{dragStartWrapper}}" on-drag="{{dragWrapper}}" on-dragend="{{dragEndWrapper}}" draggable="true"><!-- on-drop="{{droppedOnInArrow}}" needed? -->
+          on-click="{{wrapperClicked}}" on-dragStart="{{dragStartWrapper}}" on-drag="{{dragWrapper}}" on-dragend="{{dragEndWrapper}}" draggable="true"><!-- on-mouseover="{{dragOverWrapper}}" on-drop="{{droppedOnInArrow}}" needed? -->
 
           
             <label>{{el.name}}</label>
@@ -114,11 +115,18 @@
       _connections: [],
 
       _selElement: null,
+      _selWrappers: [],
+      _highlightedConnection: null,
 
       _snapX: 10,
       _snapY: 10,
       _showDataTable: true,
 
+      // if dragging in container, drag area allows selection of multiple elements
+      _makeDragArea: false,
+      
+      // state to determine whether we are selecting or de-selecting elements during multi-drag
+      _selectingElByDrag: false,
 
       domReady: function() {
 
@@ -131,6 +139,8 @@
         this.focus();
         this.tabIndex = 0;
 
+        // for testing:
+        window.ff = this;
       },
 
       addNewElToLens: function(newElName, left, top){
@@ -269,8 +279,10 @@
           this._clearHighlightedConnections();
         }
 
-        this._clearSelElement();
-
+        // start drag
+        if (e.target.id === 'container') {
+          this.dragStartSVG(e);
+        }
       },
 
       clickedOnConnection: function(e) {
@@ -290,19 +302,22 @@
 
       },
 
-      _clearSelElement: function() {
-        if(this._selWrapper) {
-          this._selWrapper.classList.remove('selected-element');
-          this._selWrapper = null;
-        }
-        this._selElement = null;
-      },      
-
       _clearHighlightedConnections: function() {
         if (this._highlightedConnection) {
           this._highlightedConnection.classList.remove('highlighted');
           this._highlightedConnection = null;
         }
+      },
+
+      // clear all _selWrappers and _selElement
+      _clearSelElement: function() {
+        if(this._selWrappers) {
+          for (var i in this._selWrappers) {
+            this._selWrappers[i].classList.remove('selected-element');
+          }
+        }
+        this._selWrappers = [];
+        this._selElement = null;
       },
 
       dragStartResize: function(e, details, selection) {
@@ -372,107 +387,274 @@
         dragStartWrapper: function(e, details, selection) {
 
           var target = e.target;
-          target.setAttribute('start-x', e.x);
-          target.setAttribute('start-y', e.y);
 
-          var dragImgEl = document.createElement('span');
-          dragImgEl.setAttribute('style','opacity: 0' );
-          dragImgEl.textContent = 'a';
+
+
+          var dragImgEl = document.querySelector('#wrapper-drag-img'); 
+
+          if(!dragImgEl) {
+            
+            dragImgEl = document.createElement('span');
+            dragImgEl.setAttribute('style','opacity: 0;' );
+            dragImgEl.id = 'wrapper-drag-img';
+            dragImgEl.textContent = 'a';
+            document.body.appendChild(dragImgEl);
+
+
+
+          }
+          //keep dragImage outside the canvas
+          e.dataTransfer.setDragImage(dragImgEl,-2000,-2000);
 
           // add it to the document
-          document.body.appendChild(dragImgEl);
-          e.dataTransfer.setDragImage(dragImgEl,-200,-200);          
-          
-        },                            
+
+
+          // make this the _selElement and _selWrapper
+          this.wrapperClicked(e, details, selection);
+
+          // set start-x and start-y for all _selWrappers
+          for (var i = 0; i < this._selWrappers.length; i++) {
+            var wrapper = this._selWrappers[i];
+            
+            this._setWrapperDragStartingPoint(wrapper, e.x, e.y);
+
+          }
+        },
+
+        // set starting position of a drag for any target, not based on an event. Called by dragStartWrapper
+        _setWrapperDragStartingPoint: function(target, x, y) {
+          target.setAttribute('start-x', x);
+          target.setAttribute('start-y', y);
+        },
 
         dragWrapper: function(e, details, selection) {
-
-          if(e.path[0].classList && e.path[0].classList.length>0 && 
+         if(e.path[0].classList && e.path[0].classList.length>0 && 
             (e.path[0].classList.contains('resize') || e.path[0].classList.contains('arrow'))) {
             return false;
           }
-
-          var target = e.target,
-              dx = e.x - (target.getAttribute('start-x') || 0),
-              dy = e.y - (target.getAttribute('start-y') || 0);
+          var target = e.target;
 
 
-              // keep the dragged position in the data-x/data-y attributes, add snap residue from previous drag
-              var x = (parseFloat(target.getAttribute('data-x')) || 0) + dx + (parseFloat(target.getAttribute('residue-x')) || 0);
-              var y = (parseFloat(target.getAttribute('data-y')) || 0) + dy + (parseFloat(target.getAttribute('residue-y')) || 0);
-
-              sx = Math.round(x/this._snapX)*this._snapX;
-              sy = Math.round(y/this._snapY)*this._snapY;
-
-              target.setAttribute('residue-x', x - sx );
-              target.setAttribute('residue-y', y - sy);
-
-
-              // translate the element. 
-              // last dragMove call passes e.x=0 and e.y=0 which causes neg x,y values. this if avoids that
-              if(e.x!==0 ||  e.y!==0)
-              {
-              /*
-                target.style.webkitTransform =
-                      target.style.transform = 'translate(' + sx + 'px, ' + sy + 'px)';
-              */
-
-                var componentId = target.getAttribute('component-id');
-
-                this.findElById(componentId).transform = 'translate(' + sx + 'px, ' + sy + 'px)';
-
-                // update the posiion attributes
-                // 
-                target.setAttribute('data-x', sx);
-                target.setAttribute('data-y', sy);
-                
-
-                target.setAttribute('start-x', e.x);
-                target.setAttribute('start-y', e.y);
-
-                this._drawConnections();
-
-              }
-                
+          for (var i = 0; i < this._selWrappers.length; i++) {
             
-        }, 
+            var wrapper = this._selWrappers[i];
+
+            var dx = e.x - (wrapper.getAttribute('start-x') || 0),
+                dy = e.y - (wrapper.getAttribute('start-y') || 0);
+
+
+            this._updateWrapperLocation(e, wrapper, dx, dy);
+
+          }
+
+          this._drawConnections();
+        },
+
+        _updateWrapperLocation: function(e, target, dx, dy) {
+          // keep the dragged position in the data-x/data-y attributes, add snap residue from previous drag
+          var x = (parseFloat(target.getAttribute('data-x')) || 0) + dx + (parseFloat(target.getAttribute('residue-x')) || 0);
+          var y = (parseFloat(target.getAttribute('data-y')) || 0) + dy + (parseFloat(target.getAttribute('residue-y')) || 0);
+          var sx = Math.round(x/this._snapX)*this._snapX;
+          var sy = Math.round(y/this._snapY)*this._snapY;
+
+
+          target.setAttribute('residue-x', x - sx);
+          target.setAttribute('residue-y', y - sy);
+
+          // translate the element. 
+          // last dragMove call passes e.x=0 and e.y=0 which causes neg x,y values. this if avoids that
+          if(e.x!==0 ||  e.y!==0)
+          {
+
+
+            var componentId = target.getAttribute('component-id');
+
+            this.findElById(componentId).transform = 'translate(' + sx + 'px, ' + sy + 'px)';
+
+            // update the posiion attributes
+            target.setAttribute('data-x', sx);
+            target.setAttribute('data-y', sy);
+
+            target.setAttribute('start-x', e.x);
+            target.setAttribute('start-y', e.y);
+          }
+        },
 
         dragEndWrapper: function(e, details, selection) {
           
-          
           //if resize is being dragged don't do anything (stopPropagation is not doing anything)
-          // if(e.path[0].classList && e.path[0].classList.length>0 && e.path[0].classList.contains('resize')) {
-          //   return false;
-          // }
-
           var target = e.target;
           target.setAttribute('residue-x', 0 );
           target.setAttribute('residue-y', 0);
-
-          
-        }, 
+        },
 
         wrapperClicked: function(e, detail, selection) {
           var wrapperEl = selection;
-          if(this._selWrapper) {
-            this._selWrapper.classList.remove('selected-element');
-          }
-          this._selWrapper = wrapperEl;
-          this._selWrapper.classList.add('selected-element');
 
           var elementId = wrapperEl.id;
           elementId = elementId.substring(8, elementId.length);
 
-          this._selElement = this.findElById(elementId).element;
+          var el = this.findElById(elementId).element
 
-          // if(this.$.input_table) {
-          //   this.$.input_table.input = this._selElement.input;
-          // }
-          // if(this.$.output_table) {
-          //   this.$.output_table.input = this._selElement.output;
-          // }
+          if (this._selElement != el) {
+            console.log('change');
+            console.log(this._selElement );
+            console.log(el);
 
-        },         
+            // unhighlight other selected element if this was not one of them
+
+            if ( wrapperEl.classList.contains('selected-element') ) {
+              console.log('already selected');
+            } else {
+              this._clearSelElement();
+              console.log('not already selected');
+            }
+
+            this._selElement = el;
+
+          }
+
+          if (this._selWrappers.indexOf(wrapperEl) === -1) {
+            wrapperEl.classList.add('selected-element');
+            this._selWrappers.push(wrapperEl);
+          }
+
+
+        },
+
+        // SVG drag events, also called on mousedown
+        dragStartSVG: function(e, details, selection) {
+          this._makeDragArea = true;
+          this._selectingElByDrag = false;
+
+          this._dragArea = this._createDragArea(e, details, selection);
+
+          this.$.svg.insertBefore(this._dragArea, this.$.svg.firstChild);
+        },
+
+        // called when makeDragArea is true
+        dragSVG: function(e, details, selection) {
+          if (this._makeDragArea) {
+            this._updateDragArea(e, this._dragArea);
+          }
+        },
+
+        // also called on mouseup
+        dragEndSVG: function(e, details, selection) {
+
+          if (!this._dragArea) {
+            return;
+          }
+
+          // remember the old sel el
+          var oldSelElement = this._selElement;
+
+          // dimension of the rectangle:
+          var dragRect = this._dragArea.getBoundingClientRect();
+
+          // find any elements that intersect with the drag area, sort out which are _selElement and _selWrappers
+          for (var i in this._elements) {
+            var el = this._elements[i];
+
+            var wrapperEl = this.shadowRoot.querySelector('#wrapper-' + el.id);
+
+            // get element dimensions
+            var elRect = wrapperEl.getBoundingClientRect();
+
+            // compare and if there is overlap, add class
+            var overlap = this._boundingRectOverlap(elRect, dragRect);
+
+            if (overlap) {
+              // select elements that overlap
+              if (this._selWrappers.indexOf(wrapperEl) < 0) {
+                this._selWrappers.push(wrapperEl);
+              }
+              wrapperEl.classList.add('selected-element');
+
+              // remember selected element if it overlaps
+              if (el.element === oldSelElement) {
+                this._selElement = el.element;
+              }
+            }
+            else {
+              // otherwise remove selection
+              if ( wrapperEl.classList.contains('selected-element') ){
+                wrapperEl.classList.remove('selected-element');
+              } if (this._selElement === el.element) {
+                this._selElement = null;
+              }
+            }
+
+          }
+
+          this._makeDragArea = false;
+          this._clearDragArea(this._dragArea);
+          this._dragArea = null;
+
+        },
+
+        // helper method
+        _boundingRectOverlap: function(rect1, rect2) {
+          var overlap = !(rect1.right < rect2.left || 
+                          rect1.left > rect2.right || 
+                          rect1.bottom < rect2.top || 
+                          rect1.top > rect2.bottom)
+          return overlap;
+        },
+
+        // handle selecting elements by their wrapper during drag
+        dragOverWrapper: function(e, details, selection) {
+          // if (this._makeDragArea) {
+          //   if (!this._selectingElByDrag) {
+          //     this._selectingElByDrag = true;
+          //   }
+
+          //   console.log('drag over: ' + e.target.id);
+          // }
+        },
+
+        // create a rectangle to show drag area
+        _createDragArea: function(e) {
+          var x = e.x, y = e.y;
+          var svgns = "http://www.w3.org/2000/svg";
+          var rect = document.createElementNS(svgns, 'rect');
+          rect.setAttributeNS(null, 'opacity', 0.2);
+          rect.setAttributeNS(null, 'x', x);
+          rect.setAttributeNS(null, 'y', y);
+          rect.setAttributeNS(null, 'width', '0');
+          rect.setAttributeNS(null, 'height', '0');
+          rect.setAttributeNS(null, 'fill', '#D1D1D1');
+          rect.startX = x;
+          rect.startY = y;
+          return rect;
+        },
+
+        // update drag rectangle
+        _updateDragArea: function(e, rect) {
+          var svgns = "http://www.w3.org/2000/svg";
+          var startX = rect.startX;
+          var startY = rect.startY;
+          var deltaX = e.x - startX;
+          var deltaY = e.y - startY;
+
+          if (deltaX < 0) {
+            rect.setAttributeNS(null, 'x', startX + deltaX);
+            deltaX = Math.abs(deltaX);
+          }
+
+          if (deltaY < 0) {
+            rect.setAttributeNS(null, 'y', startY + deltaY);
+            deltaY = Math.abs(deltaY);
+          }
+
+          rect.setAttributeNS(null, 'width', deltaX);
+          rect.setAttributeNS(null, 'height', deltaY);
+        },
+
+        _clearDragArea: function(rect) {
+          //this.$.svg.innerHTML = '';
+          this.$.svg.removeChild(rect);
+        },
 
         dragOutArrowStart: function(e, details, selection) {
 
@@ -699,7 +881,7 @@
             console.log('in a text area');
             return;
           }
-          console.log(e.which);
+
           switch(e.which) {
 
             // if deleteKey:
@@ -1036,9 +1218,6 @@
       }, 
 
 
-
-
-
       _createBezierPath: function(startX, startY, endX, endY, handleOffsetX) {
 
           // make handleOffsetX larger when source element is on the right side of target
@@ -1066,6 +1245,8 @@
           var path = this._createBezierPath(startX, startY, endX, endY, handleOffsetX);
 
           aLine.setAttribute('d',path);
+          aLine.setAttribute('stroke', '#555');// conn.source.color);
+          aLine.setAttributeNS(null, 'stroke-width', '5');
           aLine.setAttribute('fill', 'none');
           if(id) {
             aLine.setAttribute('id', id);
@@ -1081,9 +1262,9 @@
 
           this.$.svg.appendChild(aLine);
 
-      }
+      },
 
-     
+
     });
 
   </script>

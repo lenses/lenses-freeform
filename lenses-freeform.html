@@ -535,7 +535,6 @@
         // called when makeDragArea is true
         dragSVG: function(e, details, selection) {
           if (this._makeDragArea) {
-            // console.log('drag svg: ' + e.target.id);
             this._updateDragArea(e, this._dragArea);
           }
         },
@@ -565,21 +564,20 @@
             // compare and if there is overlap, add class
             var overlap = this._boundingRectOverlap(elRect, dragRect);
 
-            // select elements that overlap
             if (overlap) {
+              // select elements that overlap
               if (this._selWrappers.indexOf(wrapperEl) < 0) {
-                wrapperEl.classList.add('selected-element');
                 this._selWrappers.push(wrapperEl);
               }
+              wrapperEl.classList.add('selected-element');
 
               // remember selected element if it overlaps
               if (el.element === oldSelElement) {
                 this._selElement = el.element;
               }
             }
-
-            // otherwise remove selection
             else {
+              // otherwise remove selection
               if ( wrapperEl.classList.contains('selected-element') ){
                 wrapperEl.classList.remove('selected-element');
               } if (this._selElement === el.element) {

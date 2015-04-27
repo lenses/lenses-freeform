@@ -388,13 +388,25 @@
 
           var target = e.target;
 
-          var dragImgEl = document.createElement('span');
-          dragImgEl.setAttribute('style','opacity: 0' );
-          dragImgEl.textContent = 'a';
+
+
+          var dragImgEl = document.querySelector('#wrapper-drag-img'); 
+
+          if(!dragImgEl) {
+            
+            dragImgEl = document.createElement('span');
+            dragImgEl.setAttribute('style','opacity: 0;' );
+            dragImgEl.id = 'wrapper-drag-img';
+            dragImgEl.textContent = 'a';
+            document.body.appendChild(dragImgEl);
+
+
+
+          }
+          //keep dragImage outside the canvas
+          e.dataTransfer.setDragImage(dragImgEl,-2000,-2000);
 
           // add it to the document
-          document.body.appendChild(dragImgEl);
-          e.dataTransfer.setDragImage(dragImgEl,-200,-200);
 
 
           // make this the _selElement and _selWrapper
@@ -404,24 +416,13 @@
           for (var i = 0; i < this._selWrappers.length; i++) {
             var wrapper = this._selWrappers[i];
             
-            if (wrapper === target) {
-              this._dragStartWrapperTarget(wrapper, e.x, e.y);
-            } else {
-              var rect1 = wrapper.getBoundingClientRect();
-              var rect2 = target.getBoundingClientRect();
-              var dist = this._boundingRectDistance(rect1, rect2);
+            this._setWrapperDragStartingPoint(wrapper, e.x, e.y);
 
-              // set offset for duration of this drag
-              wrapper._dragOffset = dist;
-              var x = dist[0], y = dist[1];
-
-              this._dragStartWrapperTarget(wrapper, x, y);
-            }
           }
         },
 
         // set starting position of a drag for any target, not based on an event. Called by dragStartWrapper
-        _dragStartWrapperTarget: function(target, x, y) {
+        _setWrapperDragStartingPoint: function(target, x, y) {
           target.setAttribute('start-x', x);
           target.setAttribute('start-y', y);
         },
@@ -431,46 +432,32 @@
             (e.path[0].classList.contains('resize') || e.path[0].classList.contains('arrow'))) {
             return false;
           }
-          var target = e.target,
-              dx = e.x - (target.getAttribute('start-x') || 0),
-              dy = e.y - (target.getAttribute('start-y') || 0);
+          var target = e.target;
 
-          // first do it for the target
-          this._dragWrapperTarget(e, target, dx, dy);
 
           for (var i = 0; i < this._selWrappers.length; i++) {
-            var wrapper = this._selWrappers[i];
             
-            if (wrapper !== target) {
-              // var rect1 = wrapper.getBoundingClientRect();
-              // var rect2 = target.getBoundingClientRect();
-              // var dist = this._boundingRectDistance(rect1, rect2);
-              var dist = wrapper._dragOffset;
-              // console.log(dist);
+            var wrapper = this._selWrappers[i];
 
-              var relEv = {
-                "x" : e.x  + dist[0],
-                "y" : e.y  + dist[1]
-              }
-              // var _dx = e.x - (wrapper.getAttribute('start-x') || 0);
-              // var _dy = e.y - (wrapper.getAttribute('start-y') || 0);
-              var _dx = e.x - (wrapper.getAttribute('start-x') || 0);
-              var _dy = e.y - (wrapper.getAttribute('start-y') || 0);
+            var dx = e.x - (wrapper.getAttribute('start-x') || 0),
+                dy = e.y - (wrapper.getAttribute('start-y') || 0);
 
 
-              this._dragWrapperTarget(e, wrapper, _dx, _dy);
-            }
+            this._updateWrapperLocation(e, wrapper, dx, dy);
+
           }
 
           this._drawConnections();
         },
 
-        _dragWrapperTarget: function(e, target, dx, dy) {
+        _updateWrapperLocation: function(e, target, dx, dy) {
           // keep the dragged position in the data-x/data-y attributes, add snap residue from previous drag
           var x = (parseFloat(target.getAttribute('data-x')) || 0) + dx + (parseFloat(target.getAttribute('residue-x')) || 0);
           var y = (parseFloat(target.getAttribute('data-y')) || 0) + dy + (parseFloat(target.getAttribute('residue-y')) || 0);
           var sx = Math.round(x/this._snapX)*this._snapX;
           var sy = Math.round(y/this._snapY)*this._snapY;
+
+
           target.setAttribute('residue-x', x - sx);
           target.setAttribute('residue-y', y - sy);
 
@@ -478,15 +465,13 @@
           // last dragMove call passes e.x=0 and e.y=0 which causes neg x,y values. this if avoids that
           if(e.x!==0 ||  e.y!==0)
           {
-          /*
-            target.style.webkitTransform =
-                  target.style.transform = 'translate(' + sx + 'px, ' + sy + 'px)';
-          */
+
+
             var componentId = target.getAttribute('component-id');
 
             this.findElById(componentId).transform = 'translate(' + sx + 'px, ' + sy + 'px)';
+
             // update the posiion attributes
-            // 
             target.setAttribute('data-x', sx);
             target.setAttribute('data-y', sy);
 
@@ -497,12 +482,7 @@
 
         dragEndWrapper: function(e, details, selection) {
           
-          
           //if resize is being dragged don't do anything (stopPropagation is not doing anything)
-          // if(e.path[0].classList && e.path[0].classList.length>0 && e.path[0].classList.contains('resize')) {
-          //   return false;
-          // }
-
           var target = e.target;
           target.setAttribute('residue-x', 0 );
           target.setAttribute('residue-y', 0);
@@ -539,13 +519,6 @@
             this._selWrappers.push(wrapperEl);
           }
 
-
-          // if(this.$.input_table) {
-          //   this.$.input_table.input = this._selElement.input;
-          // }
-          // if(this.$.output_table) {
-          //   this.$.output_table.input = this._selElement.output;
-          // }
 
         },
 
@@ -629,15 +602,6 @@
                           rect1.bottom < rect2.top || 
                           rect1.top > rect2.bottom)
           return overlap;
-        },
-
-        _boundingRectDistance: function(rect1, rect2) {
-          console.log(rect1, rect2);
-          var x = rect1.left - rect2.left;
-          var y = rect1.top - rect2.top;
-
-          var totalDist = Math.sqrt( Math.pow(rect1.left - rect2.left, 2) + Math.pow(rect1.top - rect2.top, 2) );
-          return [x, y];
         },
 
         // handle selecting elements by their wrapper during drag

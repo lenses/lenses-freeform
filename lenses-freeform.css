@@ -193,6 +193,11 @@
         font-size: 11px;
         overflow: visible;
         cursor: move;
+        color: #5A5A5A;
+      }
+
+      .selected-element label {
+        color: #000;
       }
 
 

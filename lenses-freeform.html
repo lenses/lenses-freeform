@@ -134,7 +134,7 @@
       // state to determine whether we are selecting or de-selecting elements during multi-drag
       _selectingElByDrag: false,
 
-      // handle delete modal actions by setting a callback to run if delete = true when the modal is closed
+      // if delete = true when deleteDialog is closed, it will call _deleteCallback()
       _deleteCallback: null,
       _delete: false,
 
@@ -150,7 +150,7 @@
         this.tabIndex = 0;
 
         // for testing:
-        window.ff = this;
+        // window.ff = this;
       },
 
       addNewElToLens: function(newElName, left, top){

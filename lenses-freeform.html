@@ -1,10 +1,9 @@
 <link rel="import" href="../polymer/polymer.html">
-
-
 <link rel="import" href="../lens-data-table/lens-data-table.html">
-
-
 <link rel="import" href="../lenses-component-list/lenses-component-list.html">
+
+<link rel="import" href="../paper-dialog/paper-dialog.html">
+<link rel="import" href="../paper-dialog/paper-action-dialog.html">
 
 
 <polymer-element name="lenses-freeform" attributes="" on-keydown="{{keydownHandler}}">
@@ -106,7 +105,14 @@
       </template>
     </div>       
 
-    
+    <paper-action-dialog autoCloseDisabled heading="Confirm Deletion" id="deleteDialog" class="size-position" on-core-overlay-close-completed="{{_deleteDialogClosed}}">
+      <p>Are you sure you want to remove the selected item?</p>
+      <div horizontal end-justified layout>
+        <core-icon-button icon="clear" dismissive on-click="{{_noDelete}}" ></core-icon-button>
+        <core-icon-button icon="check" affirmative on-click="{{_yesDelete}}" ></core-icon-button>
+      </div>
+    </paper-action-dialog>
+
   </template>
   <script>
     Polymer({
@@ -127,6 +133,10 @@
       
       // state to determine whether we are selecting or de-selecting elements during multi-drag
       _selectingElByDrag: false,
+
+      // handle delete modal actions by setting a callback to run if delete = true when the modal is closed
+      _deleteCallback: null,
+      _delete: false,
 
       domReady: function() {
 
@@ -199,9 +209,14 @@
       },
 
       _deleteElementById: function(compId) {
-        if(confirm('Do you want to remove this element from the sketch?')) {
+        var self = this;
+        var compId = compId;
 
-          var self = this;
+        self.$.deleteDialog.toggle();
+
+        // set the delete callback
+        self._deleteCallback = function() {
+
           var ebmededEl = self.querySelector('#'+compId);
           var elInArray = self.findElById(compId);
 
@@ -791,8 +806,11 @@
         },
 
         deleteConnection: function(e, details, selection) {
-          if(confirm('Are you sure you want to delete the highlighted connection?')) {
+          var self = this;
+          self.$.deleteDialog.toggle();
 
+          // set the delete callback
+          self._deleteCallback = function() {
             if (e) {
               e.stopPropagation();
             }
@@ -800,8 +818,8 @@
 
             // figure out the source
             var src;
-            if (this._highlightedConnection) {
-              var splitID = this._highlightedConnection.id.split('-');
+            if (self._highlightedConnection) {
+              var splitID = self._highlightedConnection.id.split('-');
               src = splitID[0]+'-'+splitID[1]+'-'+splitID[2];
               console.log(src);
               elementInsideId = splitID[3] + '-' + splitID[4] + '-' + splitID[5];
@@ -819,15 +837,17 @@
             if (!e){
               e = undefined;
             }
-            this.deleteConnectionByID(e, elementInsideId)
-
+            self.deleteConnectionByID(e, elementInsideId)
           }
         },
 
         _deleteBezier: function(e, bezier) {
           var srcId, dstId;
+          var self = this;
+          self.$.deleteDialog.toggle();
 
-          if(confirm('Are you sure you want to delete the highlighted connection?')) {
+          // set the delete callback
+          self._deleteCallback = function() {
             var idSplit = bezier.id.split('-');
 
             // split ID at number to determine srcId and dstId
@@ -839,10 +859,9 @@
             dstId = idSplit.slice(i+1).join('-');
             srcId = idSplit.slice(0, i).join('-');
 
-            this.deleteConnectionByID(e, dstId);
+            self.deleteConnectionByID(e, dstId);
 
-            this._clearHighlightedConnections();
-
+            self._clearHighlightedConnections();
           }
         },
 
@@ -1264,6 +1283,22 @@
 
       },
 
+
+      // delete modal
+
+      _noDelete: function() {
+        this._delete = false;
+      },
+      _yesDelete: function() {
+        this._delete = true;
+      },
+      _deleteDialogClosed: function(e, selection, detail) {
+        if (this._delete) {
+          this._deleteCallback();
+        }
+        this._delete = false;
+        this._deleteCallback = null;
+      }
 
     });
 

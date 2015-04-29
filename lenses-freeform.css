@@ -30,6 +30,9 @@
         height: 300%;
         background: url(grid.png) 0 0 repeat;
         overflow:scroll;
+        transform-origin: top left;
+        transform:scale(1, 1);
+        transition: all .6s ease;
       }
 
       svg {
@@ -57,6 +60,33 @@
         cursor: pointer;
       }
 
+      #zoomOptions {
+        position: fixed;
+        top: 116px;
+        left: 10px;
+        z-index: 300;
+        background-color: #DDD;
+        opacity:0.5;
+        border: 1px solid #EEE;
+        /*padding:0px;*/
+        padding: 2px;
+        margin: 0 !important;
+      }
+
+      #zoomRange {
+        -webkit-appearance: slider-vertical;
+        height:80px;
+      }
+
+      #zoomInBtn{
+        padding: 0px;
+        margin: 0px;
+      }
+
+      #zoomOutBtn{
+        padding: 0px;
+        margin: 0px;
+      }
       #showDataBtn {
         position: fixed;
         top: 5px;
@@ -74,7 +104,7 @@
         text-align: center;
         top: 43px;
         width: 77px;
-        color: #888;        
+        color: #888;
       }
 
       #showDataBtn:hover span {

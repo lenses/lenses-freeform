@@ -122,6 +122,11 @@
       _snapY: 10,
       _showDataTable: true,
 
+      _zoom: 1,
+      _zoomMax: 2,
+      _zoomMin: 0.5,
+      _zoomStep: 0.1,
+
       // if dragging in container, drag area allows selection of multiple elements
       _makeDragArea: false,
       
@@ -161,7 +166,7 @@
         }.bind(this));
 
 
-      }, 
+      },
 
       _processNewElement: function(newEl, top, left) {
 
@@ -615,7 +620,7 @@
 
         // create a rectangle to show drag area
         _createDragArea: function(e) {
-          var x = e.x, y = e.y;
+          var x = e.x / this._zoom, y = e.y / this._zoom;
           var svgns = "http://www.w3.org/2000/svg";
           var rect = document.createElementNS(svgns, 'rect');
           rect.setAttributeNS(null, 'opacity', 0.2);
@@ -634,8 +639,8 @@
           var svgns = "http://www.w3.org/2000/svg";
           var startX = rect.startX;
           var startY = rect.startY;
-          var deltaX = e.x - startX;
-          var deltaY = e.y - startY;
+          var deltaX = e.x/this._zoom - startX;
+          var deltaY = e.y/this._zoom - startY;
 
           if (deltaX < 0) {
             rect.setAttributeNS(null, 'x', startX + deltaX);
@@ -1263,6 +1268,34 @@
           this.$.svg.appendChild(aLine);
 
       },
+
+      // zoom either to a specified amount, or add this._zoomStep
+      zoomIn: function(amt) {
+        if (amt) {
+          this._zoom = amt <= this._zoomMax ? amt : this._zoomMax;
+          return;
+        }
+
+        if (this._zoom + this._zoomStep <= this._zoomMax) {
+          this._zoom += this._zoomStep;
+        } else { throw 'already zoomed max'; }
+      },
+
+      // zoom either to a specified amount, or subtract this._zoomStep
+      zoomOut: function(amt) {
+        if (amt) {
+          this._zoom = amt >= this._zoomMin ? amt : this._zoomMin;
+          return;
+        }
+
+        if (this._zoom - this._zoomStep >= this._zoomMin) {
+         this._zoom -= this._zoomStep;
+        } else { throw 'already zoomed min'; }
+      },
+
+      _zoomChanged: function() {
+        this.$.container.style.zoom = this._zoom;
+      }
 
 
     });

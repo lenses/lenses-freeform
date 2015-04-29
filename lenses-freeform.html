@@ -157,11 +157,9 @@
           newEl.style.width = '100%';
           newEl.style.height = '100%';
 
-
-
           this.appendChild(newEl);
 
-          this._processNewElement(newEl, top, left);
+          this._processNewElement(newEl, top/this._zoom, left/this._zoom);
 
         }.bind(this));
 

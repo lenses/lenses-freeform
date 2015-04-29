@@ -1325,24 +1325,6 @@
 
       _zoomChanged: function() {
         this.$.container.style.zoom = this._zoom;
-
-        // update UI button states
-        // if (Math.round(this._zoom*10 - this._zoomMin*10) === 0) {
-        //   this.$.zoomOutBtn.className = '';
-        //   console.log('no more zoom out');
-
-        // } else {
-        //   this.$.zoomOutBtn.className = 'active';
-        // }
-
-        // if (Math.round(this._zoom*10 - this._zoomMax*10) === 0) {
-        //   this.$.zoomInBtn.className = '';
-        //   console.log('no more zoon in');
-        // } else {
-        //   this.$.zoomInBtn.className = 'active';
-        // }
-
-
       }
 
 

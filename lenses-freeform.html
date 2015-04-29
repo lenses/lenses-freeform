@@ -902,6 +902,8 @@
             return;
           }
 
+          console.log(e.which);
+
           switch(e.which) {
 
             // if deleteKey:
@@ -916,9 +918,19 @@
               }
               break;
 
+            // zoom with -_ (189) and += (187)
+            case(189):
+              self.zoomOut();
+              break;
+
+            case(187):
+              self.zoomIn();
+              break;
+
             // if Option Key...
             case(18):
               console.log('option key');
+              break;
             default:
               break;
           } 

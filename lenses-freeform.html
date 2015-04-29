@@ -1322,7 +1322,7 @@
       },
 
       _zoomChanged: function() {
-        this.$.container.style.zoom = this._zoom;
+        this.$.container.style.transform = "scale(" + this._zoom +", " + this._zoom+")";
       }
 
 

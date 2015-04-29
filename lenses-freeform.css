@@ -30,7 +30,9 @@
         height: 300%;
         background: url(grid.png) 0 0 repeat;
         overflow:scroll;
-        zoom: 1;
+        transform-origin: top left;
+        transform:scale(1, 1);
+        transition: all .6s ease;
       }
 
       svg {

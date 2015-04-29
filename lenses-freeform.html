@@ -676,8 +676,8 @@
           }
 
 
-          this.startPointX = e.x - this.svgLeft;
-          this.startPointY = e.y - this.svgTop;
+          this.startPointX = e.x/this._zoom - this.svgLeft;
+          this.startPointY = e.y/this._zoom - this.svgTop;
 
           // create temp bezier
           this._addBezierPath( this.startPointX , this.startPointY , this.startPointX , this.startPointY , 70, 'temp_path');
@@ -693,7 +693,7 @@
           if(e.x!==0 ||  e.y!==0)
           {
 
-            var newPath = this._createBezierPath( this.startPointX, this.startPointY , e.x - this.svgLeft  , e.y - this.svgTop  , 70);
+            var newPath = this._createBezierPath( this.startPointX, this.startPointY , e.x/this._zoom - this.svgLeft  , e.y/this._zoom - this.svgTop  , 70);
             tempPath.setAttribute('d',newPath);
           }               
 

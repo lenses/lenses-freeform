@@ -1,11 +1,6 @@
 <link rel="import" href="../polymer/polymer.html">
-
-
 <link rel="import" href="../lens-data-table/lens-data-table.html">
-
-
 <link rel="import" href="../lenses-component-list/lenses-component-list.html">
-
 
 <polymer-element name="lenses-freeform" attributes="" on-keydown="{{keydownHandler}}" on-keyup="{{keyupHandler}}">
 
@@ -16,6 +11,23 @@
       <span>show component input/output</span>
     </core-icon-button>
 
+    <!-- <div id="zoomOptions"> -->
+    <div id="zoomOptions">
+      <core-icon-button id="zoomInBtn" class="" icon="add" on-click="{{zoomIn}}">
+      </core-icon-button>
+      <br/>
+      <input is="core-input" id="zoomRange" type="range" value="{{_zoom}}" min="{{_zoomMin}}" max="{{_zoomMax}}" step="{{_zoomStep}}" style="width:25px" list=zoomsettings>
+      </input>
+      <datalist id="zoomsettings">
+        <option>1</option>
+        <option>0.8</option>
+        <option>0.6</option>
+      </datalist>
+      <br/>
+      <core-icon-button id="zoomOutBtn" icon="remove" on-click="{{zoomOut}}">
+      </core-icon-button>
+
+    </div>
 
     <label class="component-list-label">Drag components into canvas:</label>
     <lenses-component-list id="component_list"></lenses-component-list>
@@ -122,6 +134,11 @@
       _snapY: 10,
       _showDataTable: true,
 
+      _zoom: 1,
+      _zoomMax: 1,
+      _zoomMin: 0.6,
+      _zoomStep: 0.2,
+
       // if dragging in container, drag area allows selection of multiple elements
       _makeDragArea: false,
       
@@ -142,6 +159,8 @@
         this.addEventListener('core-resize', function() {
           this._drawConnections();
         });
+
+        this.$.zoomRange.value = this._zoom;
       },
 
       ready: function() {
@@ -149,11 +168,10 @@
         this.tabIndex = 0;
 
         // for testing:
-        window.ff = this;
+        // window.ff = this;
       },
 
       addNewElToLens: function(newElName, left, top){
-        console.log(left, top);
         var newEl = document.createElement(newElName);
 
         this.$.component_list.checkAndImport(newEl, function() {
@@ -161,16 +179,14 @@
           newEl.style.width = '100%';
           newEl.style.height = '100%';
 
-
-
           this.appendChild(newEl);
 
-          this._processNewElement(newEl, top, left);
+          this._processNewElement(newEl, top/this._zoom, left/this._zoom);
 
         }.bind(this));
 
 
-      }, 
+      },
 
       _processNewElement: function(newEl, top, left) {
 
@@ -370,8 +386,8 @@
               wrapperLeft = parseInt(wrapper.getBoundingClientRect().left);
           
 
-          var w =  e.x - wrapperLeft,
-              h = e.y - wrapperTop;
+          var w =  e.x/this._zoom - wrapperLeft,
+              h = e.y/this._zoom - wrapperTop;
 
 
           // wrapper.style.width = w +'px';
@@ -482,8 +498,8 @@
             
             var wrapper = this._selWrappers[i];
 
-            var dx = e.x - (wrapper.getAttribute('start-x') || 0),
-                dy = e.y - (wrapper.getAttribute('start-y') || 0);
+            var dx = e.x/this._zoom - (wrapper.getAttribute('start-x')/this._zoom || 0),
+                dy = e.y/this._zoom - (wrapper.getAttribute('start-y')/this._zoom || 0);
 
 
             this._updateWrapperLocation(e, wrapper, dx, dy);
@@ -665,7 +681,7 @@
 
         // create a rectangle to show drag area
         _createDragArea: function(e) {
-          var x = e.x, y = e.y;
+          var x = e.x / this._zoom, y = e.y / this._zoom;
           var svgns = "http://www.w3.org/2000/svg";
           var rect = document.createElementNS(svgns, 'rect');
           rect.setAttributeNS(null, 'opacity', 0.2);
@@ -684,8 +700,8 @@
           var svgns = "http://www.w3.org/2000/svg";
           var startX = rect.startX;
           var startY = rect.startY;
-          var deltaX = e.x - startX;
-          var deltaY = e.y - startY;
+          var deltaX = e.x/this._zoom - startX;
+          var deltaY = e.y/this._zoom - startY;
 
           if (deltaX < 0) {
             rect.setAttributeNS(null, 'x', startX + deltaX);
@@ -721,8 +737,8 @@
           }
 
 
-          this.startPointX = e.x - this.svgLeft;
-          this.startPointY = e.y - this.svgTop;
+          this.startPointX = e.x/this._zoom - this.svgLeft;
+          this.startPointY = e.y/this._zoom - this.svgTop;
 
           // create temp bezier
           this._addBezierPath( this.startPointX , this.startPointY , this.startPointX , this.startPointY , 70, 'temp_path');
@@ -738,7 +754,7 @@
           if(e.x!==0 ||  e.y!==0)
           {
 
-            var newPath = this._createBezierPath( this.startPointX, this.startPointY , e.x - this.svgLeft  , e.y - this.svgTop  , 70);
+            var newPath = this._createBezierPath( this.startPointX, this.startPointY , e.x/this._zoom - this.svgLeft  , e.y/this._zoom - this.svgTop  , 70);
             tempPath.setAttribute('d',newPath);
           }               
 
@@ -945,6 +961,15 @@
                 self._deleteElementById(self._selElement.id);
               }
               break;
+            // zoom with -_ (189) and += (187)
+            case(189):
+              self.zoomOut();
+              break;
+
+            case(187):
+              self.zoomIn();
+              break;
+
             default:
               if (typeof(self._hotKeys[e.which]) !== 'undefined') {
                 self._hotKeys[e.which] = true;
@@ -1323,6 +1348,37 @@
           this.$.svg.appendChild(aLine);
 
       },
+
+      // zoom either to a specified amount, or add this._zoomStep
+      zoomIn: function(amt) {
+        if (typeof(amt) === 'number') {
+          this._zoom = amt <= this._zoomMax ? amt : this._zoomMax;
+          return;
+        }
+
+        if (this._zoom + this._zoomStep <= this._zoomMax) {
+          this._zoom += this._zoomStep;
+        } else { throw 'already zoomed max'; }
+
+      },
+
+      // zoom either to a specified amount, or subtract this._zoomStep
+      zoomOut: function(amt) {
+        if (typeof(amt) === 'number') {
+          this._zoom = amt >= this._zoomMin ? amt : this._zoomMin;
+          return;
+        }
+
+        if (this._zoom - this._zoomStep >= this._zoomMin) {
+         this._zoom -= this._zoomStep;
+
+        } else { throw 'already zoomed min'; }
+
+      },
+
+      _zoomChanged: function() {
+        this.$.container.style.transform = "scale(" + this._zoom +", " + this._zoom+")";
+      }
 
 
     });

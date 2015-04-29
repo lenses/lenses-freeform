@@ -3,9 +3,7 @@
 
 <link rel="import" href="../lens-data-table/lens-data-table.html">
 
-
 <link rel="import" href="../lenses-component-list/lenses-component-list.html">
-
 
 <polymer-element name="lenses-freeform" attributes="" on-keydown="{{keydownHandler}}">
 
@@ -16,6 +14,23 @@
       <span>show component input/output</span>
     </core-icon-button>
 
+    <!-- <div id="zoomOptions"> -->
+    <div id="zoomOptions">
+      <core-icon-button id="zoomInBtn" class="" icon="add" on-click="{{zoomIn}}">
+      </core-icon-button>
+      <br/>
+      <input is="core-input" id="zoomRange" type="range" value="{{_zoom}}" min="{{_zoomMin}}" max="{{_zoomMax}}" step="{{_zoomStep}}" style="width:25px" list=zoomsettings>
+      </input>
+      <datalist id="zoomsettings">
+        <option>1</option>
+        <option>0.8</option>
+        <option>0.6</option>
+      </datalist>
+      <br/>
+      <core-icon-button id="zoomOutBtn" icon="remove" on-click="{{zoomOut}}">
+      </core-icon-button>
+
+    </div>
 
     <label class="component-list-label">Drag components into canvas:</label>
     <lenses-component-list id="component_list"></lenses-component-list>
@@ -123,9 +138,9 @@
       _showDataTable: true,
 
       _zoom: 1,
-      _zoomMax: 2,
-      _zoomMin: 0.5,
-      _zoomStep: 0.1,
+      _zoomMax: 1.2,
+      _zoomMin: 0.6,
+      _zoomStep: 0.2,
 
       // if dragging in container, drag area allows selection of multiple elements
       _makeDragArea: false,
@@ -138,6 +153,8 @@
         this.addEventListener('core-resize', function() {
           this._drawConnections();
         });
+
+        this.$.zoomRange.value = this._zoom;
       },
 
       ready: function() {
@@ -1269,7 +1286,7 @@
 
       // zoom either to a specified amount, or add this._zoomStep
       zoomIn: function(amt) {
-        if (amt) {
+        if (typeof(amt) === 'number') {
           this._zoom = amt <= this._zoomMax ? amt : this._zoomMax;
           return;
         }
@@ -1277,22 +1294,43 @@
         if (this._zoom + this._zoomStep <= this._zoomMax) {
           this._zoom += this._zoomStep;
         } else { throw 'already zoomed max'; }
+
       },
 
       // zoom either to a specified amount, or subtract this._zoomStep
       zoomOut: function(amt) {
-        if (amt) {
+        if (typeof(amt) === 'number') {
           this._zoom = amt >= this._zoomMin ? amt : this._zoomMin;
           return;
         }
 
         if (this._zoom - this._zoomStep >= this._zoomMin) {
          this._zoom -= this._zoomStep;
+
         } else { throw 'already zoomed min'; }
+
       },
 
       _zoomChanged: function() {
         this.$.container.style.zoom = this._zoom;
+
+        // update UI button states
+        // if (Math.round(this._zoom*10 - this._zoomMin*10) === 0) {
+        //   this.$.zoomOutBtn.className = '';
+        //   console.log('no more zoom out');
+
+        // } else {
+        //   this.$.zoomOutBtn.className = 'active';
+        // }
+
+        // if (Math.round(this._zoom*10 - this._zoomMax*10) === 0) {
+        //   this.$.zoomInBtn.className = '';
+        //   console.log('no more zoon in');
+        // } else {
+        //   this.$.zoomInBtn.className = 'active';
+        // }
+
+
       }
 
 

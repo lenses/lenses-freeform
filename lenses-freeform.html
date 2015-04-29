@@ -345,8 +345,8 @@
               wrapperLeft = parseInt(wrapper.getBoundingClientRect().left);
           
 
-          var w =  e.x - wrapperLeft,
-              h = e.y - wrapperTop;
+          var w =  e.x/this._zoom - wrapperLeft,
+              h = e.y/this._zoom - wrapperTop;
 
 
           // wrapper.style.width = w +'px';
@@ -444,8 +444,8 @@
             
             var wrapper = this._selWrappers[i];
 
-            var dx = e.x - (wrapper.getAttribute('start-x') || 0),
-                dy = e.y - (wrapper.getAttribute('start-y') || 0);
+            var dx = e.x/this._zoom - (wrapper.getAttribute('start-x')/this._zoom || 0),
+                dy = e.y/this._zoom - (wrapper.getAttribute('start-y')/this._zoom || 0);
 
 
             this._updateWrapperLocation(e, wrapper, dx, dy);

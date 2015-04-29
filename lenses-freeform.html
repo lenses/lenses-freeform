@@ -7,7 +7,7 @@
 <link rel="import" href="../lenses-component-list/lenses-component-list.html">
 
 
-<polymer-element name="lenses-freeform" attributes="" on-keydown="{{keydownHandler}}">
+<polymer-element name="lenses-freeform" attributes="" on-keydown="{{keydownHandler}}" on-keyup="{{keyupHandler}}">
 
   <template>
     <link rel="stylesheet" href="lenses-freeform.css">
@@ -128,6 +128,15 @@
       // state to determine whether we are selecting or de-selecting elements during multi-drag
       _selectingElByDrag: false,
 
+      // which keys are down
+      _hotKeys: { 
+        '18' : false, // 18 = option
+        '16' : false, // 16 = shift
+        '17' : false, // 17 = control
+        '91' : false  // 91 = command
+       },
+
+
       domReady: function() {
 
         this.addEventListener('core-resize', function() {
@@ -144,7 +153,7 @@
       },
 
       addNewElToLens: function(newElName, left, top){
-
+        console.log(left, top);
         var newEl = document.createElement(newElName);
 
         this.$.component_list.checkAndImport(newEl, function() {
@@ -232,6 +241,27 @@
 
         this._drawConnections();
 
+
+      },
+
+      // if option key was pressed, clone the element when drag is done
+      _cloneElement: function(e, detail, selection) {
+
+        // figure out the name of the element...
+        var componentId = selection.getAttribute('component-id');
+        var idSplit = componentId.split('-');
+        var elNameArray = [];
+        var elName = '';
+        for (var i = 0; i < idSplit.length; i++) {
+          if (isNaN(Number(idSplit[i])) ) {
+            elNameArray.push(idSplit[i])
+          }
+        }
+        elName = elNameArray.join('-');
+
+        // var x = ;
+        // var y = e.clientY;
+        this.addNewElToLens(elName, e.x, e.y);
 
       },
 
@@ -383,12 +413,20 @@
 
         },
 
+        // _dragClone: function(e, details, selection) {
+        //   // TO Do
+        //   console.log(e.target);
+        // },
 
         dragStartWrapper: function(e, details, selection) {
 
           var target = e.target;
 
-
+          if (this._hotKeys['18']) {
+            // start dragging a clone
+            this._draggingClone = true;
+            return;
+          }
 
           var dragImgEl = document.querySelector('#wrapper-drag-img'); 
 
@@ -428,6 +466,11 @@
         },
 
         dragWrapper: function(e, details, selection) {
+          if (this._hotKeys['18']) {
+            // dragging a clone
+            return;
+          }
+
          if(e.path[0].classList && e.path[0].classList.length>0 && 
             (e.path[0].classList.contains('resize') || e.path[0].classList.contains('arrow'))) {
             return false;
@@ -481,7 +524,14 @@
         },
 
         dragEndWrapper: function(e, details, selection) {
-          
+          // console.log('done dragging!');
+          if (this._draggingClone) {
+            console.log('time to make a clone');
+            this._draggingClone = false;
+            this._cloneElement(e, details, selection);
+            return;
+          }
+
           //if resize is being dragged don't do anything (stopPropagation is not doing anything)
           var target = e.target;
           target.setAttribute('residue-x', 0 );
@@ -895,13 +945,23 @@
                 self._deleteElementById(self._selElement.id);
               }
               break;
-
-            // if Option Key...
-            case(18):
-              console.log('option key');
             default:
+              if (typeof(self._hotKeys[e.which]) !== 'undefined') {
+                self._hotKeys[e.which] = true;
+                console.log(e.which + ' is down' );
+              }
               break;
           } 
+        },
+
+        keyupHandler: function(e) {
+          var self = this;
+
+          if (self._hotKeys[e.which]) {
+            self._hotKeys[e.which] = false;
+            console.log(e.which + ' is up');
+          }
+
         },
 
 

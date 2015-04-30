@@ -5,7 +5,7 @@
 
 <link rel="import" href="../lenses-component-list/lenses-component-list.html">
 
-<polymer-element name="lenses-freeform" attributes="" on-keydown="{{keydownHandler}}">
+<polymer-element name="lenses-freeform" attributes="structure" on-keydown="{{keydownHandler}}">
 
   <template>
     <link rel="stylesheet" href="lenses-freeform.css">
@@ -142,11 +142,21 @@
       _zoomMin: 0.6,
       _zoomStep: 0.2,
 
+      /**
+       * An attribute to assign lens component structure. Needed for framework (e.g. Angular) integration
+       * @type {Object}
+       */
+      structure: null,
+
       // if dragging in container, drag area allows selection of multiple elements
       _makeDragArea: false,
       
       // state to determine whether we are selecting or de-selecting elements during multi-drag
       _selectingElByDrag: false,
+
+      observe: {
+        structure: 'scaffold'
+      },
 
       domReady: function() {
 
@@ -155,6 +165,7 @@
         });
 
         this.$.zoomRange.value = this._zoom;
+
       },
 
       ready: function() {
@@ -1057,6 +1068,18 @@
           
         }        
 
+      },
+
+      scaffold: function() {
+
+        var structure = this.structure;
+        if(typeof this.structure==='string') {
+          structure = JSON.parse(this.structure);
+        }
+
+        if(structure.elements) {
+          this.scaffoldFromData(structure.elements, structure.connections)
+        }
       },
 
 

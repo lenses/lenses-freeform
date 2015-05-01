@@ -1073,7 +1073,7 @@
       scaffold: function() {
 
         var structure = this.structure;
-        if(typeof this.structure==='string') {
+        if(typeof this.structure==='string' && this.structure.length>0) {
           structure = JSON.parse(this.structure);
         }
 

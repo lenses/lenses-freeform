@@ -291,7 +291,7 @@
 
 
           if(dataSeg.length==1) {
-            self.addNewElToLens(dataSeg[0], Math.round(e.offsetX/10)*10, Math.round(e.offsetY/10)*10);
+            self.addNewElToLens(dataSeg[0], Math.round(e.offsetX/10)*10 * self._zoom, Math.round(e.offsetY/10)*10 * self._zoom);
 
             return;
           } 
@@ -1058,10 +1058,10 @@
 
           var otherInputOffset = (conn.target.field==='input') ? 0 : 16;
 
-          var startX = srcRect.right - svgRect.left + arrowOffsetX; //srcRect.left + srcRect.width + 30 - containerOffsetX;
-          var startY = srcRect.top - svgRect.top + arrowOffsetY;
-          var endX = targetRect.left  - svgRect.left - arrowOffsetX;
-          var endY = targetRect.top  - svgRect.top + arrowOffsetY + otherInputOffset;
+          var startX = (srcRect.right - svgRect.left + arrowOffsetX)/self._zoom; //srcRect.left + srcRect.width + 30 - containerOffsetX;
+          var startY = (srcRect.top - svgRect.top + arrowOffsetY)/self._zoom;
+          var endX = (targetRect.left  - svgRect.left - arrowOffsetX)/self._zoom;
+          var endY = (targetRect.top  - svgRect.top + arrowOffsetY + otherInputOffset)/self._zoom;
 
 
           self._addBezierPath(startX, startY, endX, endY , bezierCurveX, srcEl.id + '-' + targetEl.id, conn.highlighted);

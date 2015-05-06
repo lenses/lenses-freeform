@@ -291,7 +291,7 @@
 
 
           if(dataSeg.length==1) {
-            self.addNewElToLens(dataSeg[0], Math.round(e.offsetX/10)*10, Math.round(e.offsetY/10)*10);
+            self.addNewElToLens(dataSeg[0], Math.round(e.offsetX/10)*10 * self._zoom, Math.round(e.offsetY/10)*10 * self._zoom);
 
             return;
           } 

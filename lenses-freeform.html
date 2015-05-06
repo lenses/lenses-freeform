@@ -238,9 +238,8 @@
 
       _deleteElementById: function(compId) {
         if(confirm('Do you want to remove this element from the sketch?')) {
-
           var self = this;
-          var ebmededEl = self.querySelector('#'+compId);
+          var embeddedEl = self.querySelector('#'+compId);
           var elInArray = self.findElById(compId);
 
           //remove all connections
@@ -253,7 +252,7 @@
           self._elements = filteredEls;
 
           // remove elements from lens-connector 
-          self.removeChild(ebmededEl);
+          self.removeChild(embeddedEl);
         }
       },
 
@@ -290,10 +289,11 @@
         elName = elNameArray.join('-');
         this.addNewElToLens(elName, e.x, e.y);
 
+
         var dx = e.x/this._zoom - (e.toElement.getAttribute('start-x')/this._zoom || 0),
             dy = e.y/this._zoom - (e.toElement.getAttribute('start-y')/this._zoom || 0);
-
         console.log(dx, dy);
+
 
         // clone multiple
         for (var i = 0; i < this._selWrappers.length; i++) {
@@ -303,11 +303,14 @@
             console.log('same el!');
             return;
           } else {
-            console.log('different el!');
+            console.log(target.getBoundingClientRect());
+            // find each element's distance from the e.toElement
+
+            this.addNewElToLens(elName, e.x/this._zoom + dx, e.y/this._zoom + dy);
+
           }
 
           // var elName = this._selWrappers[i].classList[1];
-          // this.addNewElToLens(elName, e.x, e.y);
 
           // var x = target.getAttribute('start-x');
           // var y = target.getAttribute('start-y');
@@ -622,7 +625,7 @@
 
         // SVG drag events, also called on mousedown
         dragStartSVG: function(e, details, selection) {
-
+          console.log('hi');
           // clear this._selWrappers [TO DO: unless Shift is clicked]
           this._selWrappers = [];
 
@@ -989,13 +992,17 @@
 
             // if deleteKey:
             case(8):
+              console.log('delete key')
               e.preventDefault();
               e.stopPropagation();
               // if bezier was selected, delete that. Otherwise, delete element
               if (self._highlightedConnection) {
                 self._deleteBezier(e, self._highlightedConnection);
-              } else if (self._selElement) {
-                self._deleteElementById(self._selElement.id);
+              } else if (self._selWrappers.length > 0) {
+                for (var i = 0; i < self._selWrappers.length; i++) {
+                  var _id = self._selWrappers[i].getAttribute('component-id');
+                  self._deleteElementById(_id);
+                }
               }
               break;
             // zoom with -_ (189) and += (187)

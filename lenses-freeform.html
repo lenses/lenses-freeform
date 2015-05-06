@@ -4,11 +4,18 @@
 <link rel="import" href="../lens-data-table/lens-data-table.html">
 
 <link rel="import" href="../lenses-component-list/lenses-component-list.html">
+<link rel="import" href="../paper-input/paper-input.html">
 
 <polymer-element name="lenses-freeform" attributes="structure" on-keydown="{{keydownHandler}}">
 
   <template>
     <link rel="stylesheet" href="lenses-freeform.css">
+
+    <!-- Title and Author fields -->
+    <div hidden>
+      <h1><paper-input label="Title of Lens" value="{{lensTitle}}"></paper-input></h1>
+      <h3><paper-input label="Your Name" value="{{lensAuthor}}"></paper-input></h3>
+    </div>
 
     <core-icon-button id="showDataBtn" class="active" icon="view-module" on-click="{{showDataBtn}}" alt="show component data">
       <span>show component input/output</span>

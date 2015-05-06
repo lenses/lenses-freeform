@@ -274,7 +274,6 @@
 
       // if option key was pressed, clone the element when drag is done
       _cloneElement: function(e, detail, selection) {
-        console.log(e, detail, selection);
 
         // figure out the name of the element...
         var componentId = selection.getAttribute('component-id');
@@ -289,32 +288,25 @@
         elName = elNameArray.join('-');
         this.addNewElToLens(elName, e.x, e.y);
 
-
-        var dx = e.x/this._zoom - (e.toElement.getAttribute('start-x')/this._zoom || 0),
-            dy = e.y/this._zoom - (e.toElement.getAttribute('start-y')/this._zoom || 0);
+        var dx = e.x - (e.toElement.getAttribute('start-x') || 0),
+            dy = e.y - (e.toElement.getAttribute('start-y')|| 0);
         console.log(dx, dy);
 
 
-        // clone multiple
+        // if other wrappers were selected, also clone those
         for (var i = 0; i < this._selWrappers.length; i++) {
           var target = this._selWrappers[i];
 
           if (target === e.toElement) {
-            console.log('same el!');
             return;
           } else {
-            console.log(target.getBoundingClientRect());
+            var orig = target.getBoundingClientRect();
+
             // find each element's distance from the e.toElement
-
-            this.addNewElToLens(elName, e.x/this._zoom + dx, e.y/this._zoom + dy);
-
+            var x = (orig.left + dx)/this._zoom;
+            var y = (orig.top + dy)/this._zoom;
+            this.addNewElToLens(elName, x, y);
           }
-
-          // var elName = this._selWrappers[i].classList[1];
-
-          // var x = target.getAttribute('start-x');
-          // var y = target.getAttribute('start-y');
-          // console.log(x, y);
         }
 
       },

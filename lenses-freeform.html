@@ -2,7 +2,7 @@
 <link rel="import" href="../lens-data-table/lens-data-table.html">
 <link rel="import" href="../lenses-component-list/lenses-component-list.html">
 
-<polymer-element name="lenses-freeform" attributes="structure" on-keydown="{{keydownHandler}}" on-keyup="{{keyupHandler}}">
+<polymer-element name="lenses-freeform" attributes="structure" on-keydown="{{keydownHandler}}" on-keyup="{{keyupHandler}}" on-mouseout="mouseoutHandler">
 
   <template>
     <link rel="stylesheet" href="lenses-freeform.css">
@@ -147,7 +147,10 @@
 
       // if dragging in container, drag area allows selection of multiple elements
       _makeDragArea: false,
-      
+
+      // svg rect of drag area
+      _dragArea: null,
+
       // state to determine whether we are selecting or de-selecting elements during multi-drag
       _selectingElByDrag: false,
 
@@ -272,6 +275,7 @@
 
       // if option key was pressed, clone the element when drag is done
       _cloneElement: function(e, detail, selection) {
+        console.log(e, detail, selection);
 
         // figure out the name of the element...
         var componentId = selection.getAttribute('component-id');
@@ -284,10 +288,31 @@
           }
         }
         elName = elNameArray.join('-');
-
-        // var x = ;
-        // var y = e.clientY;
         this.addNewElToLens(elName, e.x, e.y);
+
+        var dx = e.x/this._zoom - (e.toElement.getAttribute('start-x')/this._zoom || 0),
+            dy = e.y/this._zoom - (e.toElement.getAttribute('start-y')/this._zoom || 0);
+
+        console.log(dx, dy);
+
+        // clone multiple
+        for (var i = 0; i < this._selWrappers.length; i++) {
+          var target = this._selWrappers[i];
+
+          if (target === e.toElement) {
+            console.log('same el!');
+            return;
+          } else {
+            console.log('different el!');
+          }
+
+          // var elName = this._selWrappers[i].classList[1];
+          // this.addNewElToLens(elName, e.x, e.y);
+
+          // var x = target.getAttribute('start-x');
+          // var y = target.getAttribute('start-y');
+          // console.log(x, y);
+        }
 
       },
 
@@ -448,6 +473,17 @@
 
           var target = e.target;
 
+          // make this the _selElement and _selWrapper
+          this.wrapperClicked(e, details, selection);
+
+          // set start-x and start-y for all _selWrappers
+          for (var i = 0; i < this._selWrappers.length; i++) {
+            var wrapper = this._selWrappers[i];
+            
+            this._setWrapperDragStartingPoint(wrapper, e.x, e.y);
+
+          }
+
           if (this._hotKeys['18']) {
             // start dragging a clone
             this._draggingClone = true;
@@ -470,19 +506,6 @@
           //keep dragImage outside the canvas
           e.dataTransfer.setDragImage(dragImgEl,-2000,-2000);
 
-          // add it to the document
-
-
-          // make this the _selElement and _selWrapper
-          this.wrapperClicked(e, details, selection);
-
-          // set start-x and start-y for all _selWrappers
-          for (var i = 0; i < this._selWrappers.length; i++) {
-            var wrapper = this._selWrappers[i];
-            
-            this._setWrapperDragStartingPoint(wrapper, e.x, e.y);
-
-          }
         },
 
         // set starting position of a drag for any target, not based on an event. Called by dragStartWrapper
@@ -599,6 +622,10 @@
 
         // SVG drag events, also called on mousedown
         dragStartSVG: function(e, details, selection) {
+
+          // clear this._selWrappers [TO DO: unless Shift is clicked]
+          this._selWrappers = [];
+
           this._makeDragArea = true;
           this._selectingElByDrag = false;
 
@@ -662,10 +689,7 @@
 
           }
 
-          this._makeDragArea = false;
-          this._clearDragArea(this._dragArea);
-          this._dragArea = null;
-
+          this._clearDragArea();
         },
 
         // helper method
@@ -726,9 +750,13 @@
           rect.setAttributeNS(null, 'height', deltaY);
         },
 
-        _clearDragArea: function(rect) {
+        _clearDragArea: function() {
+          if (this._dragArea) {
+            this.$.svg.removeChild(this._dragArea);
+          }
+          this._makeDragArea = false;
+          this._dragArea = null;
           //this.$.svg.innerHTML = '';
-          this.$.svg.removeChild(rect);
         },
 
         dragOutArrowStart: function(e, details, selection) {
@@ -996,6 +1024,9 @@
 
         },
 
+        mouseoutHandler: function(e) {
+          this._clearDragArea();
+        },
 
 
       /********************** Event Handlers End ********************************/

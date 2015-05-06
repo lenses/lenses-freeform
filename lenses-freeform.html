@@ -2,7 +2,7 @@
 <link rel="import" href="../lens-data-table/lens-data-table.html">
 <link rel="import" href="../lenses-component-list/lenses-component-list.html">
 
-<polymer-element name="lenses-freeform" attributes="" on-keydown="{{keydownHandler}}" on-keyup="{{keyupHandler}}">
+<polymer-element name="lenses-freeform" attributes="structure" on-keydown="{{keydownHandler}}" on-keyup="{{keyupHandler}}">
 
   <template>
     <link rel="stylesheet" href="lenses-freeform.css">
@@ -139,6 +139,12 @@
       _zoomMin: 0.6,
       _zoomStep: 0.2,
 
+      /**
+       * An attribute to assign lens component structure. Needed for framework (e.g. Angular) integration
+       * @type {Object}
+       */
+      structure: null,
+
       // if dragging in container, drag area allows selection of multiple elements
       _makeDragArea: false,
       
@@ -153,6 +159,9 @@
         '91' : false  // 91 = command
        },
 
+      observe: {
+        structure: 'scaffold'
+      },
 
       domReady: function() {
 
@@ -161,6 +170,7 @@
         });
 
         this.$.zoomRange.value = this._zoom;
+
       },
 
       ready: function() {
@@ -542,7 +552,6 @@
         dragEndWrapper: function(e, details, selection) {
           // console.log('done dragging!');
           if (this._draggingClone) {
-            console.log('time to make a clone');
             this._draggingClone = false;
             this._cloneElement(e, details, selection);
             return;
@@ -973,7 +982,6 @@
             default:
               if (typeof(self._hotKeys[e.which]) !== 'undefined') {
                 self._hotKeys[e.which] = true;
-                console.log(e.which + ' is down' );
               }
               break;
           } 
@@ -984,7 +992,6 @@
 
           if (self._hotKeys[e.which]) {
             self._hotKeys[e.which] = false;
-            console.log(e.which + ' is up');
           }
 
         },
@@ -1112,6 +1119,18 @@
           
         }        
 
+      },
+
+      scaffold: function() {
+
+        var structure = this.structure;
+        if(typeof this.structure==='string' && this.structure.length>0) {
+          structure = JSON.parse(this.structure);
+        }
+
+        if(structure.elements) {
+          this.scaffoldFromData(structure.elements, structure.connections)
+        }
       },
 
 

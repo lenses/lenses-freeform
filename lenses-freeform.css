@@ -26,13 +26,13 @@
 
       #container {
         position: relative;
-        width: 300%;
-        height: 300%;
+        width: 200%;
+        height: 200%;
         background: url(grid.png) 0 0 repeat;
         overflow:scroll;
         transform-origin: top left;
         transform:scale(1, 1);
-        transition: all .6s ease;
+        transition: all .4s ease-out;
       }
 
       svg {

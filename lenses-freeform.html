@@ -984,9 +984,7 @@
 
             // if deleteKey:
             case(8):
-              console.log('delete key')
-              e.preventDefault();
-              e.stopPropagation();
+              console.log('delete key');
               // if bezier was selected, delete that. Otherwise, delete element
               if (self._highlightedConnection) {
                 self._deleteBezier(e, self._highlightedConnection);
@@ -996,6 +994,8 @@
                   self._deleteElementById(_id);
                 }
               }
+              e.preventDefault();
+              e.stopPropagation();
               break;
             // zoom with -_ (189) and += (187)
             case(189):

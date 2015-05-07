@@ -12,7 +12,7 @@
     "lens-data-table": "lenses/lens-data-table",
     "lenses-component-list": "lenses/lenses-component-list",
     "paper-input": "polymer/paper-input#~0.5.5",
-    "paper-dialog": "polymer/paper-dialog#~0.5.5"
+    "core-overlay": "polymer/core-overlay#~0.5.5"
   },
   "devDependencies": {
     "web-component-tester": "Polymer/web-component-tester#^2.0.0"

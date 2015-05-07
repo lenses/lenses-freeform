@@ -3,7 +3,9 @@
 <link rel="import" href="../lenses-component-list/lenses-component-list.html">
 <link rel="import" href="../paper-input/paper-input.html">
 <link rel="import" href="../paper-dialog/paper-dialog.html">
-<link rel="import" href="../paper-dialog/paper-action-dialog.html">
+<link rel="import" href="../core-overlay/core-overlay.html">
+
+<link rel="import" href="../core-overlay/core-overlay.html">
 
 
 <polymer-element name="lenses-freeform" attributes="lensTitle lensAuthor structure" on-keydown="{{keydownHandler}}">
@@ -12,12 +14,12 @@
     <link rel="stylesheet" href="lenses-freeform.css">
 
     <!-- Title and Author fields + save action in dialog-->
-    <paper-action-dialog id="savedetails">
+    <core-overlay class="dialog" backdrop="true" id="savedetails">
       <h1><paper-input label="Title of Lens" value="{{lensTitle}}"></paper-input></h1>
       <h3><paper-input label="Your Name" value="{{lensAuthor}}"></paper-input></h3>
       <core-icon-button class="" dismissive icon="clear"></core-icon-button> 
       <core-icon-button class="save" affirmative icon="check"  ng-click="saveLens()" on-click="{{_saveLens}}" ></core-icon-button>
-    </paper-action-dialog>
+    </core-overlay>
 
     <core-icon-button id="showDataBtn" class="active" icon="view-module" on-click="{{showDataBtn}}" alt="show component data">
       <span>show component input/output</span>
@@ -133,13 +135,13 @@
       </template>
     </div>       
 
-    <paper-action-dialog autoCloseDisabled heading="Confirm Deletion" id="deleteDialog" class="size-position" on-core-overlay-close-completed="{{_deleteDialogClosed}}">
+    <core-overlay autoCloseDisabled heading="Confirm Deletion" id="deleteDialog" class="dialog size-position" on-core-overlay-close-completed="{{_deleteDialogClosed}}">
       <p>Are you sure you want to remove the selected item?</p>
       <div horizontal end-justified layout>
         <core-icon-button icon="clear" dismissive on-click="{{_noDelete}}" ></core-icon-button>
         <core-icon-button icon="check" affirmative on-click="{{_yesDelete}}" ></core-icon-button>
       </div>
-    </paper-action-dialog>
+    </core-overlay>
 
   </template>
   <script>

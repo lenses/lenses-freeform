@@ -318,6 +318,12 @@
           
       }
 
+      core-overlay.dialog {
+        padding: 5px;
+        background-color: white;
+        border: 1px solid black;
+      }
+
 
       .outputMarker {
           width: 0px; 

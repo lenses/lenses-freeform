@@ -324,6 +324,21 @@
         border: 1px solid black;
       }
 
+      core-overlay.dialog core-icon-button {
+        padding: 0px;
+        float: right;
+      }
+
+      core-overlay.dialog core-icon-button[affirmative]:hover {
+        color: green;
+
+      }
+
+
+      core-overlay.dialog core-icon-button[dismissive]:hover {
+        color: red;
+
+      }
 
       .outputMarker {
           width: 0px; 

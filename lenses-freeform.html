@@ -1,17 +1,29 @@
 <link rel="import" href="../polymer/polymer.html">
-
-
 <link rel="import" href="../lens-data-table/lens-data-table.html">
-
 <link rel="import" href="../lenses-component-list/lenses-component-list.html">
+<link rel="import" href="../paper-input/paper-input.html">
+<link rel="import" href="../paper-dialog/paper-dialog.html">
+<link rel="import" href="../paper-dialog/paper-action-dialog.html">
 
-<polymer-element name="lenses-freeform" attributes="structure" on-keydown="{{keydownHandler}}">
+
+<polymer-element name="lenses-freeform" attributes="lensTitle lensAuthor structure" on-keydown="{{keydownHandler}}">
 
   <template>
     <link rel="stylesheet" href="lenses-freeform.css">
 
+    <!-- Title and Author fields + save action in dialog-->
+    <paper-action-dialog id="savedetails">
+      <h1><paper-input label="Title of Lens" value="{{lensTitle}}"></paper-input></h1>
+      <h3><paper-input label="Your Name" value="{{lensAuthor}}"></paper-input></h3>
+      <core-icon-button class="" dismissive icon="clear"></core-icon-button> 
+      <core-icon-button class="save" affirmative icon="check"  ng-click="saveLens()" on-click="{{_saveLens}}" ></core-icon-button>
+    </paper-action-dialog>
+
     <core-icon-button id="showDataBtn" class="active" icon="view-module" on-click="{{showDataBtn}}" alt="show component data">
       <span>show component input/output</span>
+    </core-icon-button>
+
+    <core-icon-button id="saveBtn" icon="save" on-click="{{showSaveDialog}}" alt="save">
     </core-icon-button>
 
     <!-- <div id="zoomOptions"> -->
@@ -121,7 +133,14 @@
       </template>
     </div>       
 
-    
+    <paper-action-dialog autoCloseDisabled heading="Confirm Deletion" id="deleteDialog" class="size-position" on-core-overlay-close-completed="{{_deleteDialogClosed}}">
+      <p>Are you sure you want to remove the selected item?</p>
+      <div horizontal end-justified layout>
+        <core-icon-button icon="clear" dismissive on-click="{{_noDelete}}" ></core-icon-button>
+        <core-icon-button icon="check" affirmative on-click="{{_yesDelete}}" ></core-icon-button>
+      </div>
+    </paper-action-dialog>
+
   </template>
   <script>
     Polymer({
@@ -157,6 +176,10 @@
       observe: {
         structure: 'scaffold'
       },
+
+      // if delete = true when deleteDialog is closed, it will call _deleteCallback()
+      _deleteCallback: null,
+      _delete: false,
 
       domReady: function() {
 
@@ -230,9 +253,14 @@
       },
 
       _deleteElementById: function(compId) {
-        if(confirm('Do you want to remove this element from the sketch?')) {
+        var self = this;
+        var compId = compId;
 
-          var self = this;
+        self.$.deleteDialog.toggle();
+
+        // set the delete callback
+        self._deleteCallback = function() {
+
           var ebmededEl = self.querySelector('#'+compId);
           var elInArray = self.findElById(compId);
 
@@ -822,8 +850,11 @@
         },
 
         deleteConnection: function(e, details, selection) {
-          if(confirm('Are you sure you want to delete the highlighted connection?')) {
+          var self = this;
+          self.$.deleteDialog.toggle();
 
+          // set the delete callback
+          self._deleteCallback = function() {
             if (e) {
               e.stopPropagation();
             }
@@ -831,8 +862,8 @@
 
             // figure out the source
             var src;
-            if (this._highlightedConnection) {
-              var splitID = this._highlightedConnection.id.split('-');
+            if (self._highlightedConnection) {
+              var splitID = self._highlightedConnection.id.split('-');
               src = splitID[0]+'-'+splitID[1]+'-'+splitID[2];
               console.log(src);
               elementInsideId = splitID[3] + '-' + splitID[4] + '-' + splitID[5];
@@ -850,15 +881,17 @@
             if (!e){
               e = undefined;
             }
-            this.deleteConnectionByID(e, elementInsideId)
-
+            self.deleteConnectionByID(e, elementInsideId)
           }
         },
 
         _deleteBezier: function(e, bezier) {
           var srcId, dstId;
+          var self = this;
+          self.$.deleteDialog.toggle();
 
-          if(confirm('Are you sure you want to delete the highlighted connection?')) {
+          // set the delete callback
+          self._deleteCallback = function() {
             var idSplit = bezier.id.split('-');
 
             // split ID at number to determine srcId and dstId
@@ -870,10 +903,9 @@
             dstId = idSplit.slice(i+1).join('-');
             srcId = idSplit.slice(0, i).join('-');
 
-            this.deleteConnectionByID(e, dstId);
+            self.deleteConnectionByID(e, dstId);
 
-            this._clearHighlightedConnections();
-
+            self._clearHighlightedConnections();
           }
         },
 
@@ -958,7 +990,9 @@
             });
         },
 
-
+        showSaveDialog: function()  {
+          this.$.savedetails.toggle();
+        },
 
 
 
@@ -1087,7 +1121,7 @@
        * Sacffold a new th-connector from state data. Usage: 
        *  var newConnector = document.createElement('th-connector');
        *  newConnector.scaffoldFromData(elements, connections)
-       *  where elements and connections are parsed json files coming form dumpStateDataAsString
+       *  where elements and connections are parsed json files coming form dumpData
        * @param  {Object} elements    elements state data
        * @param  {Object} connections connections
        * @return {None}             
@@ -1165,7 +1199,7 @@
         this._drawConnections();
       },      
 
-      dumpStateDataAsString: function() {
+      dumpData: function() {
         var self = this;
 
         var toDumpEls = _.map(this._elements, function(el) {
@@ -1196,8 +1230,17 @@
 
         return ret;
 
-      }, 
+      },
 
+      _saveLens: function() {
+        var btn = document.getElementById('saveLensBtn');
+        if (typeof (btn) !== 'undefined') {
+          btn.click();
+          console.log('btn!');
+        } else {
+          console.log('no button')
+        }
+      },
 
       removeDomObjects: function(key, value) {
 
@@ -1346,8 +1389,22 @@
 
       _zoomChanged: function() {
         this.$.container.style.transform = "scale(" + this._zoom +", " + this._zoom+")";
-      }
+      },
 
+      // delete modal
+      _noDelete: function() {
+        this._delete = false;
+      },
+      _yesDelete: function() {
+        this._delete = true;
+      },
+      _deleteDialogClosed: function(e, selection, detail) {
+        if (this._delete) {
+          this._deleteCallback();
+        }
+        this._delete = false;
+        this._deleteCallback = null;
+      }
 
     });
 

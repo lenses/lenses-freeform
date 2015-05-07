@@ -118,7 +118,14 @@
 
       }      
 
-
+      #saveBtn {
+        position: fixed;
+        top: 5px;
+        right: 60px;
+        z-index: 300;
+        background-color: #FFF;
+        border: 1px solid #EEE;
+      }
 
       .data-preview {
         position: fixed;

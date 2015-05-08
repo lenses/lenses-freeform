@@ -9,13 +9,6 @@
   <template>
     <link rel="stylesheet" href="lenses-freeform.css">
 
-    <!-- Title and Author fields + save action in dialog-->
-    <core-overlay class="dialog" id="savedetails">
-      <h1><paper-input label="Title of Lens" value="{{lensTitle}}"></paper-input></h1>
-      <h3><paper-input label="Your Name" value="{{lensAuthor}}"></paper-input></h3>
-      <core-icon-button class="save" affirmative icon="check"  ng-click="saveLens()" on-click="{{_saveLens}}" ></core-icon-button>
-      <core-icon-button class="" dismissive icon="clear"></core-icon-button> 
-    </core-overlay>
 
     <core-icon-button id="showDataBtn" class="active" icon="view-module" on-click="{{showDataBtn}}" alt="show component data">
       <span>show component input/output</span>
@@ -138,6 +131,15 @@
         <core-icon-button icon="check" affirmative on-click="{{_yesDelete}}" ></core-icon-button>
       </div>
     </core-overlay>
+
+    <!-- Title and Author fields + save action in dialog-->
+    <core-overlay class="dialog" id="savedetails">
+      <h1><paper-input label="Title of Lens" value="{{lensTitle}}"></paper-input></h1>
+      <h3><paper-input label="Your Name" value="{{lensAuthor}}"></paper-input></h3>
+      <core-icon-button class="save" affirmative icon="check"  ng-click="saveLens()" on-click="{{_saveLens}}" ></core-icon-button>
+      <core-icon-button class="" dismissive icon="clear"></core-icon-button> 
+    </core-overlay>
+    
 
   </template>
   <script>

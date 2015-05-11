@@ -4,7 +4,7 @@
 <link rel="import" href="../paper-input/paper-input.html">
 <link rel="import" href="../core-overlay/core-overlay.html">
 
-<polymer-element name="lenses-freeform" attributes="lensTitle lensAuthor structure" on-keydown="{{keydownHandler}}">
+<polymer-element name="lenses-freeform" attributes="structure" on-keydown="{{keydownHandler}}" on-keyup="{{keyupHandler}}" on-mouseout="mouseoutHandler">
 
   <template>
     <link rel="stylesheet" href="lenses-freeform.css">
@@ -169,9 +169,20 @@
 
       // if dragging in container, drag area allows selection of multiple elements
       _makeDragArea: false,
-      
+
+      // svg rect of drag area
+      _dragArea: null,
+
       // state to determine whether we are selecting or de-selecting elements during multi-drag
       _selectingElByDrag: false,
+
+      // which keys are down
+      _hotKeys: { 
+        '18' : false, // 18 = option
+        '16' : false, // 16 = shift
+        '17' : false, // 17 = control
+        '91' : false  // 91 = command
+       },
 
       observe: {
         structure: 'scaffold'
@@ -199,7 +210,6 @@
       },
 
       addNewElToLens: function(newElName, left, top){
-
         var newEl = document.createElement(newElName);
 
         this.$.component_list.checkAndImport(newEl, function() {
@@ -273,7 +283,7 @@
           self._elements = filteredEls;
 
           // remove elements from lens-connector 
-          self.removeChild(ebmededEl);
+          self.removeChild(embeddedEl);
         }
       },
 
@@ -290,6 +300,45 @@
 
         this._drawConnections();
 
+
+      },
+
+      // if option key was pressed, clone the element when drag is done
+      _cloneElement: function(e, detail, selection) {
+
+        // figure out the name of the element...
+        var componentId = selection.getAttribute('component-id');
+        var idSplit = componentId.split('-');
+        var elNameArray = [];
+        var elName = '';
+        for (var i = 0; i < idSplit.length; i++) {
+          if (isNaN(Number(idSplit[i])) ) {
+            elNameArray.push(idSplit[i])
+          }
+        }
+        elName = elNameArray.join('-');
+        this.addNewElToLens(elName, e.x, e.y);
+
+        var dx = e.x - (e.toElement.getAttribute('start-x') || 0),
+            dy = e.y - (e.toElement.getAttribute('start-y')|| 0);
+        console.log(dx, dy);
+
+
+        // if other wrappers were selected, also clone those
+        for (var i = 0; i < this._selWrappers.length; i++) {
+          var target = this._selWrappers[i];
+
+          if (target === e.toElement) {
+            return;
+          } else {
+            var orig = target.getBoundingClientRect();
+
+            // find each element's distance from the e.toElement
+            var x = (orig.left + dx)/this._zoom;
+            var y = (orig.top + dy)/this._zoom;
+            this.addNewElToLens(elName, x, y);
+          }
+        }
 
       },
 
@@ -441,12 +490,31 @@
 
         },
 
+        // _dragClone: function(e, details, selection) {
+        //   // TO Do
+        //   console.log(e.target);
+        // },
 
         dragStartWrapper: function(e, details, selection) {
 
           var target = e.target;
 
+          // make this the _selElement and _selWrapper
+          this.wrapperClicked(e, details, selection);
 
+          // set start-x and start-y for all _selWrappers
+          for (var i = 0; i < this._selWrappers.length; i++) {
+            var wrapper = this._selWrappers[i];
+            
+            this._setWrapperDragStartingPoint(wrapper, e.x, e.y);
+
+          }
+
+          if (this._hotKeys['18']) {
+            // start dragging a clone
+            this._draggingClone = true;
+            return;
+          }
 
           var dragImgEl = document.querySelector('#wrapper-drag-img'); 
 
@@ -464,19 +532,6 @@
           //keep dragImage outside the canvas
           e.dataTransfer.setDragImage(dragImgEl,-2000,-2000);
 
-          // add it to the document
-
-
-          // make this the _selElement and _selWrapper
-          this.wrapperClicked(e, details, selection);
-
-          // set start-x and start-y for all _selWrappers
-          for (var i = 0; i < this._selWrappers.length; i++) {
-            var wrapper = this._selWrappers[i];
-            
-            this._setWrapperDragStartingPoint(wrapper, e.x, e.y);
-
-          }
         },
 
         // set starting position of a drag for any target, not based on an event. Called by dragStartWrapper
@@ -486,6 +541,11 @@
         },
 
         dragWrapper: function(e, details, selection) {
+          if (this._hotKeys['18']) {
+            // dragging a clone
+            return;
+          }
+
          if(e.path[0].classList && e.path[0].classList.length>0 && 
             (e.path[0].classList.contains('resize') || e.path[0].classList.contains('arrow'))) {
             return false;
@@ -539,7 +599,13 @@
         },
 
         dragEndWrapper: function(e, details, selection) {
-          
+          // console.log('done dragging!');
+          if (this._draggingClone) {
+            this._draggingClone = false;
+            this._cloneElement(e, details, selection);
+            return;
+          }
+
           //if resize is being dragged don't do anything (stopPropagation is not doing anything)
           var target = e.target;
           target.setAttribute('residue-x', 0 );
@@ -582,6 +648,10 @@
 
         // SVG drag events, also called on mousedown
         dragStartSVG: function(e, details, selection) {
+          console.log('hi');
+          // clear this._selWrappers [TO DO: unless Shift is clicked]
+          this._selWrappers = [];
+
           this._makeDragArea = true;
           this._selectingElByDrag = false;
 
@@ -645,10 +715,7 @@
 
           }
 
-          this._makeDragArea = false;
-          this._clearDragArea(this._dragArea);
-          this._dragArea = null;
-
+          this._clearDragArea();
         },
 
         // helper method
@@ -709,9 +776,13 @@
           rect.setAttributeNS(null, 'height', deltaY);
         },
 
-        _clearDragArea: function(rect) {
+        _clearDragArea: function() {
+          if (this._dragArea) {
+            this.$.svg.removeChild(this._dragArea);
+          }
+          this._makeDragArea = false;
+          this._dragArea = null;
           //this.$.svg.innerHTML = '';
-          this.$.svg.removeChild(rect);
         },
 
         dragOutArrowStart: function(e, details, selection) {
@@ -948,16 +1019,19 @@
 
             // if deleteKey:
             case(8):
-              e.preventDefault();
-              e.stopPropagation();
+              console.log('delete key');
               // if bezier was selected, delete that. Otherwise, delete element
               if (self._highlightedConnection) {
                 self._deleteBezier(e, self._highlightedConnection);
-              } else if (self._selElement) {
-                self._deleteElementById(self._selElement.id);
+              } else if (self._selWrappers.length > 0) {
+                for (var i = 0; i < self._selWrappers.length; i++) {
+                  var _id = self._selWrappers[i].getAttribute('component-id');
+                  self._deleteElementById(_id);
+                }
               }
+              e.preventDefault();
+              e.stopPropagation();
               break;
-
             // zoom with -_ (189) and += (187)
             case(189):
               self.zoomOut();
@@ -967,15 +1041,26 @@
               self.zoomIn();
               break;
 
-            // if Option Key...
-            case(18):
-              console.log('option key');
-              break;
             default:
+              if (typeof(self._hotKeys[e.which]) !== 'undefined') {
+                self._hotKeys[e.which] = true;
+              }
               break;
           } 
         },
 
+        keyupHandler: function(e) {
+          var self = this;
+
+          if (self._hotKeys[e.which]) {
+            self._hotKeys[e.which] = false;
+          }
+
+        },
+
+        mouseoutHandler: function(e) {
+          this._clearDragArea();
+        },
 
 
       /********************** Event Handlers End ********************************/

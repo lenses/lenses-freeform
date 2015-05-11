@@ -9,14 +9,14 @@
       #component_list {
         position: fixed;
         top: 80px;
-        right: 12px;
+        right: 5px;
         z-index: 200;
         
       }	
       .component-list-label	{
         position: fixed;
         top: 75px;
-        right: 62px;
+        right: 53px;
 
       }
 

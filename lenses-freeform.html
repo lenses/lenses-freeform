@@ -124,7 +124,7 @@
       </template>
     </div>       
 
-    <core-overlay autoCloseDisabled heading="Confirm Deletion" id="deleteDialog" class="dialog size-position" on-core-overlay-close-completed="{{_deleteDialogClosed}}">
+    <core-overlay autoCloseDisabled id="deleteDialog" class="dialog size-position">
       <p>Are you sure you want to remove the selected item?</p>
       <div horizontal end-justified layout>
         <core-icon-button icon="clear" dismissive on-click="{{_noDelete}}" ></core-icon-button>
@@ -139,7 +139,7 @@
       <core-icon-button class="save" affirmative icon="check"  ng-click="saveLens()" on-click="{{_saveLens}}" ></core-icon-button>
       <core-icon-button class="" dismissive icon="clear"></core-icon-button> 
     </core-overlay>
-    
+
 
   </template>
   <script>
@@ -179,7 +179,6 @@
 
       // if delete = true when deleteDialog is closed, it will call _deleteCallback()
       _deleteCallback: null,
-      _delete: false,
 
       domReady: function() {
 
@@ -1393,16 +1392,11 @@
 
       // delete modal
       _noDelete: function() {
-        this._delete = false;
+        this.$.deleteDialog.toggle();
       },
       _yesDelete: function() {
-        this._delete = true;
-      },
-      _deleteDialogClosed: function(e, selection, detail) {
-        if (this._delete) {
-          this._deleteCallback();
-        }
-        this._delete = false;
+        this._deleteCallback();
+        this.$.deleteDialog.toggle();
         this._deleteCallback = null;
       }
 

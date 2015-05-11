@@ -1477,11 +1477,11 @@
 
       // delete modal
       _noDelete: function() {
-        this.$.deleteDialog.toggle();
+        this.$.deleteDialog.close();
       },
       _yesDelete: function() {
+        this.$.deleteDialog.close();
         this._deleteCallback();
-        this.$.deleteDialog.toggle();
         this._deleteCallback = null;
       }
 

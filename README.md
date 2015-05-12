@@ -27,4 +27,31 @@ Connect components by dragging the little output arrow (▶) over the input arro
 Move components by dragging the name of the components.
 
 As you click on a component, the input/output data (if any) shows up in tables above and below  the screen. You can turn that off by clicking on the top right button.
- 
+
+#### Some data sources from [Vegalite](http://uwdata.github.io/vegalite/)
+
+[Barley](http://uwdata.github.io/vegalite/data/barley)
+
+[Cars](http://uwdata.github.io/vegalite/data/cars)
+
+[Crimea](http://uwdata.github.io/vegalite/data/crimea)
+
+[Driving](http://uwdata.github.io/vegalite/data/driving)
+
+[Iris](http://uwdata.github.io/vegalite/data/iris)
+
+[Jobs](http://uwdata.github.io/vegalite/data/jobs)
+
+[Population](http://uwdata.github.io/vegalite/data/population)
+
+[Movies](http://uwdata.github.io/vegalite/data/movies)
+
+[Birdstrikes](http://uwdata.github.io/vegalite/data/birdstrikes)
+
+[Burtin](http://uwdata.github.io/vegalite/data/burtin)
+
+[Budget 2016](http://uwdata.github.io/vegalite/data/budget)
+
+[Climate Normals](http://uwdata.github.io/vegalite/data/climate)
+
+[Campaigns](http://uwdata.github.io/vegalite/data/weball26)

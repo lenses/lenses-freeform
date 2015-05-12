@@ -30,28 +30,28 @@ As you click on a component, the input/output data (if any) shows up in tables a
 
 #### Some data sources from [Vegalite](http://uwdata.github.io/vegalite/)
 
-[Barley](http://uwdata.github.io/vegalite/data/barley)
+[Barley](http://uwdata.github.io/vegalite/data/barley.json)
 
-[Cars](http://uwdata.github.io/vegalite/data/cars)
+[Cars](http://uwdata.github.io/vegalite/data/cars.json)
 
-[Crimea](http://uwdata.github.io/vegalite/data/crimea)
+[Crimea](http://uwdata.github.io/vegalite/data/crimea.json)
 
-[Driving](http://uwdata.github.io/vegalite/data/driving)
+[Driving](http://uwdata.github.io/vegalite/data/driving.json)
 
-[Iris](http://uwdata.github.io/vegalite/data/iris)
+[Iris](http://uwdata.github.io/vegalite/data/iris.json)
 
-[Jobs](http://uwdata.github.io/vegalite/data/jobs)
+[Jobs](http://uwdata.github.io/vegalite/data/jobs.json)
 
-[Population](http://uwdata.github.io/vegalite/data/population)
+[Population](http://uwdata.github.io/vegalite/data/population.json)
 
-[Movies](http://uwdata.github.io/vegalite/data/movies)
+[Movies](http://uwdata.github.io/vegalite/data/movies.json)
 
-[Birdstrikes](http://uwdata.github.io/vegalite/data/birdstrikes)
+[Birdstrikes](http://uwdata.github.io/vegalite/data/birdstrikes.json)
 
-[Burtin](http://uwdata.github.io/vegalite/data/burtin)
+[Burtin](http://uwdata.github.io/vegalite/data/burtin.json)
 
-[Budget 2016](http://uwdata.github.io/vegalite/data/budget)
+[Budget 2016](http://uwdata.github.io/vegalite/data/budget.json)
 
-[Climate Normals](http://uwdata.github.io/vegalite/data/climate)
+[Climate Normals](http://uwdata.github.io/vegalite/data/climate.json)
 
-[Campaigns](http://uwdata.github.io/vegalite/data/weball26)
+[Campaigns](http://uwdata.github.io/vegalite/data/weball26.json)

@@ -4,7 +4,7 @@
 <link rel="import" href="../paper-input/paper-input.html">
 <link rel="import" href="../core-overlay/core-overlay.html">
 
-<polymer-element name="lenses-freeform" attributes="structure" on-keydown="{{keydownHandler}}" on-keyup="{{keyupHandler}}" on-mouseout="mouseoutHandler">
+<polymer-element name="lenses-freeform" attributes="structure" on-keydown="{{keydownHandler}}" on-keyup="{{keyupHandler}}">
 
   <template>
     <link rel="stylesheet" href="lenses-freeform.css">
@@ -192,13 +192,15 @@
       _deleteCallback: null,
 
       domReady: function() {
+        var self = this;
 
-        this.addEventListener('core-resize', function() {
+        self.addEventListener('core-resize', function() {
           this._drawConnections();
         });
 
-        this.$.zoomRange.value = this._zoom;
+        self.$.zoomRange.value = self._zoom;
 
+        document.addEventListener('mouseleave', self.mouseleaveHandler.bind(self));
       },
 
       ready: function() {
@@ -1058,7 +1060,7 @@
 
         },
 
-        mouseoutHandler: function(e) {
+        mouseleaveHandler: function(e) {
           this._clearDragArea();
         },
 

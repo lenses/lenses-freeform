@@ -1012,7 +1012,7 @@
           var focusedArea = e.path['0'].localName;
 
           // make sure it is not a text or input area
-          if (focusedArea.indexOf('text') > -1 || focusedArea.indexOf('input') > 1) {
+          if (focusedArea.indexOf('text') > -1 || focusedArea.indexOf('input') > -1) {
             console.log('in a text area');
             return;
           }

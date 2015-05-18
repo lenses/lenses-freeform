@@ -6,17 +6,128 @@
 			height: 100%;
 
 		}
+
+    .slideout {
+      position: fixed;
+      -webkit-transition-duration: 0.3s;
+      -moz-transition-duration: 0.3s;
+      -o-transition-duration: 0.3s;
+      transition-duration: 0.3s;
+      z-index: 200;
+    }
+
+
+    .slideout-inner {
+      position: fixed;
+      -webkit-transition-duration: 0.3s;
+      -moz-transition-duration: 0.3s;
+      -o-transition-duration: 0.3s;
+      transition-duration: 0.3s;
+    }
+
+    .slideout .slideout-handle {
+      display: inline-block;
+      min-width: 50px;
+      min-height: 20px;
+      /* background: #fff; */
+      padding: 5px;
+      background: rgba(255,255,255,0.5);
+      /* border-left: 1px solid #e5e5e5; */
+      /* border-top: 1px solid #e5e5e5;*/  
+      /* border-right: 1px solid #e5e5e5; */
+    }
+
+    .left .slideout-handle {
+          transform: translate(-10px, 20px) rotate(-90deg);
+    }
+
+    .right .slideout-handle {
+          transform: translate(20px,30px) rotate(-90deg);
+    }
+
+
+    .slideout .slideout-handle::before {
+        margin-right: 6px;
+        /* font-size: 16px; */
+        color: #888;
+        height: 0.7em;
+        overflow: hidden;
+        display: inline-block;
+
+
+    }
+
+    .right .slideout-handle::before {
+        content: '△';
+    }
+
+    .left .slideout-handle::before {
+        content: '▽';
+        line-height: 0.7em;
+    }
+
+    .component-slideout {
+      top: 80px;
+      right: 0;
+
+    }
+
+    .component-slideout .slideout-inner {
+      top: 80px;
+      right: -230px;
+    }
+
+    .component-slideout .slideout-inner {
+      top: 80px;
+      right: -230px;
+    }
+
+    .component-slideout:hover {
+      right: 230px;
+    }
+    .component-slideout:hover .slideout-inner {
+      right: 0;
+    }
+
+    .zoom-slideout {
+      top: 60px;
+      left: 0;
+
+    }
+
+    .zoom-slideout .slideout-inner {
+      top: 60px;
+      left: -40px;
+    }
+
+    .zoom-slideout .slideout-inner {
+      top: 60px;
+      left: -40px;
+    }
+
+    .zoom-slideout:hover {
+      left: 40px;
+    }
+    .zoom-slideout:hover .slideout-inner {
+      left: 0;
+    }
+
+
       #component_list {
+        /*
         position: fixed;
         top: 80px;
         right: 5px;
         z-index: 200;
+        */
         
       }	
       .component-list-label	{
+        /*
         position: fixed;
         top: 75px;
         right: 53px;
+        */
 
       }
 
@@ -61,13 +172,17 @@
       }
 
       #zoomOptions {
+        /*
         position: fixed;
         top: 116px;
+
         left: 10px;
-        z-index: 300;
+
         background-color: #DDD;
-        opacity:0.5;
         border: 1px solid #EEE;
+        */
+        opacity:0.5;
+        z-index: 300;
         /*padding:0px;*/
         padding: 2px;
         margin: 0 !important;

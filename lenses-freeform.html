@@ -9,34 +9,56 @@
   <template>
     <link rel="stylesheet" href="lenses-freeform.css">
 
+    <div class="settings-slideout slideout right">
 
-    <core-icon-button id="showDataBtn" class="active" icon="view-module" on-click="{{showDataBtn}}" alt="show component data">
-      <span>show component input/output</span>
-    </core-icon-button>
+      <span class="slideout-handle">settings</span>
+      <div class="slideout-inner">
 
-    <core-icon-button id="saveBtn" icon="save" on-click="{{showSaveDialog}}" alt="save">
-    </core-icon-button>
+        <core-icon-button id="showDataBtn" class="active" icon="view-module" on-click="{{showDataBtn}}" alt="show component data">
+          <span>show component input/output</span>
+        </core-icon-button>
+        <!--
+        <core-icon-button id="saveBtn" icon="save" on-click="{{showSaveDialog}}" alt="save">
+        </core-icon-button>
+      -->
+      </div>
+    </div>
 
-    <!-- <div id="zoomOptions"> -->
-    <div id="zoomOptions">
-      <core-icon-button id="zoomInBtn" class="" icon="add" on-click="{{zoomIn}}">
-      </core-icon-button>
-      <br/>
-      <input is="core-input" id="zoomRange" type="range" value="{{_zoom}}" min="{{_zoomMin}}" max="{{_zoomMax}}" step="{{_zoomStep}}" style="width:25px" list=zoomsettings>
-      </input>
-      <datalist id="zoomsettings">
-        <option>1</option>
-        <option>0.8</option>
-        <option>0.6</option>
-      </datalist>
-      <br/>
-      <core-icon-button id="zoomOutBtn" icon="remove" on-click="{{zoomOut}}">
-      </core-icon-button>
+
+    <div class="zoom-slideout slideout left">
+
+      <span class="slideout-handle">zoom</span>
+      <div class="slideout-inner">
+        <div id="zoomOptions">
+          <core-icon-button id="zoomInBtn" class="" icon="add" on-click="{{zoomIn}}">
+          </core-icon-button>
+          <br/>
+          <input is="core-input" id="zoomRange" type="range" value="{{_zoom}}" min="{{_zoomMin}}" max="{{_zoomMax}}" step="{{_zoomStep}}" style="width:25px" list=zoomsettings>
+          </input>
+          <datalist id="zoomsettings">
+            <option>1</option>
+            <option>0.8</option>
+            <option>0.6</option>
+          </datalist>
+          <br/>
+          <core-icon-button id="zoomOutBtn" icon="remove" on-click="{{zoomOut}}">
+          </core-icon-button>
+
+        </div>
+      </div>
 
     </div>
 
-    <label class="component-list-label">Drag components into canvas:</label>
-    <lenses-component-list id="component_list"></lenses-component-list>
+    <div class="component-slideout slideout right">
+
+      <span class="slideout-handle">components</span>
+      <div class="slideout-inner">
+
+        <label class="component-list-label">Drag components into canvas:</label>
+        <lenses-component-list id="component_list"></lenses-component-list>
+      </div>
+
+    </div>
 
     <div id="input_preview" class="data-preview {{{visible: _showDataTable && _selElement.input && _selElement.input.length>0 } | tokenList }}">
       <template if="{{_showDataTable && _selElement.input && _selElement.input.length>0}}">

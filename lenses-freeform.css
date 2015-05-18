@@ -6,469 +6,594 @@
 			height: 100%;
 
 		}
-      #component_list {
-        position: fixed;
-        top: 80px;
-        right: 5px;
-        z-index: 200;
-        
-      }	
-      .component-list-label	{
-        position: fixed;
-        top: 75px;
-        right: 53px;
 
-      }
+    .slideout {
+      position: fixed;
+      -webkit-transition-duration: 0.3s;
+      -moz-transition-duration: 0.3s;
+      -o-transition-duration: 0.3s;
+      transition-duration: 0.3s;
+      z-index: 200;
+    }
 
-      #component_list /deep/ core-menu {
-      	background-color: rgba(255,255,255,0.8);
-      }
+    .slideout-inner {
+      position: fixed;
+      -webkit-transition: all 0.3s, opacity 0.7s;
+      -moz-transition: all 0.3s, opacity 0.7s;
+      -o-transition: all 0.3s, opacity 0.7s;
+      transition: all 0.3s, opacity 0.7s;
+      opacity: 0;
+    }
 
-      #container {
-        position: relative;
-        width: 200%;
-        height: 200%;
-        background: url(grid.png) 0 0 repeat;
-        overflow:scroll;
-        transform-origin: top left;
-        transform:scale(1, 1);
-        transition: all .4s ease-out;
-      }
+    .slideout:hover .slideout-inner {
+      opacity: 1;
+    }
 
-      svg {
-        width: 100%;
-        height: 100%;
-        position: absolute;
-        top: 0;
-        left: 0;
-        margin: 0;
-        padding: 0;
-        z-index: 0;
-        pointer-events: none;
-      }
+    .slideout .slideout-handle {
+      display: inline-block;
+      min-width: 50px;
+      min-height: 20px;
+      padding: 5px;
+      background: rgba(255,255,255,1);
+    }
 
-      svg .highlighted {
-        stroke: #74E8CD;
-      }
+    .left .slideout-handle {
+        border-bottom: 1px solid #eee;  
+        transform: translate(-10px, 20px) rotate(-90deg);
+    }
+    .right .slideout-handle {
+        border-top: 1px solid #eee;  
+        transform: translate(30px,30px) rotate(-90deg);
+    }
 
-      .cnxn {
-        pointer-events: visibleStroke;
-        z-index:101;
-        opacity: 0.4;
-        stroke-width: 2px;
-        stroke: #888;
-        cursor: pointer;
-      }
 
-      #zoomOptions {
-        position: fixed;
-        top: 116px;
-        left: 10px;
-        z-index: 300;
-        background-color: #DDD;
-        opacity:0.5;
-        border: 1px solid #EEE;
-        /*padding:0px;*/
-        padding: 2px;
-        margin: 0 !important;
-      }
-
-      #zoomRange {
-        -webkit-appearance: slider-vertical;
-        height:80px;
-      }
-
-      #zoomInBtn{
-        padding: 0px;
-        margin: 0px;
-      }
-
-      #zoomOutBtn{
-        padding: 0px;
-        margin: 0px;
-      }
-      #showDataBtn {
-        position: fixed;
-        top: 5px;
-        right: 10px;
-        z-index: 300;
-        background-color: #FFF;
-        border: 1px solid #EEE;
-      }
-
-      #showDataBtn span {
-        position: absolute;
-        display: none;
-        font-size: 11px;
-        left: -24px;
-        text-align: center;
-        top: 43px;
-        width: 77px;
+    .slideout .slideout-handle::before {
+        margin-right: 6px;
         color: #888;
-      }
-
-      #showDataBtn:hover span {
-        
-        display: block;
-      }
-
-      core-icon-button.active, #showDataBtn.active {
-        background-color: #EEE;
-        border: 1px solid #888;
-
-      }      
-
-      #saveBtn {
-        position: fixed;
-        top: 5px;
-        right: 60px;
-        z-index: 300;
-        background-color: #FFF;
-        border: 1px solid #EEE;
-      }
-
-      .data-preview {
-        position: fixed;
-        /*max-height: 100px;*/
-        overflow-y: scroll;
-        overflow-x: hide;
-        z-index: 100;
-        width: 100%;
-        background-color: rgba(255,255,255,0.9);
-        border: 1px solid #AAA;
-        transition: height 0.3s;
-        height: 0;
-        margin: 2px;
-        width: 99%;
-      }
-
-      .visible {
-        height: 100px;
-        padding: 3px;
-      }
-
-      .data-preview label {
-        color: #555;
-        font-size: 11px;
-        margin: 2px 0 0 3px;
+        height: 0.7em;
+        overflow: hidden;
         display: inline-block;
-        font-weight: bold;
-      }
+    }
 
-      .data-preview .table {
-        margin-top: -5px;
-        display: block;
-        width: 99.9%;
-      }
+    .right .slideout-handle::before {
+        content: '△';
+    }
+    .right:hover .slideout-handle::before {
+        content: '▽';
+        line-height: 0.7em;
+    }
 
-      #input_preview {
-        top: 0;
-        left: 0;
-      }
-      #output_preview {
-        bottom: 0;
-        left: 0;
-      }      
+    .left .slideout-handle::before {
+        content: '▽';
+        line-height: 0.7em;
+    }
+    .left:hover .slideout-handle::before {
+        content: '△';
+        line-height: 1.1em;
+    }
 
-      .wrapper {
-        border: 1px solid #eee;
-        display: inline-block;
-        position: absolute;
-        /*margin: 30px 20px;
-        margin-left: 60px;*/
-        min-height: 80px;
-        background-color: rgba(255,255,255,0.85);
-        overflow: hide;
-        min-width: 110px;
-        min-height: 30px;
 
-        /* This makes things *much* easier?!?! */
-        box-sizing: border-box;
-      }
+    .component-slideout {
+      top: 120px;
+      right: 0;
+    }
+    .component-slideout .slideout-inner {
+      top: 120px;
+      right: -230px;
+    }
+    .component-slideout .slideout-inner {
+      top: 120px;
+      right: -230px;
+    }
+    .component-slideout:hover {
+      right: 230px;
+    }
+    .component-slideout:hover .slideout-inner {
+      right: 0;
+    }
 
-     .wrapper .resize {
-        position: absolute;
-        right: -5px;
-        bottom: -5px;
-        width: 5px;
-        height: 5px;
-        border-bottom: 1px  solid #aaa;
-        border-right: 1px  solid #aaa;
-        cursor: se-resize;
-       
-      }  
 
-      .selected-element {
-        border: 1px solid #888;
-        z-index: 200;
-      }          
+    .settings-slideout {
+      top: 10px;
+      right: 12px;
+    }
+    .settings-slideout .slideout-inner {
+      top: 10px;
+      right: -80px;
+      margin-right: 10px;
+      margin-top: 15px;
+      padding-left: 23px;
+    }
+    .settings-slideout .slideout-inner {
+      top: 10px;
+      right: -80px;
+    }
+    .settings-slideout .slideout-handle {
+      background: rgba(255,255,255,0.8);
+    }
+    .settings-slideout:hover {
+      right: 80px;
+    }
+    .settings-slideout:hover .slideout-inner {
+      right: 0;
+    }
 
-      .connectors-in {
-        position: absolute;
-        left: -12px;
-        top: 0px;
-      }
 
-      .connectors-out {
-        position: absolute;
-        right: -15px;
-        top: 0px;
-      }
+    .zoom-slideout {
+      top: 60px;
+      left: 0;
+    }
+    .zoom-slideout .slideout-inner {
+      top: 60px;
+      left: -40px;
+      padding-left: 10px;
+    }
+    .zoom-slideout .slideout-inner {
+      top: 60px;
+      left: -40px;
+    }
+    .zoom-slideout:hover {
+      left: 40px;
+    }
+    .zoom-slideout:hover .slideout-inner {
+      left: 0;
+    }
 
-      .wrapper li {
-        list-style: none;
-        position: relative;
-        font-size: 9px;
-        margin: 2px auto;
-      }
 
-      .wrapper label{
-        position: absolute;
-        top: -15px;
-        left: -2px;
-        padding: 0;
-        font-size: 11px;
-        overflow: visible;
-        cursor: move;
-        color: #5A5A5A;
-      }
+    #component_list {
 
-      .selected-element label {
-        color: #000;
-      }
+    }	
+    .component-list-label	{
+
+    }
+
+    #component_list /deep/ core-menu {
+    	background-color: rgba(255,255,255,0.8);
+    }
+
+    #container {
+      position: relative;
+      width: 200%;
+      height: 200%;
+      background: url(grid.png) 0 0 repeat;
+      overflow:scroll;
+      transform-origin: top left;
+      transform:scale(1, 1);
+      transition: all .4s ease-out;
+    }
+
+    svg {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      margin: 0;
+      padding: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    svg .highlighted {
+      stroke: #74E8CD;
+    }
+
+    .cnxn {
+      pointer-events: visibleStroke;
+      z-index:101;
+      opacity: 0.4;
+      stroke-width: 2px;
+      stroke: #888;
+      cursor: pointer;
+    }
+
+    #zoomOptions {
+
+      opacity:0.6;
+      background-color: #FFF;
+      z-index: 300;
+      /*padding:0px;*/
+      padding: 2px;
+      margin: 0 !important;
+    }
+
+    #zoomRange {
+      -webkit-appearance: slider-vertical;
+      height:80px;
+    }
+
+    #zoomInBtn{
+      padding: 0px;
+      margin: 0px;
+    }
+
+    #zoomOutBtn{
+      padding: 0px;
+      margin: 0px;
+    }
+    #showDataBtn {
+      z-index: 300;
+      background-color: #FFF;
+      border: 1px solid #EEE;
+    }
+
+    #showDataBtn span {
+
+      position: absolute;
+      left: 0px;
+      top: 43px;
+      display: none;
+      font-size: 11px;
+      text-align: center;
+      width: 77px;
+      color: #888;
+      background-color: #FFF;
+    }
+
+    #showDataBtn:hover span {
+      
+      display: block;
+    }
+
+    core-icon-button.active, #showDataBtn.active {
+      background-color: #EEE;
+      border: 1px solid #888;
+
+    }      
+
+    #saveBtn {
+      /*
+      position: fixed;
+      top: 5px;
+      right: 60px;
+      */
+      z-index: 300;
+      background-color: #FFF;
+      border: 1px solid #EEE;
+    }
+
+    .data-preview {
+      position: fixed;
+      /*max-height: 100px;*/
+      overflow-y: scroll;
+      overflow-x: hide;
+      z-index: 100;
+      width: 100%;
+      background-color: rgba(255,255,255,0.9);
+      border: 1px solid #AAA;
+      transition: height 0.3s;
+      height: 0;
+      margin: 2px;
+      width: 99%;
+    }
+
+    .visible {
+      height: 100px;
+      padding: 3px;
+    }
+
+    .data-preview label {
+      color: #555;
+      font-size: 11px;
+      margin: 2px 0 0 3px;
+      display: inline-block;
+      font-weight: bold;
+    }
+
+    .data-preview .table {
+      margin-top: -5px;
+      display: block;
+      width: 99.9%;
+    }
+
+    #input_preview {
+      top: 0;
+      left: 0;
+    }
+    #output_preview {
+      bottom: 0;
+      left: 0;
+    }      
+
+    .wrapper {
+      border: 1px solid #eee;
+      display: inline-block;
+      position: absolute;
+      /*margin: 30px 20px;
+      margin-left: 60px;*/
+      min-height: 80px;
+      background-color: rgba(255,255,255,0.85);
+      overflow: hide;
+      min-width: 110px;
+      min-height: 30px;
+
+      /* This makes things *much* easier?!?! */
+      box-sizing: border-box;
+    }
+
+   .wrapper .resize {
+      position: absolute;
+      right: -5px;
+      bottom: -5px;
+      width: 5px;
+      height: 5px;
+      border-bottom: 1px  solid #aaa;
+      border-right: 1px  solid #aaa;
+      cursor: se-resize;
+     
+    }  
+
+    .selected-element {
+      border: 1px solid #888;
+      z-index: 200;
+    }          
+
+    .connectors-in {
+      position: absolute;
+      left: -12px;
+      top: 0px;
+    }
+
+    .connectors-out {
+      position: absolute;
+      right: -15px;
+      top: 0px;
+    }
+
+    .wrapper li {
+      list-style: none;
+      position: relative;
+      font-size: 9px;
+      margin: 2px auto;
+    }
+
+    .wrapper label{
+      position: absolute;
+      top: -15px;
+      left: -2px;
+      padding: 0;
+      font-size: 11px;
+      overflow: visible;
+      cursor: move;
+      color: #5A5A5A;
+    }
+
+    .selected-element label {
+      color: #000;
+    }
 
 
 /*      .wrapper .resize {
-        position: absolute;
-        right: -5px;
-        bottom: -5px;
-        width: 5px;
-        height: 5px;
-        border-bottom: 1px  solid #aaa;
-        border-right: 1px  solid #aaa;
-        cursor: se-resize;
-       
-      }*/
+      position: absolute;
+      right: -5px;
+      bottom: -5px;
+      width: 5px;
+      height: 5px;
+      border-bottom: 1px  solid #aaa;
+      border-right: 1px  solid #aaa;
+      cursor: se-resize;
+     
+    }*/
 
-      .arrow {
-        width: 12px;
-        height: 12px;
-        cursor: pointer;
-      }
+    .arrow {
+      width: 12px;
+      height: 12px;
+      cursor: pointer;
+    }
 
-      .out-arrow {
-        cursor: move;
-      }
+    .out-arrow {
+      cursor: move;
+    }
 
-      ul, li {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-      }
-
-
-      .inputMarker {
-          width: 0px; 
-          height: 0px; 
-          border-top: 5px solid transparent;
-          border-bottom: 5px solid transparent;
-  
-          border-left: 7px solid #555;
-          box-sizing: border-box;
-          
-      }
-
-      .in-arrow .highlighted {
-        border-left: 7px solid #74E8CD;
-      }
-
-      .in-arrow .delete  {
-        position: absolute;
-        top: -1px;
-        left: -10px;
-        content: 'x';
-        font-size: 14px;
-        font-weight: 100;
-        z-index: 100;
-        color: #555;
-        display: none;
-      }
-
-      .in-arrow .highlighted .delete  {
-          display: block;
-      }
-
-      .connectors-in .drop-zone {
-        width: 20px;
-        height: 20px;
-        border: 1px solid #74E8CD;
-        display: none;
-        border-radius: 50%;
-        top: -5px;
-        position: absolute;
-        left: -7px;
-        pointer-events: none;
-        vertical-align: middle;
-        color: #555;
-
-      }
-
-      .drag-over .drop-zone  {
-        display: inline-block !important;
-          
-      }
-
-      core-overlay.dialog {
-        padding: 5px;
-        background-color: white;
-        border: 1px solid black;
-      }
-
-      core-overlay.dialog core-icon-button {
-        padding: 0px;
-        float: right;
-      }
-
-      core-overlay.dialog core-icon-button[affirmative]:hover {
-        color: green;
-
-      }
+    ul, li {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
 
 
-      core-overlay.dialog core-icon-button[dismissive]:hover {
-        color: red;
+    .inputMarker {
+        width: 0px; 
+        height: 0px; 
+        border-top: 5px solid transparent;
+        border-bottom: 5px solid transparent;
 
-      }
-
-      .outputMarker {
-          width: 0px; 
-          height: 0px; 
-          border-top: 5px solid transparent;
-          border-bottom: 5px solid transparent;
-          border-left: 7px solid #555;
-
-      }   
-
-      .deleteEl {
-
-        width: 12px;
-        height: 12px;
-        float: right;
-        display: inline-block;
-        position: absolute;
-        top: -15px;
-        right: -14px;
-        cursor: pointer;
-        vertical-align: middle;
-        padding: 1px;
-        text-align: center;
-        font-size: 9px;
-
-
-      } 
-/*
-      .wrapper .setting-toggle {
-        cursor: pointer;
-        padding: 2px;
-        font-weight: bold;
-        display: inline;
-
-      } 
-
-      .wrapper .setting-toggle::before {
-        content: '+';
-        width: 9px;
-        display: inline-block;        
-      } 
-
-      .wrapper .open::before {
-        content: '-';
+        border-left: 7px solid #555;
+        box-sizing: border-box;
         
-      } 
-  */
- 
-      .setting-btn {
-        color: #555;
-        margin: 2px;
-        padding: 2px;
-        border: 1px solid #FFF;
-      }
+    }
 
-      .setting-btn:hover {
-        box-shadow: 0 0 0 0;
-        border: 1px solid #EEE;
-      }
+    .in-arrow .highlighted {
+      border-left: 7px solid #74E8CD;
+    }
 
-      .setting-btn /deep/ core-icon {
-        width: 20px;
-        height: 20px;
-      }
+    .in-arrow .delete  {
+      position: absolute;
+      top: -1px;
+      left: -10px;
+      content: 'x';
+      font-size: 14px;
+      font-weight: 100;
+      z-index: 100;
+      color: #555;
+      display: none;
+    }
 
-      core-icon-button.open {
-        background-color: #D5D5D5;
-        border: 1px solid #AAA;
-      }
+    .in-arrow .highlighted .delete  {
+        display: block;
+    }
 
-      .settings-collapse {
-        position: absolute;
-        background: rgba(255,255,255,0.85);
-        border: 1px solid #eee;
-        width: 300px;
-        z-index: 200;
-      }
+    .connectors-in .drop-zone {
+      width: 20px;
+      height: 20px;
+      border: 1px solid #74E8CD;
+      display: none;
+      border-radius: 50%;
+      top: -5px;
+      position: absolute;
+      left: -7px;
+      pointer-events: none;
+      vertical-align: middle;
+      color: #555;
+
+    }
+
+    .drag-over .drop-zone  {
+      display: inline-block !important;
+        
+    }
+
+    core-overlay.dialog {
+      padding: 5px;
+      background-color: white;
+      border: 1px solid black;
+    }
+
+    core-overlay.dialog core-icon-button {
+      padding: 0px;
+      float: right;
+    }
+
+    core-overlay.dialog core-icon-button[affirmative]:hover {
+      color: green;
+
+    }
 
 
-      /*
+    core-overlay.dialog core-icon-button[dismissive]:hover {
+      color: red;
+
+    }
+
+    .outputMarker {
+        width: 0px; 
+        height: 0px; 
+        border-top: 5px solid transparent;
+        border-bottom: 5px solid transparent;
+        border-left: 7px solid #555;
+
+    }   
+
+    .deleteEl {
+
+      width: 12px;
+      height: 12px;
+      float: right;
+      display: inline-block;
+      position: absolute;
+      top: -15px;
+      right: -14px;
+      cursor: pointer;
+      vertical-align: middle;
+      padding: 1px;
+      text-align: center;
+      font-size: 9px;
+
+
+    } 
+/*
+    .wrapper .setting-toggle {
+      cursor: pointer;
+      padding: 2px;
+      font-weight: bold;
+      display: inline;
+
+    } 
+
+    .wrapper .setting-toggle::before {
+      content: '+';
+      width: 9px;
+      display: inline-block;        
+    } 
+
+    .wrapper .open::before {
+      content: '-';
       
-        Styles for inside of the components.
+    } 
+*/
 
-       */
+    .setting-btn {
+      color: #555;
+      margin: 2px;
+      padding: 2px;
+      border: 1px solid #FFF;
+    }
 
-      *::shadow .th-container  {
-        font-size: 12px;
-        font-family: arial;
-      }
-      *::shadow .th-container p.info {
-        width: 170px;
-      }
+    .setting-btn:hover {
+      box-shadow: 0 0 0 0;
+      border: 1px solid #EEE;
+    }
 
-      *::shadow .th-container p.info:hover {
-        display: block;
-      }
+    .setting-btn /deep/ core-icon {
+      width: 20px;
+      height: 20px;
+    }
+
+    core-icon-button.open {
+      background-color: #D5D5D5;
+      border: 1px solid #AAA;
+    }
+
+    .settings-collapse {
+      position: absolute;
+      background: rgba(255,255,255,0.85);
+      border: 1px solid #eee;
+      width: 300px;
+      z-index: 200;
+    }
 
 
-      *::shadow .th-container .selector {
-        min-height: 10px;
-        display: inline-block;
-        max-height: 123px;
-        overflow-y: scroll; 
-      }
+    /*
+    
+      Styles for inside of the components.
 
-      *::shadow .th-container .selector .col {
-        padding: 1px;
-        border: 1px solid #EEE;
-      }
-      *::shadow .th-container .selector .core-selected {
-        background-color: #ccc;
+     */
 
-      }
-      *::shadow .th-container .label {
-        display: block;
-        color: #2fa3af;
-      }
+    *::shadow .th-container  {
+      font-size: 12px;
+      font-family: arial;
+    }
+    *::shadow .th-container p.info {
+      width: 170px;
+    }
 
-      *::shadow .th-container input.short-input {
-        border: 1px solid #eee;
-        padding: 3px;
-        width: 5em; 
-      }
-      *::shadow .th-container core-icon-button {
-        margin: 0;
+    *::shadow .th-container p.info:hover {
+      display: block;
+    }
 
-      }
-      *::shadow .th-container .columnName {
-        border-radius: 0;
-      }      
+
+    *::shadow .th-container .selector {
+      min-height: 10px;
+      display: inline-block;
+      max-height: 123px;
+      overflow-y: scroll; 
+    }
+
+    *::shadow .th-container .selector .col {
+      padding: 1px;
+      border: 1px solid #EEE;
+    }
+    *::shadow .th-container .selector .core-selected {
+      background-color: #ccc;
+
+    }
+    *::shadow .th-container .label {
+      display: block;
+      color: #2fa3af;
+    }
+
+    *::shadow .th-container input.short-input {
+      border: 1px solid #eee;
+      padding: 3px;
+      width: 5em; 
+    }
+    *::shadow .th-container core-icon-button {
+      margin: 0;
+
+    }
+    *::shadow .th-container .columnName {
+      border-radius: 0;
+    }      
 
 
    /* ----- media queries ----- */

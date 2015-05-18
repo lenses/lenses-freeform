@@ -9,13 +9,21 @@
   <template>
     <link rel="stylesheet" href="lenses-freeform.css">
 
+    <div class="settings-slideout slideout right">
 
-    <core-icon-button id="showDataBtn" class="active" icon="view-module" on-click="{{showDataBtn}}" alt="show component data">
-      <span>show component input/output</span>
-    </core-icon-button>
+      <span class="slideout-handle">settings</span>
+      <div class="slideout-inner">
 
-    <core-icon-button id="saveBtn" icon="save" on-click="{{showSaveDialog}}" alt="save">
-    </core-icon-button>
+        <core-icon-button id="showDataBtn" class="active" icon="view-module" on-click="{{showDataBtn}}" alt="show component data">
+          <span>show component input/output</span>
+        </core-icon-button>
+        <!--
+        <core-icon-button id="saveBtn" icon="save" on-click="{{showSaveDialog}}" alt="save">
+        </core-icon-button>
+      -->
+      </div>
+    </div>
+
 
     <div class="zoom-slideout slideout left">
 

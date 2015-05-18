@@ -26,7 +26,6 @@
 
 
     <div class="zoom-slideout slideout left">
-
       <span class="slideout-handle">zoom</span>
       <div class="slideout-inner">
         <div id="zoomOptions">
@@ -43,21 +42,32 @@
           <br/>
           <core-icon-button id="zoomOutBtn" icon="remove" on-click="{{zoomOut}}">
           </core-icon-button>
-
         </div>
       </div>
-
     </div>
 
     <div class="component-slideout slideout right">
-
       <span class="slideout-handle">components</span>
       <div class="slideout-inner">
-
-        <label class="component-list-label">Drag components into canvas:</label>
+        <label class="label">Drag components into canvas:</label>
         <lenses-component-list id="component_list"></lenses-component-list>
       </div>
+    </div>
 
+    <div class="output-slideout slideout right">
+      <span class="slideout-handle">output components</span>
+      <div class="slideout-inner">
+
+        <label class="label">Select ouptput component:</label>
+
+        <core-selector class="output-selector" selected="{{output_component}}" valueattr="label">>
+          <template repeat="{{el, index in _elements}}">
+            <div class="col" label="{{el.id}}">{{el.id}}</div>
+
+          </template> 
+
+        </core-selector>
+      </div>
     </div>
 
     <div id="input_preview" class="data-preview {{{visible: _showDataTable && _selElement.input && _selElement.input.length>0 } | tokenList }}">
@@ -81,7 +91,7 @@
           on-click="{{wrapperClicked}}" on-dragStart="{{dragStartWrapper}}" on-drag="{{dragWrapper}}" on-dragend="{{dragEndWrapper}}" draggable="true"><!-- on-mouseover="{{dragOverWrapper}}" on-drop="{{droppedOnInArrow}}" needed? -->
 
           
-            <label>{{el.name}}</label>
+            <label>{{el.id}}</label>
             <div  class="deleteEl" component_id="{{el.element.id}}" on-click="{{_deleteElementEvent}}">X</div>
              
             <div class="connectors-in" >

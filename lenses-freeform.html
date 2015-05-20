@@ -58,7 +58,13 @@
       <span class="slideout-handle">output components</span>
       <div class="slideout-inner">
 
-        <label class="label">Select ouptput component:</label>
+
+        <label class="label">Select output component:</label>
+
+        <template if="{{_elements.length===0}}">
+          <div>No component in canvas!</div>
+
+        </template> 
 
         <core-selector class="output-selector" selected="{{_outputComponents}}" valueattr="label" multi="true">
           <template repeat="{{el, index in _elements}}">

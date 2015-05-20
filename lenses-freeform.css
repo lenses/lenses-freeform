@@ -39,6 +39,12 @@
       min-height: 20px;
       padding: 5px;
       background: rgba(255,255,255,1);
+
+      -webkit-transition-duration: 0.5s;
+      -moz-transition-duration: 0.5s;
+      -o-transition-duration: 0.5s;
+      transition-duration: 0.5s;
+
     }
 
     .left .slideout-handle {
@@ -57,6 +63,10 @@
         height: 0.7em;
         overflow: hidden;
         display: inline-block;
+    }
+
+    .slideout:hover .slideout-handle {
+      opacity: 0;
     }
 
     .right .slideout-handle::before {

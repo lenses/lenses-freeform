@@ -60,7 +60,7 @@
 
         <label class="label">Select ouptput component:</label>
 
-        <core-selector class="output-selector" selected="{{output_component}}" valueattr="label">>
+        <core-selector class="output-selector" selected="{{_outputComponents}}" valueattr="label" multi="true">
           <template repeat="{{el, index in _elements}}">
             <div class="col" label="{{el.id}}">{{el.id}}</div>
 
@@ -183,6 +183,11 @@
       _selElement: null,
       _selWrappers: [],
       _highlightedConnection: null,
+
+      /**
+       * components which are saved for creating view
+       */
+      _outputComponents: [],
 
       _snapX: 10,
       _snapY: 10,
@@ -1233,6 +1238,33 @@
       },
 
 
+
+      /**
+       * returns final result component to create viewer
+       * @return {Object} e.g {componentName: 'lens-v-z-g-bar-chart-0', componentState: (all state data including input)}
+       */
+      getFinalResult: function() {
+        if(this._outputComponents.length>0) {
+          //TODO: multiple outputComponents
+          var component = _.clone(this.findElById(this._outputComponents[0]));
+          
+          //for viz components save input, for the rest save output
+          if(component.name.indexOf('-viz-')> 0) {
+            component.input = component.element.input;
+          }
+          else {
+            component.output = component.element.output;
+          }
+          var componentName = component.id;
+          var componentState = JSON.stringify(component, this.removeDomObjects);
+          return {
+            componentName: componentName,
+            componentState: componentState
+          }
+        }
+      },
+
+
       /**
        * Sacffold a new th-connector from state data. Usage: 
        *  var newConnector = document.createElement('th-connector');
@@ -1315,9 +1347,7 @@
         this._drawConnections();
       },      
 
-      getFinalResult: function() {
-	  //TODO: implementation
-      },
+ 
 
       dumpData: function() {
         var self = this;
@@ -1328,7 +1358,7 @@
           Object.keys(domObject.publish).forEach(function(attr) {
 
             //ignore input attribute and output (except where the component is th-table-data)
-            if(attr==='chartData' || attr.indexOf('input')===0 || (attr==='output' && el.name!=='th-table-data')) {
+            if(attr==='chartData' || attr.indexOf('input')===0 || (attr==='output' && el.name!=='lens-input-paste')) {
               return;
             }
            

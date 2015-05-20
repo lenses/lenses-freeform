@@ -29,6 +29,10 @@
       opacity: 1;
     }
 
+    .slideout:hover  {
+      z-index: 201;
+    }
+
     .slideout .slideout-handle {
       display: inline-block;
       min-width: 50px;

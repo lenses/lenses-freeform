@@ -29,6 +29,10 @@
       opacity: 1;
     }
 
+    .slideout:hover  {
+      z-index: 201;
+    }
+
     .slideout .slideout-handle {
       display: inline-block;
       min-width: 50px;
@@ -91,6 +95,38 @@
     .component-slideout:hover .slideout-inner {
       right: 0;
     }
+    .component-slideout .label {
+      margin-left: 14px;
+    }
+
+
+    .output-slideout {
+      top: 295px;
+      right: -15px;
+    }
+    .output-slideout .slideout-inner {
+      top: 280px;
+      right: -130px;
+      padding-right: 10px;
+    }
+    .output-slideout .slideout-inner {
+      top: 280px;
+      right: -130px;
+    }
+    .output-slideout:hover {
+      right: 130px;
+    }
+    .output-slideout:hover .slideout-inner {
+      right: 0;
+    }
+
+    .output-slideout .label {
+      background-color: #FFF;
+      padding: 6px 0;
+      /* margin-bottom: 4px; */
+      display: inline-block;
+    }
+   
 
 
     .settings-slideout {
@@ -120,16 +156,16 @@
 
 
     .zoom-slideout {
-      top: 60px;
+      top: 120px;
       left: 0;
     }
     .zoom-slideout .slideout-inner {
-      top: 60px;
+      top: 120px;
       left: -40px;
       padding-left: 10px;
     }
     .zoom-slideout .slideout-inner {
-      top: 60px;
+      top: 120px;
       left: -40px;
     }
     .zoom-slideout:hover {
@@ -139,13 +175,30 @@
       left: 0;
     }
 
+    .output-selector {
+      width: 200px;
+      background-color: #FFF;
+      z-index: 200;
+    }
 
-    #component_list {
+    .output-selector .col {
+      background-color: #FFF;
+      padding: 2px;
+    }
 
+    .output-selector .core-selected {
+      background-color: #EEE;
     } 
+
     .component-list-label {
 
     }
+
+    #component_list {
+      background-color: #FFF;
+      z-index: 201;
+
+    }	
 
     #component_list /deep/ core-menu {
       background-color: rgba(255,255,255,0.8);
@@ -189,7 +242,7 @@
 
     #zoomOptions {
 
-      opacity:0.6;
+      opacity:0.9;
       background-color: #FFF;
       z-index: 300;
       /*padding:0px;*/

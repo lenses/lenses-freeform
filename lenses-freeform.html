@@ -1275,9 +1275,11 @@
        * @return {None}             
        */
       
-      scaffoldFromData: function(elements, connections) {
+      scaffoldFromData: function(elements, connections, outputComponents) {
 
         this._elements = elements;
+
+        this._outputComponents = outputComponents;
 
          elements.forEach(function(el) {
             var alreadyExist = this.querySelector('#'+el.id);
@@ -1370,7 +1372,7 @@
 
         });
 
-        var retObj = {elements: toDumpEls, connections: this._connections};
+        var retObj = {elements: toDumpEls, connections: this._connections, outputComponents: this._outputComponents};
 
         var ret = JSON.stringify(retObj, this.removeDomObjects);
 

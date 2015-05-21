@@ -1,0 +1,93 @@
+<!doctype html>
+<html>
+<head>
+  <title>core-data-split</title>
+
+  <script src="../../webcomponentsjs/webcomponents.js"></script>
+  <script src="../../web-component-tester/browser.js"></script>
+
+  <link rel="import" href="../lens-data-split.html">
+
+</head>
+<body>
+
+  <lens-data-split id="data-split"></lens-data-split>
+
+  <script>
+    var should = chai.should();
+    var dataSplit = document.querySelector("#data-split");
+
+    // some input data
+    var input = new Object([{"label":"Marshawn Lynch, RB"},{"label":"Dez Bryant, WR"},{"label":"Jamaal Charles, RB"},{"label":"Antonio Brown, WR"},{"label":"Jordy Nelson, WR"},{"label":"Arian Foster, RB"},{"label":"DeMarco Murray, RB"},{"label":"Eddie Lacy, RB"},{"label":"Antonio Gates, TE"},{"label":"Rob Gronkowski, TE"}]);
+
+    // testing suite
+    suite("<lens-data-split>", function() {
+
+      test("component can be created as an object", function(done) {
+        should.exist(dataSplit);
+        done();
+      });
+
+      test("accepts input", function(done) {
+ 
+        // change input
+        dataSplit.input = input;
+
+        flush(function() {
+          dataSplit.input.should.equal(input);
+          done();
+        });
+      });
+
+
+      test("assign a splitCol and output the result", function(done) {
+
+        // change splitCol
+        var splitCol = "label";
+        dataSplit.splitCol = splitCol;
+
+        flush(function() {
+          dataSplit.splitCol.should.equal(splitCol);
+          var player = dataSplit.output[0].split1;
+          var pos = dataSplit.output[0].split2;
+          player.should.equal("Marshawn Lynch");
+          pos.should.equal("RB");
+          done();
+        });
+
+      });
+
+      test("change splitColNames", function(done) {
+
+        // change splitCol
+        var splitColNames = ["Player", "Position"];
+        dataSplit.splitColNames = splitColNames;
+
+        flush(function() {
+          var newColNames = Object.keys(dataSplit.output[0]);
+          newColNames[1].should.equal(splitColNames[0]);
+          newColNames[2].should.equal(splitColNames[1]);
+          done();
+        });
+      });
+
+      test("change splitColNames", function(done) {
+
+        // change splitColNames
+        var splitColNames = ["Player", "Position"];
+        dataSplit.splitColNames = splitColNames;
+
+        flush(function() {
+          var newColNames = Object.keys(dataSplit.output[0]);
+          newColNames[1].should.equal(splitColNames[0]);
+          newColNames[2].should.equal(splitColNames[1]);
+          done();
+        });
+      });
+
+
+    });
+  </script>
+
+</body>
+</html>

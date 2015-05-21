@@ -1,0 +1,282 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../google-chart/google-chart.html">
+<link rel="import" href="../th-theme/th-theme.html">
+<link rel="import" href="../lens-u-data-selector/lens-u-data-selector.html">
+
+
+<!--
+Element providing a Thelma wrapper for the Google geochart.    
+
+@element lens-viz-g-scatter-bubble
+@blurb Element providing a Thelma wrapper for the Google geochart.
+@status alpha
+@homepage http://lens.github.io/lens-viz-g-scatter-bubble
+-->
+<polymer-element name="lens-viz-g-scatter-bubble" attributes="input dataLabel color backgroundColor legend labelValueSelection">
+  <template> 
+
+    <lens-u-data-utility id="utility"></lens-u-data-utility>
+    
+    <lens-u-data-selector id="data_selector" input="{{input}}" selections="{{labelValueSelection}}" 
+      selectionSettings='[
+        {"name": "label", "type": "any", "multi": false},
+        {"name": "x", "type": "any", "multi": false},
+        {"name": "y", "type": "any", "multi": false},
+        {"name": "size", "type": "any", "multi": false, "optional": true},
+        {"name": "color", "type": "any", "multi": false, "optional": true}
+      ]'
+
+    style="height: 10%;"></lens-u-data-selector>
+
+    <google-chart id="googleChart" on-google-chart-render="{{chartReady}}" style="width:100%; height: 90%;"
+          type='bubble'
+          options= "{{options}}"
+          data="{{_data}}">
+    </google-chart>
+  </template>
+
+  <script>
+
+    Polymer('lens-viz-g-scatter-bubble', {
+
+      /**
+       ** 'input' is the data represented by the map. 
+       * @type {Array}
+       *
+       ** 'region' can be a country, state, or metro 
+       * @type {String}
+       *
+       ** 'value' determines the color of the marker or fill
+       * @type {Number}
+       */
+      input: [
+        // specify number for Random Value
+        {"label": "CAN", "Life Expectancy": 80.66, "Fertility Rate": 1.67, "Population": 33739900, "Random Value": 2.1},
+        {"label": "DEU", "Life Expectancy": 79.84, "Fertility Rate": 1.36, "Population": 81902307, "Random Value": 1.1},
+        {"label": "DNK", "Life Expectancy": 78.6, "Fertility Rate": 1.84, "Population": 5523095, "Random Value": 3.1},
+        {"label": "USA", "Life Expectancy": 78.09, "Fertility Rate": 2.05, "Population": 307007000, "Random Value": 0.1} ,   
+        {"label": "IRN", "Life Expectancy": 72.49, "Fertility Rate": 1.7, "Population": 73137148, "Random Value": 2.8}  
+
+        // specify string for Random Value
+        // {"label": "CAN", "Life Expectancy": 80.66, "Fertility Rate": 1.67, "Population": 33739900, "Random Value": "North America"},
+        // {"label": "DEU", "Life Expectancy": 79.84, "Fertility Rate": 1.36, "Population": 81902307, "Random Value": "Europe"},
+        // {"label": "DNK", "Life Expectancy": 78.6, "Fertility Rate": 1.84, "Population": 5523095, "Random Value": "Europe"},
+        // {"label": "USA", "Life Expectancy": 78.09, "Fertility Rate": 2.05, "Population": 307007000, "Random Value": "North America"},
+        // {"label": "IRN", "Life Expectancy": 72.49, "Fertility Rate": 1.7, "Population": 73137148, "Random Value": "Middle East"}  
+        
+
+        // no Random Value (all will be the same color)
+        // {"label": "CAN", "Life Expectancy": 80.66, "Fertility Rate": 1.67, "Population": 33739900},
+        // {"label": "DEU", "Life Expectancy": 79.84, "Fertility Rate": 1.36, "Population": 81902307},
+        // {"label": "DNK", "Life Expectancy": 78.6, "Fertility Rate": 1.84, "Population": 5523095},
+        // {"label": "USA", "Life Expectancy": 78.09, "Fertility Rate": 2.05, "Population": 307007000},      
+        // {"label": "IRN", "Life Expectancy": 72.49, "Fertility Rate": 1.7, "Population": 73137148}  
+
+      ],
+
+      legend: false,
+      /**
+       * 'numberFormat' refers to the number format of the legend min and max
+       * @type {String}
+       * @example: '.##'
+       */
+      numberFormat: "", 
+      observe: {
+        input: "reformatData"
+      },    
+      ready: function() {
+        var self = this;
+        
+        self.configureOptions();
+        self.reformatData();
+
+        this.$.data_selector.addEventListener('th-data-selection-changed', function() {
+          this.labelValueSelection = this.$.data_selector.selections;
+          //set published selections for saving the component
+          //this.selectedLabel = this.labelValueSelection[0];
+          //this.selectedValues = this.labelValueSelection[1];
+          this.reformatData();
+        }.bind(this));  
+              
+      },
+      /**
+       * 'reformatData' converts input into the correct data structure for the map
+       */
+      reformatData: function(){
+
+        /*
+        var self = this;        
+        self._data = self.chartData.map(function(item){
+          return [item.label, item.Life Expectancy, item.Fertility Rate,  item.Random Value ? item.Random Value : 1, item.Population];//item.Random Value];
+        });
+        self._data.unshift(["ID", self.dataLabelX, self.dataLabelY, self.dataLabelColor, self.dataLabelSize]);
+
+        */
+       
+
+        var self = this; 
+
+        self.numberFormats= [];
+        if(!self.labelValueSelection || !self.labelValueSelection[0] || !self.labelValueSelection[1]) {
+          return;
+        }
+
+        self._data = self.input.map(function(item, index){
+          var row = [];
+          row.push(item[self.labelValueSelection[0]]);
+          for(var i=1; i<self.labelValueSelection.length; i++){
+            
+            // for only the first row
+            if (index === 0){
+              // Extract the number format of the first row of data and apply to tooltips
+              var format = self.$.utility.extractNumberFormat(item[self.labelValueSelection[i]]);
+              if (format){
+                self._numberPattern = format.pattern; // Use this pattern to apply to axis numbers 
+                self.numberFormats.push({col: i + 1, prefix: format.prefix, suffix: format.suffix, groupingSymbol:',', fractionDigits: format.decimalPlaces});
+              }
+            }
+          }
+
+          // x
+          var unformattedValue = self.$.utility.unformatString(item[self.labelValueSelection[1]]);
+          row.push(unformattedValue);
+
+          // y
+          var unformattedValue = self.$.utility.unformatString(item[self.labelValueSelection[2]]);
+          row.push(unformattedValue);
+
+          // color. if no selection add empty string before gchart expects color before size!
+          if(self.labelValueSelection[4] && self.labelValueSelection[4]!=='none') {
+            row.push(item[self.labelValueSelection[4]]);
+          }
+          else {
+            row.push('');
+          }
+
+          // size
+          if(self.labelValueSelection[3] && self.labelValueSelection[3]!=='none') {
+
+            var unformattedValue = self.$.utility.unformatString(item[self.labelValueSelection[3]]);
+            row.push(unformattedValue);
+            self.options.sizeAxis = {minValue: 0,  maxSize: 30};
+          }
+          else {
+            // make the bubbles small equal sizes
+            self.options.sizeAxis = {minValue: 5,  maxSize: 5};
+          }
+
+          return row;
+        });   //end loop through rows
+
+        // create an array of object containing the column names. first add label,x,y (all required)
+        var columnNameRow = self.labelValueSelection.slice(0, 3);
+
+        // color: if color is selected add, otherwise add empty string (because gchart expects color before size)
+        if(self.labelValueSelection[4] && self.labelValueSelection[4]!=='none') {
+          columnNameRow.push(self.labelValueSelection[4]);
+        }
+        else {
+          columnNameRow.push('');
+        }
+
+        // size
+        if(self.labelValueSelection[3] && self.labelValueSelection[3]!=='none') {
+
+          columnNameRow.push(self.labelValueSelection[3])
+        }
+
+        // add columnNameRow ass the first element of _data to pass to gchart
+        self._data.unshift(columnNameRow);
+
+
+        // If a specific number pattern is given, override the default pattern extracted from values
+        if (self.numberPattern){
+          self.numberFormats = [];
+          columnNameRow.forEach(function(item, index){
+            self.numberFormats.push({col: index, pattern: self.numberPattern});
+          })  
+        }
+
+      },
+      /**
+       * 'configureOptions' sets the appropriate options properties for the map, given the attribute values
+       */
+      configureOptions: function(){
+        var self = this,
+            colors =  self.getColors();
+        // Determine intermediate variables
+        //self.color = self.color || [colors.accents[0], colors.accents[1]];
+        self.backgroundColor = self.backgroundColor || "none";
+        self.minValue = self.minValue || 0;
+
+        var textColorSetting = { color: colors.theme.foreground2, fontName: colors.theme.font, fontSize: '0.8em', opacity: 0.7};
+
+        // Define chart options 
+        self.options = {
+          colors: colors.accents,
+          tooltip: { trigger: 'selection', textStyle: { color: "black", fontName: colors.theme.font, fontSize: '0.85em'}},
+          colorAxis: { colors: [colors.theme.accent1, colors.theme.accent2] , legend : {textStyle : textColorSetting, position: 'bottom'}  },
+          backgroundColor: {fill: self.backgroundColor},
+          chartArea:{width:'80%',height:'80%'},
+          bubble: {
+            textStyle: {
+              color: colors.theme.foreground1,
+            }
+          },
+          legend: { 
+            numberFormat: '.##',
+            position: 'bottom',
+            textStyle: textColorSetting,
+            maxLines: 2
+          },
+          hAxis : {titleTextStyle: { color: colors.theme.background, fontName: colors.theme.font, fontSize: '0.85em'}},
+          slices : self._slices
+        };
+
+        var legendSetting = { gridlines : {color : colors.theme.foreground1},
+                            baselineColor: colors.theme.foreground1,
+                            textStyle: textColorSetting};
+
+
+        //self.options.colorAxis = {legend : {textStyle : textColorSetting}};
+        self.options.vAxis = legendSetting;
+        self.options.hAxis = legendSetting;
+
+        if (!self.legend) { 
+          self.options.colorAxis.legend.position = 'none';
+          self.options.legend.position = 'none';
+        }
+
+        
+      },
+      /**
+       * 'getColors' gets the color theme from the global scope
+       * @return {Object}
+       */
+      getColors: function(){
+        var colors = {};
+        colors.theme = window.CoreStyle.g.theme;
+        colors.accents = [];
+
+        for (var color in colors.theme){
+          if(/^accent/.test(color)){
+            colors.accents.push(colors.theme[color]);
+          }
+        }
+
+        colors.count = colors.accents.length;
+
+        return colors;
+      },
+
+      resize: function() {
+        this.$.googleChart.drawChart();
+      }
+
+
+    });
+
+  
+  </script>
+
+</polymer-element>

@@ -1,0 +1,19 @@
+{
+  "name": "th-theme",
+  "keywords": "thelma, polymer, web-components, theme",
+  "main": "th-theme.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.5.1",
+    "core-style": "Polymer/core-style#~0.5.1"
+  },
+  "homepage": "https://github.com/thelmanews/th-theme",
+  "_release": "4234fd0813",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "4234fd08132dddc184bd1b082515f883daab94a0"
+  },
+  "_source": "git://github.com/thelmanews/th-theme.git",
+  "_target": "*",
+  "_originalSource": "thelmanews/th-theme"
+}

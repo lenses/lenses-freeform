@@ -1,0 +1,41 @@
+<!--
+    @license
+    Copyright (c) 2014 Lenses Project Authors. All rights reserved.
+    This code may only be used under the MIT license found at http://lenses.github.io/LICENSE.txt
+    The complete set of authors may be found at http://lenses.github.io//AUTHORS.txt
+    The complete set of contributors may be found at http://lenses.github.io/CONTRIBUTORS.txt
+-->
+<!doctype html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <title>lens-viz-map-us</title>
+
+  <script src="../../webcomponentsjs/webcomponents.js"></script>
+  <link rel="import" href="../../polymer-test-tools/tools.html">
+  <script src="../../polymer-test-tools/htmltest.js"></script>
+  
+  <!-- Step 1: import the element to test -->
+  <link rel="import" href="../lens-viz-map-us.html">
+
+</head>
+<body>
+
+  <lens-viz-map-us></lens-viz-map-us>
+
+  <script>
+
+    document.addEventListener('polymer-ready', function() {
+      // Test a property
+      var myEl = document.querySelector('lens-viz-map-us');
+
+      myEl.addEventListener('th-ready', function(event) {
+        done(); 
+      });
+      
+    });
+
+  </script>
+
+</body>
+</html>

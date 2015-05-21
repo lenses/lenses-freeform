@@ -1,0 +1,173 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../core-selector/core-selector.html">
+<link rel="import" href="../core-input/core-input.html">
+<!--
+A Lenses data component to split a column into columns based on a string separator
+
+##### Example
+
+    <lens-data-split></lens-data-split>
+
+@element lens-data-split
+@group Lenses data component
+@blurb Split data into multiple columns. Splits at the separator, defaults to comma
+@status alpha
+@homepage http://lenses.github.io/lens-data-split/index.html
+-->
+
+<polymer-element name="lens-data-split" attributes="input output splitCol splitChar splitColNames">
+  <template>
+    <link rel="stylesheet" href="lens-data-split.css">
+
+    <div class="th-container th-data">
+
+        <p class="info">Split a column into multiple based on split character.</p>
+        <label class="label" for="func_selector">Filter on column:</label>
+        <core-selector class="selector" id="value_selector" selected="{{splitCol}}" valueattr="label">
+          <template repeat="{{attr in _dataAttributes}}">
+            <div class="col" label="{{attr}}">{{attr}}</div>
+          </template>
+        </core-selector>
+        <label class="label">split by:</label>
+        <input is="core-input" value="{{splitChar}}">
+        <label class="label">New column labels:</label>
+        <template repeat="{{name, index in splitColNames}}">
+          <input is="core-input" value="{{name}}" _index="{{index}}" class="col-name" on-change="{{_splitNameChanged}}" >
+        </template>
+
+    </div>
+
+  </template>
+  <script>
+    Polymer({
+
+      /**
+       * Input data
+       *
+       * @property input
+       * @type object
+       * @default undefined
+       */
+
+      /**
+       * Output data
+       *
+       * @property output
+       * @type object
+       * @default undefined
+       */
+
+      /**
+       * Split character. Defaults to ',''
+       *
+       * @property splitChar
+       * @type string
+       * @default ,
+       */
+      splitChar: ',',
+
+      /**
+       * Name of the original column that will be split.
+       *
+       * @property splitCol
+       * @type array
+       * @default undefined
+       */
+      splitCol: [],
+
+      /**
+       * Names of the new columns generated after the split.
+       *
+       * @property splitColNames
+       * @type array
+       * @default []
+       */
+      splitColNames: [],
+
+      // Observe changes on below attributes and trigger _calculateOutput() when changed
+      observe: {
+        splitCol: "_calculateOutput",
+        splitChar: "_calculateOutput",
+        splitColNames: "_calculateOutput"
+      },
+
+
+      // Called when <lens-data-split> element is created.
+      ready: function () {
+      },
+
+      // Change watcher for input attribute. Triggered whenever input is changed
+      inputChanged: function() {
+        var self = this;
+        console.log("input changed data split");
+        var firstItem = self.input[0];
+        if(!firstItem) {
+          return;
+        }
+        var attributes = Object.keys(firstItem);
+        
+        if(JSON.stringify(self._dataAttributes) === JSON.stringify(attributes) ) {
+          //self._mapChartData();
+        }
+        else {
+          self._dataAttributes = attributes;
+        }
+
+        self._calculateOutput();
+      }, 
+
+      // Calculates output from input based on settings
+      _calculateOutput: function() {
+        var self = this;
+        if(self.splitCol && self.splitChar && self.splitChar.length>0) {
+          if (!self.input || !self.input.length){ 
+            return; 
+          }
+          if(typeof self.input[0][self.splitCol]==="string") {  //TODO: catch exception for split instead?
+
+            self.output = self.input.map(function(item) {
+              var splits = item[self.splitCol].split(self.splitChar);
+              if(self.splitColNames.length===0 || self.splitColNames.length!==splits.length) {
+                self._generateColumnNames(splits.length);
+              }
+              //clone item
+              var ret = {};
+              var keys = Object.keys(item);
+              keys.forEach(function(key) {
+                ret[key] = item[key];
+              });
+              splits.forEach(function(split, index) {
+                ret[self.splitColNames[index]] = splits[index].trim();
+              });
+              return ret;
+            });
+          }
+          else {
+            //error
+          }
+        }
+      },
+
+      // Creates defualt column names (split1, split2 etc.)
+      _generateColumnNames: function(n) {
+        for(var i=0; i<n; i++) {
+          if(!this.splitColNames[i]) {
+            this.splitColNames[i] = 'split'+(i+1);
+          }
+        }
+        if(n<this.splitColNames.length) {
+          this.splitColNames.splice(0,n);
+        }
+      },
+
+      // Triggered when user changes the new column names
+      _splitNameChanged: function(e, detail, selection) {
+        var index = selection.getAttribute('index');
+        this.splitColNames[index] = selection.value;
+        //TODO: map the output and rename column instead of going through the process again
+        this._calculateOutput();
+      }
+
+    });
+  </script>
+</polymer-element>

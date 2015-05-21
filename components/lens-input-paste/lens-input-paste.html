@@ -1,0 +1,191 @@
+<link rel="import" href="../polymer/polymer.html">
+
+
+<!--
+Copy any html table or list and paste it inside the text box. It returns
+JSON for table/list data.
+
+##### Example
+
+    <lens-input-paste></lens-input-paste>
+
+@element lens-input-paste
+@blurb Element providing solution to no problem in particular.
+@status alpha
+@homepage http://sepans.github.io/lens-input-paste
+-->
+<polymer-element name="lens-input-paste" extends="th-animated" attributes="output">
+
+
+  <template>
+
+    <style>
+
+      #paste_here {
+        height: 35px;
+        width: 120px;
+      }
+      .label {
+        font-size: 12px;
+        vertical-align: top;
+        display: block;
+
+      }
+
+
+    </style>
+
+    <div class="lens-container lens-input">
+
+      <label class="label">Paste HTML table here:</label>
+      <textarea id="paste_here" placeHolder="paste table here"></textarea>
+
+    </div>
+
+
+
+  </template>
+
+  <script>
+
+    Polymer('lens-input-paste', {
+      tableData: null,
+      hasData: false,
+
+      ready: function() {
+        var self = this;
+
+
+        //self.hasData = false;
+        self.$.paste_here.addEventListener('paste', self.processInput.bind(self));
+      },
+
+      processInput: function(e) {
+
+          var self = this;
+          self.$.paste_here.value="Processing data...";
+
+          var tableData = e.clipboardData.getData('text/html');
+          var tableEl = document.createElement('div');
+          tableEl.innerHTML = tableData;
+          var rows = tableEl.querySelectorAll('tr');
+
+          var dataLabels = [];
+          var data = [];
+
+
+          if(rows.length>0)
+          {
+            [].forEach.call(rows, function(row, i) {
+              //console.log('row', row);
+              var extractedRow = {};
+              var cells = row.querySelectorAll('td');
+              if(i==0 && cells.length==0) {
+                cells = row.querySelectorAll('th');
+              }
+              [].forEach.call(cells, function(cell, j) {
+              
+                //header
+                if(i===0) {
+
+                  var title = cell.innerText || 'no label';
+                  //line breaks break the table.
+                  title = title.replace(/\n/g, '');
+                  //replace space with _
+                  title = title.replace(/\s/g, '_');
+
+                  title = title.replace(/^([\d]+)/g, 'x$1');
+                  dataLabels.push(title);
+
+
+                }
+                else {
+
+                  var content = cell.innerText;
+
+                  // try image
+                  if(!content) {
+                    var img =  cell.querySelector('img');
+                    if(img) {
+                      content = img.getAttribute('src');
+                    }
+                  }
+
+                  if(content) {
+                    extractedRow[dataLabels[j]] = content;
+                  }
+
+
+                }
+              });
+              if(i!==0) {
+                data.push(extractedRow);
+              }
+
+            });
+          
+          }
+          else {
+
+            var listItems = tableEl.querySelectorAll('li');
+            
+            [].forEach.call(listItems, function(item) {
+
+              var content = item.innerText;
+              if(!content) {
+                var img =  cell.querySelector('img');
+                if(img) {
+                  content = img.getAttribute('src');
+                }
+              }else {                
+                var spaceChar = new RegExp(String.fromCharCode(160), "g"); // catches &nbsp symbol and replaces with a normal space;
+                content = content.replace(spaceChar,' ');
+                data.push({row: content});
+              }
+            });
+
+
+
+          }
+
+          if(data && data.length>0) {
+
+            setTimeout(function() {
+
+              self.$.paste_here.value="Data processed";
+
+              console.log(data);
+              //self.tableData = data;
+              self.hasData = true;
+              self.output = data;
+            },100);
+
+          }
+          else {
+            self.$.paste_here.value="No Table or list found";
+            self.hasData = false;
+          }
+
+
+          e.preventDefault();
+      },
+
+      showResults: function(e) {
+          if(this.hasData) {
+            // if(this.$.ctrl_collapse.opened && !this.$.results_collapse.opened) {
+            //   this.$.ctrl_collapse.toggle();
+            // }
+            this.$.results_collapse.toggle();
+          }
+      }, 
+      outputChanged: function(){
+        console.log("lens-input-paste output changed");
+        this.fire('th-output-changed', this);
+      }
+
+
+    });
+
+  </script>
+
+</polymer-element>

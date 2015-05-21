@@ -1,0 +1,119 @@
+<!doctype html>
+<html>
+<head>
+  <title>lens-data-join</title>
+
+  <script src='../../webcomponentsjs/webcomponents.js'></script>
+  <script src='../../web-component-tester/browser.js'></script>
+
+  <link rel='import' href='../lens-data-join.html'>
+
+</head>
+<body>
+
+  <lens-data-join id='data-join'></lens-data-join>
+
+  <script>
+    var should = chai.should();
+    var component = document.querySelector('lens-data-join');
+
+    // some input data
+    var input = new Object([
+      {"index":1, "text":"Texas","dollar":"$139,000","text_number":"125 1ST ST","percent":"12.2%","date":"2-12-2015","date_unformat":"2-12-2015","billion":"1.2B"},
+      {"index":2, "text":"Vermont","dollar":"$15,300","text_number":"$126,000 Reward","percent":"0.6%","date":"2-12-2010","date_unformat":"12/25/1995","billion":".2B"},
+      {"index":3, "text":"New York","dollar":"$205,800","text_number":"2nd Place","percent":"1.5%","date":"5-12-2015","date_unformat":"February 20, 2015","billion":"1.2B"},
+      {"index":4, "text":"New Mexico","dollar":"$1,180,700","text_number":"only text","percent":"1.5%","date":"12-12-2012","date_unformat":"Jan 20, 2015","billion":"0.5B"},
+      {"index":5, "text":"California","dollar":"$188,400","text_number":"$ value","percent":"-0.4%","date":"1-1-2015","date_unformat":"3-3-2015","billion":"11B"},
+      {"index":6, "text":"Alaska","dollar":"$145,900","text_number":"Q3 2012","percent":"3.3%","date":"10-30-1915","date_unformat":"4/4/2015","billion":"9B"}
+      ]);
+
+    // testing suite
+    suite('<lens-data-join>', function() {
+      var joinColumns = ['text', 'date_unformat'];
+
+      test('component can be created and exist', function(done) {
+        should.exist(component);
+        done();
+      });
+
+      test('accepts input', function(done) {
+        component.input = input
+        component.input.should.equal(input);
+        done();
+      });
+
+      test('change selectedColumns', function(done) {
+        component.selectedColumns = joinColumns;
+
+        flush(function() {
+          component.selectedColumns.length.should.equal(2);
+          done();
+        })
+      });
+
+      test('change newColumnName', function(done) {
+        component.newColumnName = 'newCol';
+
+        flush(function() {
+          component.newColumnName.should.equal('newCol');
+          component.output[0]['newCol'].should.equal('Texas, 2-12-2015');
+          console.log('hey');
+
+          done();
+        })
+      });
+
+      test('changes joinString', function(done) {
+        var newJoin = ' TEST ';
+        component.joinString = newJoin;
+
+        flush(function() {
+          var joinStringIndex = component.output[0]['newCol'].indexOf(newJoin);
+          joinStringIndex.should.be.above(-1);
+          done();
+        })
+      });
+
+      test('can join multiple columns', function(done) {
+
+        joinColumns = ['text', 'index', 'dollar', 'text_number', 'date', 'date_unformat'];
+        component.selectedColumns = joinColumns;
+
+        flush(function() {
+          var newCol = component.output[0]['newCol'];
+          newCol.should.equal('Texas TEST 1 TEST $139,000 TEST 125 1ST ST TEST 2-12-2015 TEST 2-12-2015');
+          console.log('got it');
+          done();
+        })
+      });
+
+      test('original data included in output by default', function(done) {
+        var dataKeys = Object.keys(component.output[0]);
+        for (var i in joinColumns) {
+          var theIndex = dataKeys.indexOf(joinColumns[i]);
+          theIndex.should.be.above(-1);
+        }
+        done();
+      });
+
+      test('keepOriginalData can be set to false', function(done) {
+        component.keepOriginalData = false;
+        component._calculateOutput();
+
+        flush(function() {
+          var dataKeys = Object.keys(component.output[0]);
+          console.log(dataKeys);
+          for (var i in joinColumns) {
+            var theIndex = dataKeys.indexOf(joinColumns[i]);
+            theIndex.should.equal(-1);
+          }
+          done();
+        })
+      });
+
+  });
+
+  </script>
+
+</body>
+</html>

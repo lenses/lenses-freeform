@@ -1,0 +1,31 @@
+{
+  "name": "lens-data-geocoder",
+  "keywords": [
+    "seed",
+    "polymer",
+    "web-components"
+  ],
+  "main": "lens-data-geocoder.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.5.5",
+    "th-theme": "thelmanews/th-theme",
+    "core-selector": "polymer/core-selector#~0.5.5",
+    "core-collapse": "polymer/core-collapse#~0.5.5",
+    "core-icon-button": "polymer/core-icon-button#~0.5.5",
+    "google-apis": "GoogleWebComponents/google-apis#~0.4.2",
+    "core-component-page": "Polymer/core-component-page#~0.5.5"
+  },
+  "devDependencies": {
+    "web-component-tester": "Polymer/web-component-tester#^2.2.6"
+  },
+  "homepage": "https://github.com/lenses/lens-data-geocoder",
+  "_release": "4bddd018e8",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "4bddd018e8392cd89b7416fff7b0fae435097ff4"
+  },
+  "_source": "git://github.com/lenses/lens-data-geocoder.git",
+  "_target": "*",
+  "_originalSource": "lenses/lens-data-geocoder"
+}

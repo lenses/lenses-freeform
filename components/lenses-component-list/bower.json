@@ -1,0 +1,49 @@
+{
+  "name": "lenses-component-list",
+  "version": "0.0.0",
+  "keywords": [
+    "seed",
+    "polymer",
+    "web-components"
+  ],
+  "main": "lenses-component-list.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.5.1",
+    "core-menu": "Polymer/core-menu",
+    "lens-input-csv": "lenses/lens-input-csv",
+    "lens-input-enigma": "lenses/lens-input-enigma",
+    "lens-input-paste": "lenses/lens-input-paste",
+    "lens-input-simple-api": "lenses/lens-input-simple-api",
+    "lens-data-geocoder-firebase": "lenses/lens-data-geocoder-firebase",
+    "lens-data-array-func": "lenses/lens-data-array-func",
+    "lens-data-groupby": "lenses/lens-data-groupby",
+    "lens-data-split": "lenses/lens-data-split",
+    "lens-data-sort": "lenses/lens-data-sort",
+    "lens-data-formula": "lenses/lens-data-formula",
+    "lens-data-join": "lenses/lens-data-join",
+    "lens-data-filter": "lenses/lens-data-filter",
+    "lens-data-zip": "lenses/lens-data-zip",
+    "lens-data-crossfilter": "lenses/lens-data-crossfilter",
+    "lens-viz-g-map": "lenses/lens-viz-g-map",
+    "lens-viz-map-us": "lenses/lens-viz-map-us",
+    "lens-viz-mapbox": "lenses/lens-viz-mapbox",
+    "lens-viz-bar-chart": "lenses/lens-viz-bar-chart",
+    "lens-viz-line-chart": "lenses/lens-viz-line-chart",
+    "lens-viz-stacked-chart": "lenses/lens-viz-stacked-chart",
+    "lens-viz-bar-chart-horizontal": "lenses/lens-viz-bar-chart-horizontal",
+    "lens-viz-g-scatter-bubble": "lenses/lens-viz-g-scatter-bubble",
+    "lens-viz-g-scatter-bubble": "lenses/lens-viz-g-scatter-bubble",
+    "lens-viz-g-regions": "lenses/lens-viz-g-regions",
+    "lens-viz-g-pie-chart": "lenses/lens-viz-g-pie-chart",
+    "lens-viz-g-bar-chart": "lenses/lens-viz-g-bar-chart",
+    "lens-viz-g-line-chart": "lenses/lens-viz-g-line-chart"
+
+  },
+  "devDependencies": {
+    "web-component-tester": "Polymer/web-component-tester#^2.0.0"
+  }
+}
+
+
+
+

@@ -1,0 +1,25 @@
+{
+  "name": "lens-u-data-utility",
+  "keywords": "lenses, polymer, web-components",
+  "main": "lens-u-data-utility.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.5.1",
+    "lodash": "lodash/lodash#~3.5.0",
+    "numeral": "adamwdraper/Numeral-js#~1.5.3",
+    "moment": "moment/moment#~2.9.0",
+    "core-component-page": "Polymer/core-component-page#^0.5.5"
+  },
+  "devDependencies": {
+    "web-component-tester": "Polymer/web-component-tester#^1.4.2"
+  },
+  "homepage": "https://github.com/lenses/lens-u-data-utility",
+  "_release": "203c9388e8",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "203c9388e8690eb387d9ca0914bf69aecc1f8e84"
+  },
+  "_source": "git://github.com/lenses/lens-u-data-utility.git",
+  "_target": "*",
+  "_originalSource": "lenses/lens-u-data-utility"
+}

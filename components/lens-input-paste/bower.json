@@ -1,0 +1,16 @@
+{
+  "name": "lens-input-paste",
+  "version": "0.0.0",
+  "keywords": [
+    "seed",
+    "polymer",
+    "web-components"
+  ],
+  "main": "lens-input-paste.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.5.1",
+    "aha-table": "liuwenchao/aha-table#master",
+    "core-collapse": "polymer/core-collapse#~0.5.1",
+    "core-icon-button": "polymer/core-icon-button#~0.5.1"
+  }
+}

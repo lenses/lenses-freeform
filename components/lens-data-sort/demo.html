@@ -1,0 +1,103 @@
+<!doctype html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+    <title>lens-data-sort Demo</title>
+    <script src="../webcomponentsjs/webcomponents.js"></script>
+    <link rel="import" href="lens-data-sort.html">
+
+    <style>
+      body {
+        font-family: sans-serif;
+        font-size: 14px;
+      }
+
+      pre {
+        border: 1px solid #EEE;
+        font-size: 12px;
+        max-width: 300px;
+        max-height: 300px;
+        overflow: scroll;
+
+      }
+      #component {
+        border: 1px solid #BBB;
+        margin: 10px;
+        padding: 5px;
+        display: block;
+        width: 300px;
+      }
+
+      .component::before, .component::after {
+        content: '\2794';
+        position: absolute;
+        top: 50%;
+      }
+      .component::before {
+        right: -15px;
+      }
+
+      .component::after {
+        left: -15px;
+      }
+
+      section {
+        display: inline-block;
+        margin: 8px;
+        vertical-align: top;
+        position: relative;
+      }
+      html /deep/ input[is=core-input] {
+        border-bottom: 1px solid #E5E5E5 !important;
+      }
+
+    </style>
+
+    <script>
+      // helper function to stringify objects, used below like {{outputs | json}}
+      PolymerExpressions.prototype.json = function(object) {
+        return JSON.stringify(object, undefined, 2);
+      };
+    </script>
+
+  </head>
+  <body unresolved>
+
+    <template id="auto-bind-demo" is="auto-binding">
+
+      <section>
+        <label>Input:</label>
+        <pre id="input">{{myinput | json}}</pre>
+      </section>
+      <section class="component">
+        <label>Component:</label>
+        <lens-data-sort id="component" input="{{myinput}}" output="{{myoutput}}"></lens-data-sort>
+      </section>
+      <section>
+        <label>Output:</label>
+        <pre>{{myoutput | json}}</pre>
+      </section>
+      
+      <script>
+
+        // input data
+        var input = new Object([
+          {"index":1, "text":"Texas","dollar":"$139,000","text_number":"125 1ST ST","percent":"12.2%","date":"2-12-2015","date_unformat":"2-12-2015","billion":"1.2B"},
+          {"index":2, "text":"Vermont","dollar":"$15,300","text_number":"$126,000 Reward","percent":"0.6%","date":"2-12-2010","date_unformat":"12/25/1995","billion":".2B"},
+          {"index":3, "text":"New York","dollar":"$205,800","text_number":"2nd Place","percent":"1.5%","date":"5-12-2015","date_unformat":"February 20, 2015","billion":"1.2B"},
+          {"index":4, "text":"New Mexico","dollar":"$1,180,700","text_number":"only text","percent":"1.5%","date":"12-12-2012","date_unformat":"Jan 20, 2015","billion":"0.5B"},
+          {"index":5, "text":"California","dollar":"$188,400","text_number":"$ value","percent":"-0.4%","date":"1-1-2015","date_unformat":"3-3-2015","billion":"11B"},
+          {"index":6, "text":"Alaska","dollar":"$145,900","text_number":"Q3 2012","percent":"3.3%","date":"10-30-1915","date_unformat":"4/4/2015","billion":"9B"}
+          ]);
+
+        //set the input
+        component.input = input;
+
+        //set the split column to be the first element in the input
+        component.splitCol = Object.keys(input[0])[0];
+
+      </script>
+    </template>
+  </body>
+
+</html>

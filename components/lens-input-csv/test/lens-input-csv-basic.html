@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>lens-input-csv</title>
+
+  <script src="../../webcomponentsjs/webcomponents.js"></script>
+  <script src="../../web-component-tester/browser.js"></script>
+
+  <!-- Step 1: import the element to test -->
+  <link rel="import" href="../lens-input-csv.html">
+
+</head>
+<body>
+
+  <lens-input-csv id="fixture"></lens-input-csv>
+
+  <script>
+    var should = chai.should();
+    var myEl = document.getElementById("fixture");
+
+    // the event listener callback will be added / removed in every async test
+    var callback = function() {};
+
+    var nycDataUrl = 'https://data.cityofnewyork.us/api/views/8hkx-uppz/rows.csv?accessType=DOWNLOAD';
+
+    suite("<lens-input-csv>", function() {
+
+      test("component can be created as an object", function(done) {
+        should.exist(myEl);
+        done();
+      });
+
+      test("set csv url", function(done) {
+
+        // set the event listener callback
+        myEl.removeEventListener("lens-output-changed", callback);
+        callback = function(e) {
+          myEl.url.should.equal(nycDataUrl);
+          done();
+        };
+        myEl.addEventListener("lens-output-changed", callback);
+
+        // set input url
+        myEl.url = nycDataUrl;
+
+        // fire th-outputReady event
+        flush(function() {
+        });
+      });
+
+      test("outputs result with length 29", function() {
+        myEl.output.length.should.equal(29);
+      });
+
+
+
+
+    });
+
+  </script>
+
+</body>
+</html>

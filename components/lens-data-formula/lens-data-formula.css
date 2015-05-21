@@ -1,0 +1,35 @@
+core-selector {
+  min-height: 10px;
+  display: inline-block;
+  max-height: 83px;
+  overflow-y: scroll; 
+  -webkit-appearance: 
+}
+
+.core-selector::-webkit-scrollbar {
+    -webkit-appearance: none;
+}
+
+core-selector::-webkit-scrollbar:vertical {
+    width: 11px;
+}
+core-selector .col {
+  padding: 1px;
+  border: 1px solid #EEE;
+}
+core-selector .core-selected {
+  background-color: #ccc;
+
+}
+label {
+  display: block;
+  color: #2fa3af;
+}
+
+input.col-name {
+	width: 8em !important;
+}
+
+p {
+	width: 180px;
+}

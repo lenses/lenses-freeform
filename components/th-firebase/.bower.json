@@ -1,0 +1,20 @@
+{
+  "name": "th-firebase",
+  "keywords": "thelma, polymer, web-components",
+  "main": "thelma-components.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.5.1",
+    "firebase": "~1.0.17",
+    "core-ajax": "polymer/core-ajax#~0.5.1"
+  },
+  "homepage": "https://github.com/thelmanews/th-firebase",
+  "_release": "e4b87a439a",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "e4b87a439a2878656a7e0ce39c10bdcea5fbd7f2"
+  },
+  "_source": "git://github.com/thelmanews/th-firebase.git",
+  "_target": "*",
+  "_originalSource": "thelmanews/th-firebase"
+}

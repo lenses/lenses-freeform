@@ -1,0 +1,254 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../core-selector/core-selector.html">
+<!-- <link rel="import" href="../core-input/core-input.html">
+ --><link rel="import" href="../core-icon-button/core-icon-button.html">
+
+<!--
+A transform component that zips two arrays of objects together based on a common key.
+
+##### Example
+
+    <lens-data-zip></lens-data-zip>
+
+@element lens-data-zip
+@blurb A transform component that zips two arrays of objects together based on a common key.
+@status alpha
+@homepage http://lenses.github.io/lens-data-zip
+-->
+<polymer-element name="lens-data-zip" attributes="input output input_aux smart zipColKey0 zipColKey1 joinType">
+  <template>
+    <div class="lens-container lens-data">
+      <link rel="stylesheet" href="lens-data-zip.css">
+
+        <p class="info">Zips two datasets together based on a common key</p>
+        <label class="label" for="func_selector">Key1:</label>
+        <core-selector class="selector" id="value_selector0" selected="{{zipColKey0}}" valueattr="label">
+          <template repeat="{{attr in _dataAttributes0}}">
+            <div class="col" label="{{attr}}">{{attr}}</div>
+          </template>
+        </core-selector>
+        <label class="label" for="func_selector">Key2:</label>
+        <core-selector class="selector" id="value_selector1" selected="{{zipColKey1}}" valueattr="label">
+          <template repeat="{{attr in _dataAttributes1}}">
+            <div class="col" label="{{attr}}">{{attr}}</div>
+          </template>
+        </core-selector>
+        <label class="label">Zip (Join) Type:</label>
+        <core-selector class="selector" id="join_type" selected="{{joinType}}" valueattr="label">
+            <div class="col" label="inner">Strict/Inner</div>
+            <div class="col" label="outer">Full/Outer</div>
+        </core-selector>
+        <label class="label">Remove duplicate column:</label>
+        <input type="checkbox" checked="{{removeDuplicates}}">
+    </div>  <!-- end container-->
+
+  </template>
+
+  <script src="../lodash/lodash.js"></script>
+
+  <script>
+    Polymer({
+
+      /**
+       * Input data
+       *
+       * @property input
+       * @type object
+       * @default undefined
+       */
+
+      /**
+       * Auxilary Input data for second input
+       *
+       * @property input_aux
+       * @type object
+       * @default undefined
+       */
+
+      /**
+       * Output data
+       *
+       * @property output
+       * @type object
+       * @default undefined
+       */
+
+
+      /**
+       * Name of the column from input which will be used as zip key.
+       *
+       * @property zipColKey0
+       * @type String
+       * @default undefined
+       */
+      zipColKey0: null,
+
+      /**
+       * Name of the column from input_aux which will be used as zip key.
+       *
+       * @property zipColKey1
+       * @type String
+       * @default undefined
+       */
+      zipColKey1: null,
+
+      /**
+       * Be smarter and find non-exact matches (Slows down performance).
+       *
+       * @property smart
+       * @type Boolean
+       * @default false
+       */
+      smart: false,
+
+      /**
+       * Join Type values: (inner/outer). Options: <br>
+       *  - <code>'inner'</code> - Output will only include data whose columnKey appears
+       *  in both input sets and can be joined.<br/>
+       *  - <code>'outer'</code> - Output will also include data whose columnKey is unique
+       *  to one of the inputs, while joining data whose columnKeys appear in both.
+       * 
+       * @property joinType
+       * @type String
+       * @default 'inner'
+       */
+      joinType: 'inner',
+
+      /**
+       *  If true, zipped columns will be merged into one column to remove duplicates.
+       *
+       *  @property removeDuplicates
+       *  @type Boolean
+       *  @default false
+       */
+      removeDuplicates: false,
+
+      // Observe changes on below attributes and trigger _calculateOutput() when changed
+      observe: {
+        beSmart: "_calculateOutput",
+        zipColKey0: "_calculateOutput",
+        zipColKey1: "_calculateOutput",
+        joinType: "_calculateOutput",
+        removeDuplicates: "_calculateOutput"
+      },
+
+
+      // Called when <th-data-split> element is created.
+      ready: function () {
+      },
+
+      // Change watcher for input attribute. Triggered wheneve input is changed
+      inputChanged: function() {
+        var self = this;
+        if(!self.input || !self.input.length>0) {
+          return;
+        }
+        var firstItem = self.input[0];
+        if(!firstItem) {
+          return;
+        }
+        var attributes = Object.keys(firstItem);
+        
+        if(JSON.stringify(self._dataAttributes0) === JSON.stringify(attributes) ) {
+          //self._mapChartData();
+        }
+        else {
+          self._dataAttributes0 = attributes;
+        }
+
+        self._calculateOutput();
+      }, 
+
+      input_auxChanged: function() {
+        var self = this;
+        if(!self.input_aux || !self.input_aux.length>0) {
+          return;
+        }
+        var firstItem = self.input_aux[0];
+        if(!firstItem) {
+          return;
+        }
+        var attributes = Object.keys(firstItem);
+        
+        if(JSON.stringify(self._dataAttributes1) === JSON.stringify(attributes) ) {
+          //self._mapChartData();
+        }
+        else {
+          self._dataAttributes1 = attributes;
+        }
+
+        self._calculateOutput();
+      }, 
+
+      // Calculates output from input based on settings
+      _calculateOutput: function() {
+        var self = this;
+
+        if(self.zipColKey1 && self.zipColKey1)
+        {
+          //var intersect = _.intersection(_.pluck(self.input, self.zipColKey1), _.pluck(self.input, self.zipColKey1));
+          //console.log(intersect);
+          
+          // console.log('key',self.zipColKey0);
+
+          var input0 = _.map(self.input, function(item) {
+            item['__toZip'] = item[self.zipColKey0];
+            return item;
+          });
+
+          var input1 = _.map(self.input_aux, function(item) {
+            item['__toZip'] = item[self.zipColKey1];
+            return item;
+          });
+          
+          var grouped = _.groupBy(input0.concat(input1), '__toZip');
+
+          // console.log(grouped);
+/*
+          grouped.map(grouped, function(item) {
+            var key = Object.keys(item)[0];
+            var ret = {};
+            //ret[self.zipColKey0] = key;
+            console.log(key);
+            if(item[key].length>1) {
+              _.assign(ret, item[key][0], item[key][1]);
+              console.log(ret);
+            }
+            return ret;
+
+          })
+
+*/
+          self.output = [];
+          
+          // console.log(self.joinType);
+
+          _.forIn(grouped, function(value, key) {
+            var ret = {};
+            console.log(key,value);
+            //when there is nothing to groupby lodash groups them under undefined
+            if(key!=='undefined') {
+
+              //if inner join, only merge when there are at least two values grouped
+              if(self.joinType==='outer' || value.length>1) {
+                _.assign(ret, value[0], value[1]);
+
+                delete ret['__toZip'];
+                // console.log('remove dupes', self.removeDuplicates);
+                if(self.removeDuplicates && self.zipColKey0!==self.zipColKey1 && ret[self.zipColKey0]) {
+                  delete ret[self.zipColKey1];
+                }
+                // console.log(ret);
+                self.output.push(ret);
+              }
+            }
+
+          });
+          // console.log(self.output);
+          
+        }
+      }
+
+    });
+  </script>
+</polymer-element>

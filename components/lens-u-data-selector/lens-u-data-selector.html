@@ -1,0 +1,173 @@
+<link rel="import" href="../polymer/polymer.html"> 
+<link rel="import" href="../core-selector/core-selector.html"> 
+<link rel="import" href="../lens-u-data-utility/lens-u-data-utility.html"> 
+
+<!--
+A Thelma component providing solution to no problem in particular.
+
+##### Example
+
+    <lens-u-data-selector></lens-u-data-selector>
+
+@element lens-u-data-selector
+@blurb Element providing solution to no problem in particular.
+@status alpha
+@homepage http://thelmanews.github.io/lens-u-data-selector
+-->
+
+<polymer-element name="lens-u-data-selector" attributes="input selectionSettings selections ">
+  <template>
+    <style>
+        core-selector {
+          min-height: 10px;
+          display: inline-block;
+          max-height: 123px;
+          overflow-y: scroll; 
+        }
+
+        core-selector .col {
+          display: inline-block;
+          margin: 0 3px;
+          padding: 1px;
+          border: 1px solid #EEE;
+        }
+        core-selector .core-selected {
+          background-color: #ccc;
+
+        }
+        label {
+          vertical-align: top;
+        }
+    </style>
+    <lens-u-data-utility id="data_utility"></lens-u-data-utility>
+
+    <template if="{{_dataAttributes}}">
+      <div class="columnNames">
+        <template repeat="{{sel, index in selectionSettings}}">
+          <div>
+            <label>
+             {{sel.name}}: 
+            </label>
+              
+            <core-selector id="value_selector" selected="{{selections[index]}}" valueattr="label" multi="{{sel.multi}}">
+                <template if="{{sel.optional}}">
+                  <div class="col" label="none">none</div>
+                </template>
+
+                <template repeat="{{attr in _dataAttributes}}">
+                  <template if="{{attr | isEligible(index)}}">
+                    <div class="col" label="{{attr}}">{{attr}}</div>
+                  </template>
+                </template>
+            </core-selector>
+          
+          </div>
+        </template>
+      </div>
+    </template>
+  </template>
+  <script>
+    Polymer({
+      selections: ['',''],
+      selectionSettings: [
+        {name: 'label', type: 'any', multi: false},
+        {name: 'value', type: 'numerical', multi: true, excludeUsed: true}
+      ],
+      
+      observe: {
+        // input: "_getDefaultSelections"
+        // numOfSelections: "_stateChanged"        
+      },
+      
+      ready: function() {
+        var self = this;
+        // If there are pre-existing selections which are valid, keep those, otherwise set to array of empty strings
+        if (!(self.selections && self.selections[0])){
+          self.selections =  ['',''];
+        }
+        
+        self._extractAttributes(true);
+
+        if(!self.selections[0].length>0 || !self.selections[1].length>0) {
+          self._getDefaultSelections();
+        }
+
+
+        self.addEventListener('core-select', function() {
+          self.fire('th-data-selection-changed');
+        }.bind(self));
+      },
+      _extractAttributes: function() {
+        var self = this;
+        
+        //to check if data structure has been changed.
+        self._prevDataAttributes = self._dataAttributes;
+
+        if(self.input && self.input[0]) {
+          self._dataAttributes = Object.keys(self.input[0]);
+
+        //find default label values when there is no values already set
+
+        }
+
+
+      },
+      inputChanged: function() {
+        this._extractAttributes();
+
+        var attrsEqual = this.$.data_utility.arraysEqual(this._dataAttributes, this._prevDataAttributes);
+
+        // if attributes are not equal AND selections are similar to previous attributes (to avoid race conditions when recreating lens)
+        if(!this.selections[0] || !attrsEqual && this._prevDataAttributes.indexOf(this.selections[0])>-1) {
+          this._getDefaultSelections();
+        } 
+      },
+      _getDefaultSelections: function(){
+        var self = this,
+            columns = self.input && self.input.length ? Object.keys(self.input[0]) : [];          
+                 
+        self.selectionSettings.forEach(function(dp, i) {
+          if(dp.type !=='numerical') {
+            if (dp.multi && columns.length){
+              self.selections[i] = [columns[i]];  // if it is multi selection, selections need to be in an array
+            } else {
+              self.selections[i] = columns[i];  
+            }
+            
+          }
+          else {
+            self.selections[i] = columns.filter(function(key, index) {
+              // eligible & smaller than max & key not used before is excludeUsed flag is true
+              return self.isEligible(key,1) && index <= (dp.max || 1000) && !(dp.excludeUsed && self.alreadyUsed(key, i));
+            });
+          }
+        });
+
+        self.fire('th-data-selection-changed');
+      },
+      isEligible: function(attr,index) {
+        var self = this;
+        // TEMPORARILY ALWAYS RETURN TRUE UNTIL ISCOLUMNNUMERIC IS FIXED
+        return true; 
+          
+        if(self.selectionSettings[index] && self.selectionSettings[index].type==='numerical') {
+          // TODO: make isColumnNumeric less strict before reimplementing
+          var num =  self.$.data_utility.isColumnNumeric(self.input, attr );
+          return num;
+        }
+        
+        return true;
+      },
+      alreadyUsed: function(key, currentIndex) {
+        for(var i=0; i<currentIndex; i++) {
+          if(this.selections[i] && this.selections[i].indexOf(key)>-1) {
+            return true;
+          }
+        }
+
+      }
+
+
+    });
+  </script>
+</polymer-element>

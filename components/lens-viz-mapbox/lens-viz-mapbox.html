@@ -1,0 +1,238 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../th-animated/th-animated.html">
+<link rel="import" href="../core-ajax/core-ajax.html">
+<link rel="import" href="../th-theme/th-theme.html">
+
+<!--
+Element providing the ability to create maps with the Mapbox API.
+
+##### Example
+
+      <lens-viz-mapbox 
+          animateOnInit="true" 
+          mapId="examples.map-i87786ca" 
+          layers="[{'layerId': 'examples.bike-lanes'},{'layerId': 'examples.bike-locations'}]" 
+          startingLat="38.8922" 
+          startingLng="-77.0348"
+      ></lens-viz-mapbox>
+
+@element lens-viz-mapbox
+@blurb Element providing the ability to create maps with the Mapbox API.
+@status alpha
+@homepage http://github.com/thelmanews/lens-viz-mapbox/demo.html
+-->
+<polymer-element name="lens-viz-mapbox" extends="th-animated" attributes="accessTokenRoute accessToken mapId layers geolocation geolocateZoom startingZoom startingLat startingLng showSwipeBar input markerColor">
+
+  <template>
+    <link href='https://api.tiles.mapbox.com/mapbox.js/v2.1.2/mapbox.css' rel='stylesheet' />
+    <link href='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-locatecontrol/v0.24.0/L.Control.Locate.css' rel='stylesheet' />
+    <core-style ref="theme"></core-style>
+    <style>
+       :host {
+         width: 100%;
+         height: 100%;
+       }
+
+       #container {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        /*top:-15px;*/
+       }
+       #map { 
+        position:absolute; 
+        top:0; 
+        bottom:0;  
+        width: 100%;
+        height: 100%;
+      }
+      .swipearea {
+        height: 50px;
+        width: 100%;
+        background-color: rgba(0,0,0,0.3);
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        z-index: 1;
+        text-align: center;
+        padding: 15px;
+        box-sizing: border-box;
+        color: white;
+      }
+    </style>
+    <template if="{{accessTokenRoute}}">
+      <core-ajax auto 
+        id="token"
+        url="{{accessTokenRoute}}"
+        handleAs="text"  
+        on-core-response="{{_receiveToken}}">
+      </core-ajax>
+    </template>
+    <div id="container">
+      <div id='map'></div>
+      <template if="{{showSwipeBar}}">
+        <div class="swipearea submainpoint"> Swipe next here </div>
+      </template>
+    </div>
+
+  </template>
+  <script src='https://api.tiles.mapbox.com/mapbox.js/v2.1.4/mapbox.js'></script>
+  <script src='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-locatecontrol/v0.24.0/L.Control.Locate.js'></script>
+
+  <script>
+    Polymer({
+      mapId: 'examples.map-i87786ca',
+      layers: [],
+      startingZoom: 12,
+      geolocation: false,
+      geolocateZoom: 10,
+      showSwipeBar: false,
+      observe: {
+        markerColor: "addMarkers",
+        startingZoom: "reset",
+        startingLat: "reset",
+        startingLng: "reset"
+      },
+      ready: function(){
+        var self = this;
+
+        if (self.accessToken){
+          self._createMap();
+        } else {
+          self.accessToken="pk.eyJ1IjoidGhlbG1hIiwiYSI6Ikd3RUlsTTQifQ.i6bojdSBKd6JHENLKsRjTA";
+          self._createMap();
+        }
+        
+      },
+      _receiveToken: function(event, r){
+        var self = this;
+        if (event.detail.response){
+          L.mapbox.accessToken = self.accessToken || event.detail.response; // Assign the access token
+          self._createMap(); 
+        }
+      },
+      _createMap: function(){            
+        var self = this,
+            mapContainer = self.$.map;
+
+          // Assign access token
+          L.mapbox.accessToken = L.mapbox.accessToken || self.accessToken;
+          
+          // Create the map inside the div, given the mapId, default lat/long and zoom
+          self.map = L.mapbox.map(mapContainer, self.mapId);
+          
+          // If starting coordinates given, set view at that point (setTimeout needed otherwise there are tiling issues)
+          self.map.on('ready', function(){
+            if (self.startingLng && self.startingLat){
+              self.map.setView([self.startingLat, self.startingLng], self.startingZoom); 
+            }  
+          })
+          
+          
+          // Remove mapbox attribution/branding
+          mapContainer.querySelector('.leaflet-control-attribution').remove();
+
+          // Add layers to map
+          for (var i=0; i<self.layers.length; i++){
+            if(self.layers[i] && self.layers[i].layerId){
+              L.mapbox.tileLayer(self.layers[i].layerId).addTo(self.map);
+            }
+          }
+
+          // Add button for geolocation
+          self.geolocate = L.control.locate({ locateOptions: { maxZoom: self.geolocateZoom }}).addTo(self.map);
+
+          self.resize();
+          
+        
+      },
+      addMarkers: function(){
+        if (this.input && this.input.length){
+          var self = this,
+              markerColor = self.markerColor || window.CoreStyle.g.theme.accent2,
+              
+              geojson = self.input.map(function(place){
+            
+                return {
+                  "type": "Feature",
+                  "geometry": {
+                    "type": "Point",
+                    "coordinates": [place.longitude,place.latitude]
+                  },
+                  "properties": {
+                    "title": place.label,
+                    // "description": "1714 14th St NW, Washington DC",
+                    "marker-color": markerColor,
+                    "marker-size": "small"
+                    // "marker-symbol": "monument"
+                  }
+                }
+
+              });
+          
+          var markers = self.map.featureLayer.setGeoJSON(geojson);
+
+          self.map.fitBounds(markers.getBounds());
+        }
+      },
+      accessTokenChanged: function(){
+        var self = this;
+        if(L.mapbox.accessToken != self.accessToken){
+          L.mapbox.accessToken = self.accessToken;
+          self._createMap(); 
+        }
+      },
+      animate: function(){
+        var self = this;    
+
+        if(self.input && self.input.length){
+          self.addMarkers();
+        } 
+
+        if (self.geolocation && self.map){
+          setTimeout(function(){
+            self.geolocate.locate();  
+          },2000)
+        }
+      },
+      reset: function(){
+        var self = this;
+        if (self.startingLng && self.startingLng){
+          self.map.setView([self.startingLat,self.startingLng], self.startingZoom); 
+        }
+      },
+      inputChanged: function(){
+        var self = this;
+        self.addMarkers();
+      },
+      resize: function() {
+
+           this.map.invalidateSize();
+          
+      },
+      getMetaData: function(){
+        return {
+          "name": "lens-viz-mapbox",
+          "description": "Wrapper for MapBox",
+          "category":"map",
+          "version": "0.0.1",
+          "thumbnail":"mapbox.jpg", 
+          "tags":["map", "mapbox"],
+          "inputAttr": {
+            "mapId":{"friendly":"Map ID", "type":"string", "default":""},
+            "markerColor":{"friendly":"Marker Color", "type":"color", "default":""},
+            "startingZoom":{"friendly":"Starting Zoom", "type":"range", "default":12, "range":[1,20]},
+            "startingLat":{"friendly":"Starting Latitude", "type":"float", "default":38.8922},
+            "startingLng":{"friendly":"Starting Longitude", "type":"float", "default":-77.0348},
+            "geolocation":{"friendly":"Geolocation?", "type":"boolean", "default": false},
+            "geolocateZoom":{"friendly":"Geolocate Zoom", "conditionalAttr":"geolocation", "type":"range", "default":10, "range":[1,20]}
+           
+          }
+        }
+      }
+
+    });
+
+  </script>
+
+</polymer-element>

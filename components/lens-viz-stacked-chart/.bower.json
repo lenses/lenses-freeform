@@ -1,0 +1,19 @@
+{
+  "name": "lens-viz-stacked-chart",
+  "keywords": "lenses, polymer, web-components",
+  "main": "lens-viz-stacked-chart.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.5.1",
+    "th-d3-chart": "https://github.com/thelmanews/th-d3-chart.git"
+  },
+  "homepage": "https://github.com/lenses/lens-viz-stacked-chart",
+  "_release": "dbea4a04b6",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "dbea4a04b649afb2726a27050336266454f99450"
+  },
+  "_source": "git://github.com/lenses/lens-viz-stacked-chart.git",
+  "_target": "*",
+  "_originalSource": "lenses/lens-viz-stacked-chart"
+}

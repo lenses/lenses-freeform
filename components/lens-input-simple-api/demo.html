@@ -1,0 +1,103 @@
+<!doctype html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+    <title>lens-input-simple-api Demo</title>
+    <script src="../webcomponentsjs/webcomponents.js"></script>
+    <link rel="import" href="lens-input-simple-api.html">
+
+    <style>
+      body {
+        font-family: sans-serif;
+        font-size: 14px;
+      }
+
+      pre {
+        border: 1px solid #EEE;
+        font-size: 12px;
+        max-width: 300px;
+        max-height: 300px;
+        overflow: scroll;
+
+      }
+      #component {
+        border: 1px solid #BBB;
+        margin: 10px;
+        padding: 5px;
+        display: block;
+        width: 300px;
+      }
+
+      .component::before, .component::after {
+        content: '\2794';
+        position: absolute;
+        top: 50%;
+      }
+      .component::before {
+        right: -15px;
+      }
+
+      .component::after {
+        left: -15px;
+      }
+
+      section {
+        display: inline-block;
+        margin: 8px;
+        vertical-align: top;
+        position: relative;
+      }
+      html /deep/ input[is=core-input] {
+        border-bottom: 1px solid #E5E5E5 !important;
+      }
+
+    </style>
+
+  </head>
+  <body unresolved>
+
+    <template id="auto-bind-demo" is="auto-binding">
+
+
+    <p>This is a Simple API component to make API calls. If the API returns JSON with a header followed by an array of results, it will return the first array. Results will be flattened to one level deep.</p>
+
+    <p> Enter the URL to make an API call, for example :</p>
+    <pre>https://api.enigma.io/v2/data/iTX3qf5cwspm7ryII3ii5zqeHqUuoO4MctfLJFf2xU8eletxHvcI4/us.gov.atf.federal-firearms-licenses.complete-listing?limit=200</pre>
+    <p>or</p>
+    <pre>http://api.openweathermap.org/data/2.5/weather?q=New+York&units=imperial</pre>
+      <section class="component">
+        <label>Component:</label>
+          <lens-input-simple-api id="component" output="{{myoutput}}" outputRaw="{{myoutputRaw}}"></lens-input-simple-api>
+      </section>
+
+
+      <section>
+        <label>API Result:</label>
+        <pre id="input">{{myoutputRaw | json}}</pre>
+      </section>
+      <section>
+        <label>Flattened Output:</label>
+        <pre>{{myoutput | json}}</pre>
+      </section>
+
+      <script>
+        PolymerExpressions.prototype.json = function(object) {
+          return JSON.stringify(object, undefined, 2);
+        };
+        /*
+        component.urlChanged = function() {
+          component.queryData(function(xhr) {
+
+              // parse data and display the result of the API call
+              var data = JSON.parse(xhr.response);
+              console.log(data);
+              input.innerHTML = JSON.stringify(data, undefined, 2);
+          })
+        }
+        */
+
+      </script>
+
+    </template>
+  </body>
+</html>

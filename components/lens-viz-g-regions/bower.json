@@ -1,0 +1,15 @@
+{
+  "name": "lens-viz-g-regions",
+  "version": "0.0.0",
+  "keywords": [
+    "seed",
+    "polymer",
+    "web-components"
+  ],
+  "main": "lens-viz-g-regions.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.5.1",
+    "th-animated": "thelmanews/th-animated",
+    "google-chart": "GoogleWebComponents/google-chart#master"
+  }
+}

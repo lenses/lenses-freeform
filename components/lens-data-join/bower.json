@@ -1,0 +1,16 @@
+{
+  "name": "lens-data-join",
+  "version": "0.0.0",
+  "keywords": "lenses, polymer, web-components",
+  "main": "lens-data-join.html",
+  "dependencies": {  
+    "th-theme": "thelmanews/th-theme",
+    "polymer": "Polymer/polymer#~0.5.5",
+    "core-input": "Polymer/core-input#~0.5.5",
+    "core-component-page": "Polymer/core-component-page#~0.5.5"
+  },
+  "dev-dependencies":  { 
+    "web-component-tester": "Polymer/web-component-tester#^2.2.6"
+  }
+}
+

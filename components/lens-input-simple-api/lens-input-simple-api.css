@@ -1,0 +1,23 @@
+:host {
+  display: inline-block;
+  color: black;
+  width: 300px;
+  height: 300px;
+  font-family: sans-serif;
+  font-size: 12px;
+
+}
+
+.data {
+	max-height: 50px;
+	overflow: hidden;
+}
+
+.count {
+	width: 2.5em !important;
+}
+
+
+html /deep/ input[is=core-input] {
+	border: 1px solid #eee !important;
+}

@@ -1,0 +1,104 @@
+<!--
+    @license
+    Copyright (c) 2014 Thelma Project Authors. All rights reserved.
+    This code may only be used under the MIT license found at http://thelmanews.github.io/LICENSE.txt
+    The complete set of authors may be found at http://thelmanews.github.io//AUTHORS.txt
+    The complete set of contributors may be found at http://thelmanews.github.io/CONTRIBUTORS.txt
+-->
+<!doctype html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <title>lenses-freeform Demo</title>
+
+  <script src="../webcomponentsjs/webcomponents.js"></script>
+  <link rel="import" href="lenses-freeform.html">
+  
+</head>
+<style type="text/css">
+  h1 {
+    margin: 10px;
+    text-align: center;
+    color: #5E5E5E;
+    font-family: 'proxima-nova', sans-serif;
+  }
+  p {
+    margin-left: 30px;
+  }
+
+  a, a:visited {
+    color: #2fa3af;
+    text-decoration: none;
+  }
+  div {
+    background-color:#FEFEFE;
+    padding: 5px;
+  }
+
+  body {
+    font-family: 'proxima-nova', sans-serif;
+    color: #5E5E5E;
+    margin: 0;
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    font-size: 14px;
+  }
+
+  th-component-list {
+    z-index: 100;
+    position: absolute;
+    right: 0px;
+    top: 0px;
+  }
+
+  #recreate {
+    position: absolute;
+    top: 100px;
+    z-index: 100;
+  }
+
+</style>
+
+
+<!--   <input type="button" id="recreate" value="recreate">
+ -->
+
+
+  <lenses-freeform >
+  </lenses-freeform>
+
+</body>
+<script>
+
+    document.addEventListener('polymer-ready', function() {
+
+setTimeout(function() {
+
+      var lensData = {"elements":[{"id":"lens-input-csv-0","name":"lens-input-csv","top":210,"left":90,"settingOpen":false,"transform":"translate(-70px, -50px)","url":"http://bl.ocks.org/mbostock/raw/7586334/cars.csv"},{"id":"lens-data-array-func-0","name":"lens-data-formula","top":190,"left":250,"settingOpen":false,"transform":"translate(-80px, -30px)","formula":"round(  displacement__cc_ / 50) * 50","resultColumnName":"displacement round (cc)"},{"id":"lens-data-groupby-0","name":"lens-data-groupby","top":280,"left":90,"settingOpen":false,"transform":"translate(300px, -120px)","groupByColumn":"displacement round (cc)","aggrFunction":"avg","aggrFuncOnColumn":"economy (mpg)","sortValues":"none"},{"id":"lens-data-groupby-1","name":"lens-data-groupby","top":290,"left":220,"settingOpen":false,"transform":"translate(170px, -70px)","groupByColumn":"displacement round (cc)","aggrFunction":"avg","aggrFuncOnColumn":"power (hp)","sortValues":"none"},{"id":"lens-data-zip-0","name":"lens-data-zip","top":270,"left":410,"settingOpen":false,"transform":"translate(140px, -110px)","smart":false,"zipColKey0":"displacement round (cc)","zipColKey1":"displacement round (cc)","joinType":"inner"},{"id":"lens-viz-g-bar-chart-0","name":"lens-viz-g-bar-chart","top":190,"left":660,"resizable":true,"width":479,"height":407,"transform":"translate(30px, -30px)","selectedLabel":"displacement round (cc)","selectedValues":["avg of economy (mpg)","avg of power (hp)"],"orientation":"horizontal","legend":true,"showOptions":true,"labelValueSelection":["displacement round (cc)",["avg of economy (mpg)","avg of power (hp)"]],"numberPattern":""}],"connections":[{"source":{"id":"lens-input-csv-0","name":"lens-input-csv"},"target":{"id":"lens-data-array-func-0","name":"lens-data-array-func","field":"input"}},{"source":{"id":"lens-data-array-func-0","name":"lens-data-array-func"},"target":{"id":"lens-data-groupby-0","name":"lens-data-groupby","field":"input"}},{"source":{"id":"lens-data-array-func-0","name":"lens-data-array-func"},"target":{"id":"lens-data-groupby-1","name":"lens-data-groupby","field":"input"}},{"source":{"id":"lens-data-groupby-0","name":"lens-data-groupby"},"target":{"id":"lens-data-zip-0","name":"lens-data-zip","field":"input"}},{"source":{"id":"lens-data-groupby-1","name":"lens-data-groupby"},"target":{"id":"lens-data-zip-0","name":"lens-data-zip","field":"input_aux"}},{"source":{"id":"lens-data-zip-0","name":"lens-data-zip"},"target":{"id":"lens-viz-g-bar-chart-0","name":"lens-viz-g-bar-chart","field":"input"}}]};
+
+  /*
+      var lensData = {"elements":[{"id":"lens-input-csv-0","name":"lens-input-csv","top":170,"left":120,"settingOpen":false,"transform":"translate(-90px, 0px)","url":"http://bl.ocks.org/mbostock/raw/7586334/cars.csv"},{"id":"lens-data-array-func-0","name":"lens-data-array-func","top":160,"left":420,"settingOpen":false,"transform":"translate(-250px, 10px)","functionName":"map","functionContent":"current['displacement round (cc)'] = Math.round(current['displacement (cc)']/50) * 50;\nreturn current;"},{"id":"lens-data-groupby-0","name":"lens-data-groupby","top":170,"left":330,"settingOpen":false,"transform":"translate(20px, 0px)","groupByColumn":"displacement round (cc)","aggrFunction":"avg","aggrFuncOnColumn":"power (hp)","sortValues":"none"},{"id":"lens-viz-g-bar-chart-0","name":"lens-viz-g-bar-chart","top":180,"left":720,"resizable":true,"width":507,"height":444,"transform":"translate(-60px, -10px)","selectedLabel":"displacement round (cc)","selectedValues":["avg of power (hp)","avg of economy (mpg)"],"orientation":"horizontal","legend":true,"showOptions":true,"labelValueSelection":["displacement round (cc)",["avg of power (hp)","avg of economy (mpg)"]],"numberPattern":""},{"id":"lens-data-groupby-1","name":"lens-data-groupby","top":230,"left":380,"settingOpen":false,"transform":"translate(-200px, 80px)","groupByColumn":"displacement round (cc)","aggrFunction":"avg","aggrFuncOnColumn":"economy (mpg)","sortValues":"none"},{"id":"lens-data-zip-0","name":"lens-data-zip","top":250,"left":480,"settingOpen":false,"transform":"translate(30px, -80px)","input_aux":[{"displacement round (cc)":"50","avg of economy (mpg)":26.814285714285713,"__toZip":"50"},{"displacement round (cc)":"100","avg of economy (mpg)":29.719374999999996,"__toZip":"100"},{"displacement round (cc)":"150","avg of economy (mpg)":24.793442622950817,"__toZip":"150"},{"displacement round (cc)":"200","avg of economy (mpg)":21.46,"__toZip":"200"},{"displacement round (cc)":"250","avg of economy (mpg)":19.008333333333333,"__toZip":"250"},{"displacement round (cc)":"300","avg of economy (mpg)":14.934883720930234,"__toZip":"300"},{"displacement round (cc)":"350","avg of economy (mpg)":13.426470588235293,"__toZip":"350"},{"displacement round (cc)":"400","avg of economy (mpg)":13.147058823529411,"__toZip":"400"},{"displacement round (cc)":"450","avg of economy (mpg)":13.222222222222221,"__toZip":"450"}],"smart":false,"zipColKey0":"displacement round (cc)","zipColKey1":"displacement round (cc)","joinType":"inner"}],"connections":[{"source":{"id":"lens-input-csv-0","name":"lens-input-csv"},"target":{"id":"lens-data-array-func-0","name":"lens-data-array-func","field":"input"}},{"source":{"id":"lens-data-array-func-0","name":"lens-data-array-func"},"target":{"id":"lens-data-groupby-0","name":"lens-data-groupby","field":"input"}},{"source":{"id":"lens-data-array-func-0","name":"lens-data-array-func"},"target":{"id":"lens-data-groupby-1","name":"lens-data-groupby","field":"input"}},{"source":{"id":"lens-data-groupby-0","name":"lens-data-groupby"},"target":{"id":"lens-data-zip-0","name":"lens-data-zip","field":"input"}},{"source":{"id":"lens-data-groupby-1","name":"lens-data-groupby"},"target":{"id":"lens-data-zip-0","name":"lens-data-zip","field":"input_aux"}},{"source":{"id":"lens-data-zip-0","name":"lens-data-zip"},"target":{"id":"lens-viz-g-bar-chart-0","name":"lens-viz-g-bar-chart","field":"input"}}]};
+      */
+
+
+      var lens = document.querySelector('lenses-freeform');
+
+      lens.scaffoldFromData(lensData.elements, lensData.connections);
+
+    },1000);
+
+  window.onbeforeunload = function(e) {
+        return '';
+    };
+
+
+
+
+
+    });
+
+</script>
+</html>

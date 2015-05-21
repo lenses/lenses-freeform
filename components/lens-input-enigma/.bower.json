@@ -1,0 +1,20 @@
+{
+  "name": "lens-input-enigma",
+  "keywords": "lenses, polymer, web-components",
+  "main": "lens-input-enigma.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.5.1",
+    "core-selector": "polymer/core-selector#~0.5.1",
+    "core-input": "polymer/core-input#~0.5.1"
+  },
+  "homepage": "https://github.com/lenses/lens-input-enigma",
+  "_release": "995c4904eb",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "995c4904eb4d045ae383432dec531cb04482d607"
+  },
+  "_source": "git://github.com/lenses/lens-input-enigma.git",
+  "_target": "*",
+  "_originalSource": "lenses/lens-input-enigma"
+}

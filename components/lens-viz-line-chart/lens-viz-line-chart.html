@@ -1,0 +1,871 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../th-d3-chart/th-d3-chart.html">
+
+<polymer-element name="lens-viz-line-chart" extends="th-d3-chart" attributes="lineStyle animateStyle fillArea xAxisLine 
+  xAxisLabels yAxisLabels yAxisLine axisAnimation dataPosition joyStick yAxisMin yAxisMax dateType textColor input">
+  <template>
+    <core-style ref="theme"> </core-style>
+    <style>
+      :host {
+        min-width: 100px;
+        min-height: 100px;
+        width: 300px;
+        height: 300px;
+      }
+
+      #chart {
+        padding: 5px;
+        box-sizing: border-box;
+      }
+
+      .xLabel, .yLabel {
+        font-size: 0.7em;
+        font-weight: 300;
+      }
+
+      circle {
+        cursor: pointer;
+      }
+
+      @-webkit-keyframes pulse {  
+        from {
+         stroke-opacity: 0.9;
+        }
+        50% {
+         stroke-opacity: 0.4;
+        }
+        to {
+         stroke-opacity: 0.9;
+        }
+      }
+
+      .note {
+        width: 100%;
+        position: relative;
+        box-sizing: border-box;
+        padding: 0px 20px;
+      }
+
+      .pulse {
+        fill-opacity: 0;
+        -webkit-animation-name: pulse;
+        -webkit-animation-duration: 3s;
+        -webkit-animation-iteration-count: infinite;
+        animation-timing-function: linear;
+      }
+
+      .xAxis path {
+        fill: none;
+        stroke-width: 2;
+      }
+
+    </style>
+    <svg id="chart"></svg> 
+    <div id="info"></div> 
+
+    <!-- to allow embeded th-editor component -->
+    <content select="th-editor"></content> 
+
+  </template> 
+  
+  <!-- this is for d3.tip, if used --> 
+  <!-- <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script> -->
+
+  <script>
+       
+    (function() { 
+
+        var staticObj = {
+           _scaleBuilder: function(polymerObj) {
+              polymerObj.maxLabel = polymerObj.getBoundaryValue(polymerObj, "label", d3.max);
+              polymerObj.minLabel = polymerObj.getBoundaryValue(polymerObj, "label", d3.min);
+              polymerObj.maxValue = polymerObj.yAxisMax != "" && (!isNaN(parseInt(polymerObj.yAxisMax))) ? polymerObj.yAxisMax : polymerObj.getBoundaryValue(polymerObj, "value", d3.max);
+              polymerObj.minValue = polymerObj.yAxisMin != "" && (!isNaN(parseInt(polymerObj.yAxisMin))) ? polymerObj.yAxisMin : polymerObj.getBoundaryValue(polymerObj, "value", d3.min);
+
+
+              polymerObj.y = d3.scale.linear().domain([polymerObj.minValue, polymerObj.maxValue]).range([15, 
+                      (polymerObj.dims.height-(polymerObj.dims.margin.top + polymerObj.dims.margin.bottom + polymerObj.dims.joystick.d))]), 
+
+              // polymerObj.axisFormatter = d3.time.format.multi([
+              //   [".%L", function(d) { return d.getMilliseconds(); }],
+              //   [":%S", function(d) { return d.getSeconds(); }],
+              //   ["%I:%M", function(d) { return d.getMinutes(); }],
+              //   ["%I %p", function(d) { return d.getHours(); }],
+              //   ["%a %d", function(d) { return d.getDay() && d.getDate() != 1; }],
+              //   ["%b %d", function(d) { return d.getDate() != 1; }],
+              //   ["%B", function(d) { return d.getMonth(); }],
+              //   ["%Y %B", function(d) { return d.getMonth(); }],
+              //   ["%Y", function() { return true; }]
+              // ]);
+              
+              // Select options for date formats with friendly formats
+              DATE_FORMATS = {
+                "DD-MM-YY": "%d-%m-%y",
+                "DD-MM": "%d-%m",
+                "DD-Mth": "%d-%b",
+                "MM-YY": "%m-%y",
+                "Mth-YY": "%b-%y",
+                "YY": "\'%y",
+                "YYYY": "%Y"
+              };
+
+              polymerObj.dateFormat = DATE_FORMATS[polymerObj.dateType] || "%Y";
+
+              polymerObj.x = d3.time.scale().domain(d3.extent(polymerObj.chartData, function(d){return Date.parse(d.label);})).range([polymerObj.dims.margin.left, polymerObj.dims.width ]);
+
+              polymerObj.chartData.forEach(function(d){
+                d.date = Date.parse(d.label);
+              })
+
+              polymerObj.numXticks = Math.min(5, polymerObj.chartData.length);
+              polymerObj.numYticks = 4;
+
+            },
+            _setupElements: function(polymerObj){
+              var width = polymerObj.dims.width,
+                  height = polymerObj.dims.height,
+                  y = polymerObj.y,
+                  x = polymerObj.x;
+                  g = polymerObj.g, 
+                  svg = polymerObj.svg,
+                  data = polymerObj.chartData,
+                  line = polymerObj.line,
+                  startingLine = polymerObj.startingLine,
+                  animateStyle = polymerObj.animateStyle; 
+
+              polymerObj.currentPos = {};
+
+              polymerObj.svg = d3.select(polymerObj.$.chart);
+              
+              // container
+              var g = polymerObj.svg.append("g");
+              polymerObj.g = g;
+
+              // note area
+              polymerObj.note = d3.select(polymerObj.$.info)
+                .append("div")   
+                .attr("class", "note");
+          
+              // y-axis
+              polymerObj.yAxis = g.append("line")
+                .attr("x1", 0)
+                .attr("x2", 0);       
+              
+              var xAxis = d3.svg.axis()
+                .scale(x)
+                .ticks(polymerObj.numXticks)
+                .tickFormat(d3.time.format(polymerObj.dateFormat))
+                .tickSize(0);
+
+              polymerObj.xAxis = g.append("g").attr('class', 'axis xAxis').call(xAxis).style('stroke', polymerObj.textColor);
+              
+              // format ticks
+              g.selectAll('.tick').selectAll('line').attr('y2', 0);
+              
+              polymerObj.xLabels = g.selectAll('.axis').selectAll('text')
+                .attr('class', 'label no-stroke xLabel').attr('y', 8)
+                .style('fill', polymerObj.textColor)
+                .attr("opacity", function(d) { return polymerObj.xAxisLabels ? 1 : 0; });
+
+              // y labels
+              polymerObj.yLabels = g.selectAll(".yLabel")
+                .data(y.ticks(polymerObj.numYticks))
+                .enter().append("text")
+                .attr("class", "yLabel axis no-stroke")
+                .text(function(d){ return d;})
+                .attr("dy", 4)
+                .attr("opacity", function(d) { return polymerObj.axisAnimation || !polymerObj.yAxisLabels ? 0 : 1; })
+                .style("text-anchor", "middle")
+                .attr('stroke-width', 0)
+                .style('fill', polymerObj.textColor)
+                .style('stroke', polymerObj.textColor);
+              
+              // large display value
+              polymerObj.displayValue = g.append('g').append('text')
+                .attr("class", "fill-foreground")
+                .attr("opacity", function(){
+                  return polymerObj.joyStick ? 0.7 : 0;
+                })
+                .style("fill", polymerObj.textColor)
+                .style("stroke", polymerObj.textColor); // this can start as 0 and fade in after datapoint and joystick appear
+
+              // fill area path
+              polymerObj.areaPath = g.append("path");
+
+              // line path
+              polymerObj.linePath = g.selectAll('.data0')
+                  .data(data)
+                  .enter().append("path")
+                  .attr("class", "data0 no-fill")
+                  .attr("stroke-width", "3")
+                  .style("fill", "none")
+                  .style("stroke", polymerObj.color);
+
+              // datapoints
+              polymerObj.circles = g.selectAll(".circle")
+              .data(data)
+              .enter().append("circle")
+              .attr("class", "circle data0 stroke-foreground")
+              .attr("r", 0)
+              .style("fill", polymerObj.color)
+              .style("stroke", polymerObj.textColor);
+              
+              // tooltips
+              polymerObj.tips = g.selectAll('.tip')
+                .data(data)
+                .enter().append('text')
+                .attr('class', 'tip label fill-foreground')
+                .attr('text-anchor', 'middle')
+                .style('fill', polymerObj.textColor);
+
+            },
+            _setupContainerSize: function(polymerObj){
+
+              polymerObj.svg
+                .attr("width", polymerObj.dims.width+ polymerObj.dims.margin.right + polymerObj.dims.margin.left) // TODO: need to fix so the svg width already accounts for this!
+                .attr("height", polymerObj.dims.height); 
+              polymerObj.g
+                .attr("transform", "translate(0,"+ (polymerObj.dims.height-polymerObj.dims.margin.top) +")");
+
+         
+            },
+  
+            _setupElementSizes: function(polymerObj){
+              var width = polymerObj.dims.width,
+                  height = polymerObj.dims.height,
+                  y = polymerObj.y,
+                  x = polymerObj.x,
+                  data = polymerObj.chartData,
+                  valueSize = Math.min(width, height)/3,
+
+                  
+              // if this option is true, set all display_values equal to values, otherwise leave them as is    
+              data = polymerObj.defaultDisplayValues ? polymerObj.setDisplayVals(polymerObj) : data;
+
+              // After display values are determined, adjust margins for long values
+              var firstValueLength = data[0].display_value.length;
+              var lastValueLength = data[data.length - 1].display_value.length;
+              
+              // If last val is long, increase right margin
+              polymerObj.dims.margin.right += lastValueLength > 5 ? (lastValueLength - 5)*8 : 0; 
+              
+              // If first val is long, shift label (increasing margin left is not ideal because of y-Axis)
+              if (firstValueLength > 4) { 
+                polymerObj.tips
+                  .attr('transform',function(d,i){
+                    var offset = i === 0 ? (firstValueLength - 4)*5 : 0;
+                    return "translate("+offset+",0)";
+                  });
+              }
+              staticObj._setupContainerSize(polymerObj);
+              
+              // polymerObj.xAxis
+              //   .attr("x1", x(polymerObj.minLabel))
+              //   .attr("y1", 0)
+              //   .attr("x2", x(polymerObj.maxLabel)) 
+              //   .attr("y2", 0);
+
+              polymerObj.yAxis
+                .attr("y1", function(d) { return polymerObj.axisAnimation ? y(0) : -1 * y(polymerObj.minValue); }) 
+                .attr("y2", function(d) { return polymerObj.axisAnimation ? y(0) : -1 * y(polymerObj.maxValue); });
+                // .attr("stroke-width", 2)
+                // .attr("opacity", function(d) { return polymerObj.axisAnimation ? 0 : 1; });
+
+              // polymerObj.xLabels
+              //   // .data(x.ticks(polymerObj.numXticks))
+              //   .text(function(d){ return d;})
+              //   .attr("x", function(d) { return x(d) })
+              //   .attr("y", polymerObj.dims.margin.top/2);
+
+              polymerObj.yLabels
+                .text(function(d){ return d;})
+                .attr("transform", function(d){
+                  var yPos = polymerObj.axisAnimation ? 0 : -1*y(d);
+                  return "translate(0,"+ yPos +") rotate(-90)";
+                } );
+
+
+              polymerObj.displayValue
+                .attr("text-anchor", function(){ return polymerObj.dataPosition === "left" ? "start" : "end"; })
+                .attr("x", function(){ return polymerObj.dataPosition === "left" ? polymerObj.dims.margin.left : (width-polymerObj.dims.margin.left); })
+                .attr("y", -(height - valueSize - polymerObj.dims.margin.top - polymerObj.dims.joystick.d)) 
+                .attr("font-size", valueSize) 
+                .text(polymerObj.currentPos.value);
+
+              
+              // line data, starting state (raise)
+              polymerObj.startingLine = d3.svg.line()
+                .x(function(d) { return x(d.date); })
+                .y(0).interpolate(polymerObj.lineStyle);
+
+              // line data, ending state
+              polymerObj.line = d3.svg.line()
+                .x(function(d) { return x(d.date); })
+                .y(function(d) { return -y(d.value); })
+                .interpolate(polymerObj.lineStyle);
+
+              // data for fill area, starting state (raise)
+              polymerObj.areaDataStart = d3.svg.area()
+                .x(function(d) { return x(d.date); })
+                .y1(0).interpolate(polymerObj.lineStyle);
+
+              // data for fill area, ending state
+              polymerObj.areaData = d3.svg.area()
+                .x(function(d) { return x(d.date); })
+                .y1(function(d) { return -y(d.value); })
+                .interpolate(polymerObj.lineStyle);
+
+              // update path for fill area and lines
+                if (polymerObj.animateStyle == "draw"){
+
+                  polymerObj.linePath 
+                    .data(data)
+                    .attr("d", polymerObj.line(data)); 
+
+                  if (polymerObj.fillArea){   
+                    polymerObj.areaPath
+                      .datum(data)
+                        .attr("class", "data0 area")
+                        .attr("opacity", 0)
+                        .attr("d", polymerObj.areaData)
+                        .style("fill", polymerObj.color)
+                        .style("stroke", polymerObj.color);
+                  }
+                } else {
+                
+                  polymerObj.linePath
+                    .data(data)
+                    .attr("d", function(){ return polymerObj.fillArea ? polymerObj.line(data) : polymerObj.startingLine(data);})
+                    .attr("class", "data0 no-fill")
+                    .attr("stroke-width", "2.5")
+                    .attr("opacity", function(){ return polymerObj.fillArea ? 0 : 1;})
+                    .style("stroke", polymerObj.color);
+
+                  if (polymerObj.fillArea){   
+                    polymerObj.areaPath 
+                      .datum(data)
+                      .attr("class", "area data0")
+                      .attr("opacity", 0)
+                      .attr("d", polymerObj.areaDataStart)
+                      .style("fill", polymerObj.color)
+                      .style("stroke", polymerObj.color);     
+                    }
+                }
+                
+              polymerObj.circles
+                .attr("stroke-width", 3)
+                .attr("cx", function(d) { return  x(d.date); })
+                .attr("cy", function(d) { return -1 * y(d.value); });
+              if (polymerObj.joystick){
+                polymerObj.joystick.select('rect')
+                  .attr("height", height-36)
+              }
+
+              polymerObj.setStartingPosition();   
+            }
+        };
+        //end private obj
+
+
+        Polymer('lens-viz-line-chart', {
+            lineStyle: "cardinal", // options: linear, basis, cardinal, monotone, step-before/after
+            animateStyle: "draw", // options: raise, draw
+            fillArea: false, 
+            xAxisLine: true,
+            xAxisLabels: true,
+            yAxisLine: false, // doesnt do anything, there is never a line
+            yAxisLabels: false,
+            yAxisMin: '', // unless a value is specified, axis will scale according to data
+            yAxisMax: '', // unless a value is specified, axis will scale according to data
+            axisAnimation: false, // not currently working
+            dataPosition: "left",  // options: left, right
+            joyStick: true,
+            color: "",
+            defaultDisplayValues: false,
+            dateType: "YYYY", // options: "DD-MM-YY", "DD-MM", "DD-Mth", "MM-YY", "Mth-YY", "YY", "YYYY"
+          chartData: [
+            {'label': 'December 3, 2011', 'value': 104, 'display_value': '$104', 'note': ''},
+            {'label': 'March 30, 2012', 'value': 108, 'display_value': '$108', 'note': ''},
+            {'label': 'August 21, 2013', 'value': 107, 'display_value': '$107', 'note': ''},
+            {'label': 'September 21, 2014', 'value': 107, 'display_value': '$107', 'note': ''},
+            {'label': 'January 1, 2016', 'value': 112, 'display_value': '$112', 'note': ''}
+          ],
+          init: function() {
+            var self = this;
+
+            // setup dimensions
+            self.dims = self.setupDimensions(self);
+
+            // adjust the margins because labels and joystick need more space
+            self.dims.joystick = { r: 8, d: 16};
+            self.dims.margin.right = 10;
+            self.dims.margin.left = 15;
+            self.dims.margin.bottom = 18;
+            self.dims.margin.top += self.dims.joystick.d;
+            self.dims.margin.bottom += self.dims.joystick.d;
+            
+            self.dims.width = self.dims.width = Math.max(100,(self.computedWidth -self.dims.margin.left - self.dims.margin.right));
+
+            staticObj._scaleBuilder(self);
+            staticObj._setupElements(self);
+            staticObj._setupElementSizes(self); 
+            self.dataLength = self.chartData.length;
+          },
+          
+          resize: function(){
+            var self = this;
+            self.dims = self.setupDimensions(self);
+            
+            // adjust the margins because labels and joystick need more space
+            self.dims.margin.right = 10;
+            self.dims.margin.left = 15;
+            self.dims.margin.top += self.dims.joystick.d;
+            self.dims.margin.bottom += self.dims.joystick.d;
+
+            self.dims.width = Math.max(100,(self.computedWidth*0.95 -self.dims.margin.left - self.dims.margin.right));
+          
+            staticObj._scaleBuilder(self);
+            staticObj._setupElementSizes(self);
+
+            if (self.joyStick) {
+              self.moveJoystick();
+            } else {
+              self.showTooltips();
+            }
+
+            self.animate();
+            
+          },
+          updateData: function(){
+            var self = this,
+                data = self.chartData;
+               
+            staticObj._scaleBuilder(self);
+
+            var x = self.x,
+                y = self.y;
+            
+            // select elements
+            self.yLabels = self.g.selectAll('.yLabel').data(y.ticks(self.numYticks));
+            self.xLabels = self.g.selectAll('.xLabel').data(x.ticks(self.numXticks));
+            self.linePath = self.g.selectAll('path.data0').data(data);
+            self.circles = self.g.selectAll('.circle').data(data);
+            self.xAxis = self.g.selectAll('path.axis').data(data);
+            self.tips = self.g.selectAll('.tip').data(data);
+            // self.areaPath = self.g.selectAll('.area').datum(data);
+              
+              
+            // add new data points
+            self.xLabels
+              .enter().append("text")
+              .attr("class", "xLabel axis")
+              .text(function(d){ return d;})
+              .attr("text-anchor", "middle")
+              .attr("x", function(d) { return x(d) })
+              .attr("y", self.dims.margin.top/2);
+             
+            self.yLabels  // these new ones are not being positioned correctly..
+              .enter().append("text")
+              .attr("class", "yLabel axis")
+              .text(function(d){ return d;})
+              .attr("dy", 4)
+              .attr("opacity", function(d) { return self.axisAnimation ? 0 : 1; })
+              .style("text-anchor", "start");
+
+            self.xAxis
+              .attr("x1", x(self.minLabel))
+              .attr("y1", 0)
+              .attr("x2", x(self.maxLabel)) 
+              .attr("y2", 0);
+
+            self.circles
+              .enter().append("circle")
+              .attr("class", "circle data0 stroke-foreground")
+              .attr("r", function(){
+                return self.joyStick ? 0 : 4;
+              })
+              .attr("r", 0)
+              .style("fill", self.color)
+              .style("stroke", self.textColor);
+
+            self.tips
+              .enter().append('text')
+              .attr('class', 'tip label fill-foreground')
+              .attr('text-anchor', 'middle')
+              .style('fill', self.textColor);
+
+             // remove extra datapoints
+            self.linePath.exit().remove();
+            self.circles.exit().remove();
+            self.xLabels.exit().remove();
+            self.yLabels.exit().remove();
+            self.xAxis.exit().remove();
+            self.tips.exit().remove();
+            staticObj._setupElementSizes(self);
+            
+            if (self.joyStick) {
+              self.moveJoystick();
+            } else {
+              self.showTooltips();
+            }
+            self.animate();
+           
+          },
+          reset: function() {
+            var self = this,
+                g = self.g,
+                svg = self.svg;
+      
+            // removes the lines, joystick and data/notes
+            g.remove(); 
+            d3.select(self.$.info).selectAll("div, li").remove();  
+            svg.selectAll('g.joystick').remove();
+            
+            staticObj._setupElements(self);
+            staticObj._setupElementSizes(self); 
+          },
+
+          animate: function() {
+            var self = this;
+            self.animateAxis();
+            self.animateLines();
+            if (self.joyStick) {
+              self.moveJoystick();
+              self.showCurrentData(self.currentPos, firstTime=true);
+            } else {
+              self.showTooltips();
+            }
+            
+          },
+          animateLines: function(){
+            var self = this;
+            var g = self.g, 
+                svg = self.svg,
+                data = self.chartData,
+                x = self.x, 
+                y = self.y,
+                
+                startingLine = self.startingLine,
+                animateStyle = self.animateStyle; 
+                
+            if (animateStyle === "draw"){
+                if (self.fillArea){
+                  // path for fill area
+
+                  self.areaPath
+                    // .transition()
+                    //   .duration(1000) 
+                    //   .ease("linear")
+                    //   .attr("stroke-dashoffset", 0)
+                    .style("opacity", 0.7); 
+                      
+                }
+
+                // draw effect animation
+                var totalLength = self.linePath.node().getTotalLength();
+
+                self.linePath
+                  .attr("stroke-dasharray", totalLength + " " + totalLength)
+                  .attr("stroke-dashoffset", totalLength)
+                  .transition()
+                    .duration(1000) 
+                    .ease("linear")
+                    .attr("stroke-dashoffset", 0);
+
+              } else { // raise style 
+                if (self.fillArea){ 
+                  self.areaPath  
+                    // .datum(data)
+                      .transition()
+                      .duration(1000)
+                      .ease("linear")
+                      .attr("stroke-dashoffset", 0)
+                    .attr("d", self.areaData)
+                    .attr("opacity", 0.7);
+                }
+
+                // transition for ending state of line
+                self.linePath
+                  .transition()
+                    .duration(function(){ return self.fillArea ? 5000 : 1000;})
+                    .attr("d", self.line(data))
+                    .attr("opacity", 1);
+
+              }
+
+              // If no joystick, format circles as same color as line, no stroke)
+              if (!self.joyStick){
+                self.circles
+                  .style("fill", self.color)
+                  .style("stroke", self.color)
+                  .transition()
+                  .delay(1000)
+                  .duration(500)
+                  .attr('class', 'data0 circle')
+                  .attr('r', 4);
+                  
+              }
+          },
+          animateAxis: function(){
+            // var self = this;
+            // if (self.axisAnimation) {
+            //   var yAxis = self.yAxis,
+            //       y = self.y,
+            //       maxValue = self.maxValue,
+            //       yLabels = self.yLabels;
+
+            //   yAxis.transition()
+            //     .duration(1000)
+            //     .attr("y1", -1 * 0)
+            //     .attr("y2", -1 * y(maxValue))
+            //     .attr("opacity", 1);
+
+            //   yLabels.transition()
+            //     .duration(1000)
+            //     .attr("y", function(d) { return -1 * y(d) })
+            //     .attr("opacity", 1);
+
+            // }
+          },
+          setStartingPosition: function(){
+            var self = this,
+                data = self.chartData;
+            
+            // FIND THE FIRST TOOLTIP AND SET AS CURRENT POSITION
+            for (var i=0; i<data.length; i++){
+              if (data[i].note){
+                self.currentPos.label = data[i].date;
+                self.currentPos.note = data[i].note;
+                self.currentPos.value = data[i].display_value ? data[i].display_value : "";
+                break;
+              } else {
+                self.currentPos.label = data[0].date;
+                self.currentPos.note = data[0].note;
+                self.currentPos.value = data[0].display_value ? data[0].display_value : "";
+              }
+            }
+          },
+          showCurrentData: function(currentPos, firstTime){
+            var self = this,
+                g = self.g,
+                label = currentPos.closestLabel || currentPos.label,
+                value = currentPos.val,
+                note = currentPos.note;
+
+              // show circles
+              g.selectAll(".circle")
+                    .transition()
+                    .delay(function(){ return firstTime ? 1000 : 0})
+                    .duration(300)
+                    .attr("r", function(d){
+                      if (Math.abs(self.x(d.date) - self.x(label)) < 2){
+                      // if (d.date==label){ 
+                        note = d.note;
+                        value = d.display_value ? d.display_value : "";
+                        return 4;
+                      } else {
+                        return 0;
+                      }
+                    });
+
+               // show note 
+                self.note.transition() 
+                    .duration(100)      
+                    .style("opacity", 1);      
+                self.note.html(note);  
+                
+                // show value
+                self.displayValue.text(value);
+
+          },
+          moveJoystick: function(){
+            var self = this, 
+                svg = self.svg,
+                x = self.x,
+                w = self.dims.width,
+                h = self.dims.height,
+                g = self.g;
+
+            self.currentPos.x = x(self.currentPos.label);  
+              
+              self.joystick = svg.selectAll('g.joystick')
+                  .data([{x: self.currentPos.x}]) //??
+                  .enter()
+                      .append('g')
+                      .attr("class", "joystick")
+                      // .attr("height", 200)
+                      .attr("width", w);
+
+              var drag = d3.behavior.drag()
+                  .origin(Object)
+                  .on("drag", dragMove)
+                  .on('dragend', dragEnd);
+
+              self.joystick.append("circle")
+                  .attr("class", "target-area")
+                  .attr("r", 25)
+                  .attr("cx", self.currentPos.x)
+                  .attr("cy", self.dims.joystick.r)
+                  .style("fill-opacity", 0);
+
+              self.joystick.append("circle")
+  
+                  .attr("r", 8)
+                  .attr("cx", self.currentPos.x)
+                  .attr("cy", self.dims.joystick.r)
+                  .attr("class", "target pulse stroke-foreground fill-background")
+                  .attr("stroke-width", 4.5)
+                  .style('stroke', self.textColor);
+              
+              self.joystick.append('rect')
+                  .attr('y', self.dims.joystick.r*2 +2)
+                  .attr('x', self.currentPos.x-1.5)
+                  .attr("height", h-self.dims.joystick.d - self.dims.margin.bottom)
+                  .attr("width", 3)
+                  .attr("class", "fill-foreground")
+                  .attr('opacity', 0.4)
+                  .style('fill', self.textColor);
+              
+              self.joystick
+                .call(drag);
+
+              self.lastPosX = self.joystick.select("circle.target").attr("cx");
+
+
+
+            function dragMove(d){
+              d3.event.sourceEvent.stopPropagation();
+              var x = self.x;
+
+                // style the circle
+                self.joystick.selectAll('.target')
+                  .attr("class", "target stroke-foreground fill-background")
+                  .attr('fill-opacity', 0)
+                  .style('stroke', self.textColor);
+
+                // move the circle
+                d3.select(this).selectAll('circle')
+                  .attr("cx", d.x = Math.max(self.dims.margin.left, Math.min(self.dims.width-1, d3.event.x)));
+
+                // define current position
+                self.currentPos.x = self.joystick.selectAll('circle').attr("cx");
+                
+                // move the line
+                d3.select(this).select('rect')
+                  .attr('x', self.currentPos.x-1)
+                  .attr('opacity', 1);
+
+                // determine direction of slide movement
+                if (self.currentPos.x < self.lastPosX){
+                  self.direction = "left";
+                  self.lastPosX = self.currentPos.x;
+                } else {
+                  self.direction ="right";
+                  self.lastPosX = self.currentPos.x;
+                }
+
+                // determine which circles/notes are to be displayed
+                g.selectAll(".circle")
+                  .attr("r", function(d){
+                    if ( Math.abs(x(d.date) - parseInt(self.currentPos.x)) < 3) {
+                      
+                      self.currentPos.note = d.note;
+                      self.currentPos.value = d.display_value ? d.display_value : "";
+                      self.displayValue.text(self.currentPos.value);
+                      self.note.transition() 
+                          .duration(100)      
+                          .style("opacity", 1);      
+                      self.note.html(d.note); 
+                      return 4;
+                    } else {
+                      return 0;
+                    }
+                  });
+               
+
+                // Find the closest point to the joystick
+                if (self.direction == "right"){
+                  self.currentPos.closestX = d3.min(self.circles[0], function(d){
+                    var cx = parseInt(d3.select(d).attr("cx"));                 
+                    return (cx - self.currentPos.x >= 0) ? cx : Number.MAX_VALUE  ;
+                  });
+              
+                } else {
+
+                  self.currentPos.closestX = d3.max(self.circles[0], function(d){
+                    var cx = parseInt(d3.select(d).attr("cx")); 
+                    return (cx - self.currentPos.x < 0) ? cx : Number.MIN_VALUE  ;
+                  });
+                
+                }
+            }
+
+            function dragEnd(){
+             var x = self.x;
+             // Lock the joystick in place
+            
+                self.joystick.selectAll('circle')
+                  .transition()
+                    .duration(50)
+                    .attr('cx', self.currentPos.closestX);
+
+                self.joystick.selectAll('.target')
+                  .attr('class','pulse target stroke-foreground fill-background').style('stroke', self.textColor);
+                  
+                self.joystick.select('rect')
+                  .transition()
+                    .duration(50)
+                    .attr('x', self.currentPos.closestX-1) // adjusted bc of thickness of line
+                    .attr('opacity', 0.4);
+
+                // Rounding the below number is a temp fix - because x.invert is resulting in a decimal number.
+                
+                self.currentPos.closestLabel = Date.parse(x.invert(self.currentPos.closestX));
+                
+                self.showCurrentData(self.currentPos);
+            
+            }
+          },
+          showTooltips: function(){
+            var self = this,
+                g = self.g,
+                data = self.chartData,
+                x = self.x,
+                y = self.y;
+
+            self.tips          
+              .text( function(d){return d.display_value ? d.display_value : ""; })
+              .attr("x", function(d) { return  x(d.date); })
+              .attr("y", function(d) { return -y(d.value) - 15; })
+              .attr('opacity', 0)
+              .transition()
+              .delay(1000)
+              .duration(500)
+              .attr('opacity', 1);
+
+            // USES D3.TIP LIBRARY - appends tips to body and loses styling
+            // self.tip = d3.tip()
+            //     .attr('class', 'd3-tip label fill-foreground')
+            //     .offset([-10, 0])
+            //     .html(function(d) {
+            //       return d.display_value;
+            //     });
+
+            // g.call(self.tip);
+              
+            // self.circles
+            // .on('mouseover', self.tip.show) // how to call tip.show w/out on mouse event?
+            // .on('mouseout', self.tip.hide);
+
+
+          },
+          chartSpecificDataValidate: function() {
+
+            }
+        });
+
+    })();
+
+  </script>
+
+</polymer-element>

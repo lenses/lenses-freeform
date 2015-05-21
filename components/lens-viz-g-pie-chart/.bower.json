@@ -1,0 +1,26 @@
+{
+  "name": "lens-viz-g-pie-chart",
+  "keywords": [
+    "lenses",
+    "polymer",
+    "web-components"
+  ],
+  "main": "lens-viz-g-pie-chart.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.5.1",
+    "th-animated": "thelmanews/th-animated",
+    "google-chart": "GoogleWebComponents/google-chart#master",
+    "lens-u-data-selector": "lenses/lens-u-data-selector",
+    "lens-u-data-utility": "lenses/lens-u-data-utility"
+  },
+  "homepage": "https://github.com/lenses/lens-viz-g-pie-chart",
+  "_release": "34688b9fba",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "34688b9fbaee31730d957ac61e1f894c8dda9a67"
+  },
+  "_source": "git://github.com/lenses/lens-viz-g-pie-chart.git",
+  "_target": "*",
+  "_originalSource": "lenses/lens-viz-g-pie-chart"
+}

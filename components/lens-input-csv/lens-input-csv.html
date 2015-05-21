@@ -1,0 +1,84 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../core-input/core-input.html">
+
+<!--
+CSV Data loader component to load and parse online CSV files. If the API returns JSON with a header followed by an array of results as <code>output</code>
+
+##### Example
+
+    <lens-input-csv url="https://data.cityofnewyork.us/api/views/8586-3zfm/rows.csv?accessType=DOWNLOAD"></lens-input-csv>
+
+@element lens-input-csv
+@blurb CSV Data loader component to load and parse online CSV files.
+@status alpha
+@homepage http://lenses.github.io/lens-input-csv
+-->
+
+<polymer-element name="lens-input-csv" attributes="url output">
+
+  <template>
+    <style>
+        #ctrl_collapse {
+          width: 250px;
+        }
+        .elTitle {
+          color: #2fa3af;
+          padding: 2px;
+        }
+        label {
+          color: #2fa3af;
+        }
+        core-input {
+          border: 1px solid #eee;
+          padding: 2px;
+        }
+
+
+
+    </style>
+      <div class="th-container">
+        <label class="label">URL</label>
+        <input is="core-input" value="{{url}}" placeHolder="CSV file URL">
+  </template>
+  
+
+  <script src="../d3/d3.min.js"></script> 
+  <script>
+
+      Polymer('lens-input-csv', {
+        /**
+         * URL of CSV file
+         * @type {String}
+         */
+        url: '',
+  
+        /**
+         * Output data
+         *
+         * @property output
+         * @type object
+         * @default undefined
+         */
+        output: null,
+
+        _CORS_PROXY: 'http://makelenses.com:8000/',
+
+
+        urlChanged: function() {
+          var self = this;
+
+          var corsurl = self.url.replace(/(ftp|http|https):\/\//, '');
+          corsurl = self._CORS_PROXY + corsurl;
+          d3.csv(corsurl, function(d) {
+            console.log(d);
+
+            self.output = d;
+            this.fire('lens-output-changed', this);
+          }.bind(this));
+        }
+
+      
+    });
+
+  </script>
+</polymer-element>

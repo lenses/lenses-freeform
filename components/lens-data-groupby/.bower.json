@@ -1,0 +1,26 @@
+{
+  "name": "lens-data-groupby",
+  "keywords": "lenses, polymer, web-components",
+  "main": "lens-data-groupby.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.5.5",
+    "lodash": "~3.5.0",
+    "lens-u-data-utility": "lenses/lens-u-data-utility",
+    "core-selector": "Polymer/core-selector#~0.5.5",
+    "core-component-page": "Polymer/core-component-page#~0.5.5",
+    "th-theme": "thelmanews/th-theme"
+  },
+  "dev-dependencies": {
+    "web-component-tester": "Polymer/web-component-tester#^2.2.6"
+  },
+  "homepage": "https://github.com/lenses/lens-data-groupby",
+  "_release": "03f57ed659",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "03f57ed659ee11d21eede91f74f664a911896429"
+  },
+  "_source": "git://github.com/lenses/lens-data-groupby.git",
+  "_target": "*",
+  "_originalSource": "lenses/lens-data-groupby"
+}

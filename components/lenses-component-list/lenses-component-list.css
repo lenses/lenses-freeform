@@ -1,0 +1,38 @@
+	:host {
+	  display: block;
+	}
+
+  #component-list {
+    /*
+    position: absolute;
+    right: 0;
+    top: 50px;
+    */
+    height: auto;
+    width: 200px;
+    border: 1px solid #eee;
+    box-sizing: border-box;
+  }
+
+  #component-list core-item {
+    font-size: 12px;
+    /*padding: 0px 10px;*/
+    cursor: pointer;
+  }
+
+  #component-list core-item:hover {
+    background-color: #eee;
+  }
+
+  #component-list .abrv {
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-right: 5px;
+    font-size: 1.2em;
+    border: 1px solid #AAA;
+    width: 33px;
+    height: 32px;
+    text-align: center;
+    line-height: 30px;
+    color: #444;
+   }

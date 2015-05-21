@@ -1,0 +1,213 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../th-animated/th-animated.html">
+<link rel="import" href="../google-chart/google-chart.html">
+
+<!--
+Element providing a Thelma wrapper for the Google geochart.
+
+##### Example
+
+    <lens-viz-g-regions regionCode="155" resolution="countries" color="blue"></lens-viz-g-regions>
+
+@element lens-viz-g-regions
+@blurb Element providing a Thelma wrapper for the Google geochart.
+@status alpha
+@homepage http://nishacodes.github.io/lens-viz-g-regions
+-->
+<polymer-element extends="th-animated" name="lens-viz-g-regions" attributes="chartData selection regionCode resolution dataLabel color backgroundColor minValue maxValue displayMode legend">
+  <template> 
+  <core-style ref="theme"></core-style>
+  
+  <style>
+   
+    ::shadow text {
+      stroke-width: 0;
+    }
+  </style>
+  
+    <google-chart id="googleChart" on-touchend="{{regionClick}}" selection="{{selection}}" style="width:100%; height: 100%;"
+          type='geo'
+          options= "{{options}}"
+          data="{{data}}">
+    </google-chart>
+  </template>
+
+  <script>
+
+    Polymer('lens-viz-g-regions', {
+      /**
+       * 'regionCode' refers to the entire scope of the map
+       * @type {String}
+       * @options 'world' or a continent, subcontinent, country or state code
+       *  => continent codes: https://developers.google.com/chart/interactive/docs/gallery/geochart#Continent_Hierarchy
+       *  => country codes: http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
+       *  => US state codes: http://en.wikipedia.org/wiki/ISO_3166-2:US
+       */
+      regionCode: "155", // Western Europe
+      /**
+       * 'resolution' refers to the detail of the boundaries shown. It must not be in conflict with the data provided 
+       *    (i.e. cannot specify metros if data specifies countries) 
+       * @type {String}
+       * @options 'countries', 'provinces', 'metros'
+       */
+      resolution: "countries", 
+      /**
+       * 'dataLabel' refers to the metric the values in chartData stand for
+       *
+       * TODO: Add in ability to supply multiple datalabels and multiple values
+       * 
+       * @type {String}
+       */
+      dataLabel: "Popularity",
+      /**
+       ** 'chartData' is the data represented by the map. 
+       * @type {Array}
+       *
+       ** 'region' can be a country, state, or metro 
+       * @type {String}
+       *
+       ** 'value' determines the color of the marker or fill
+       * @type {Number}
+       */
+      chartData: [
+        {"region": "Germany", "value": 100},
+        {"region": "Switzerland", "value": 50},
+        {"region": "France", "value": 300},
+        {"region": "Austria", "value": 200},
+        {"region": "Netherlands", "value": 500}
+      ],
+      /**
+       * 'minValue' refers to the minimum value for the color scale. By default it is the lowest number in chartData
+       * @type {Number}
+       */
+      minValue: 0,
+      /**
+       * 'maxValue' refers to the maximum value for the color scale. By default it is the highest number in chartData
+       * @type {Number}
+       */
+      maxValue: "",
+      /**
+       * 'backgroundColor' refers to the background color of the container
+       * @type {String}
+       */
+      backgroundColor: "",
+      /**
+       * 'color' determines the range of the fill color of the regions
+       * @type {String}
+       */
+      color: "",
+      /**
+       * 'displayMode' refers to how the data gets displayed
+       * @type {String}
+       * @options 'fill', 'markers', 'text'
+       */
+      displayMode: "fill",
+      /**
+       * 'legend' determines whether or not to display a legend
+       * @type {Boolean}
+       */
+      legend: true,
+      /**
+       * 'numberFormat' refers to the number format of the legend min and max
+       * @type {String}
+       * @example: '.##'
+       */
+      numberFormat: "",     
+      ready: function() {
+        var self = this;
+    
+        self.reformatData();
+        self.configureOptions();
+
+      },
+      /**
+       * 'reformatData' converts chartData into the correct data structure for the map
+       */
+      reformatData: function(){
+        var self = this;        
+        self.data = self.chartData.map(function(item){
+          return [item.region, item.value];
+        });
+        self.data.unshift(["Region", self.dataLabel]);
+
+       
+      },
+      /**
+       * called when resized
+       * @return {[None]} 
+       */
+      resize: function() {
+        this.$.googleChart.drawChart();
+      },
+      /**
+       * 'configureOptions' sets the appropriate options properties for the map, given the attribute values
+       */
+      configureOptions: function(){
+        var self = this;
+            colors =  self.getColors();
+        
+        // Determine intermediate variables
+        self.color = self.color || colors.accents[0];
+        self.backgroundColor = self.backgroundColor || "";
+        self.minValue = self.minValue || 0;
+        // 'world' needs to be lowercase, all other regions need to be uppercase
+        self.regionCode = self.regionCode.toLowerCase() == 'world' ? 'world' : self.regionCode.toUpperCase();
+
+        // Define chart options 
+        self.options = {
+          tooltip: { trigger: 'selection', textStyle: { color: "black", fontName: colors.theme.font, fontSize: '0.85em'}},
+          displayMode: self.displayMode,
+          colorAxis: { colors: [self.color] },
+          backgroundColor: {fill: self.backgroundColor},
+          region: self.regionCode,
+          resolution: self.resolution,
+          legend: { 
+            numberFormat: self.numberFormat,
+            textStyle: { 
+              color: colors.theme.foreground1, 
+              fontName: colors.theme.font, 
+              fontSize: '0.85em',
+              stroke: 'none',
+              strokeWidth: '0'            
+            } 
+          }
+        };
+
+        if (self.minValue) { self.options.colorAxis.minValue = self.minValue; }
+        if (self.maxValue) { self.options.colorAxis.maxValue = self.maxValue; }
+        if (!self.legend) { self.options.legend = 'none';}
+        
+         // var google = self.$.googleChart.$.chartdiv.querySelectorAll('div');
+        // var chart = google.$.chartdiv;
+        // console.log(google);
+      },
+      /**
+       * 'getColors' gets the color theme from the global scope
+       * @return {Object}
+       */
+      getColors: function(){
+        colors = {};
+        colors.theme = window.CoreStyle.g.theme;
+        colors.accents = [];
+
+        for (var color in colors.theme){
+          if(/^accent/.test(color)){
+            colors.accents.push(colors.theme[color]);
+          }
+        }
+
+        colors.count = colors.accents.length;
+
+        return colors;
+      }
+
+    });
+
+  // TODO
+  // figure out a good way to give user options for regionCode
+  // figure out why legend is being created twice w/different styles
+  // figure out how to make click events work on mobile
+
+  </script>
+
+</polymer-element>

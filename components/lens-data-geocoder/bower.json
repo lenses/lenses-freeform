@@ -1,0 +1,22 @@
+{
+  "name": "lens-data-geocoder",
+  "version": "0.0.0",
+  "keywords": [
+    "seed",
+    "polymer",
+    "web-components"
+  ],
+  "main": "lens-data-geocoder.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.5.5",
+    "th-theme": "thelmanews/th-theme",
+    "core-selector": "polymer/core-selector#~0.5.5",
+    "core-collapse": "polymer/core-collapse#~0.5.5",
+    "core-icon-button": "polymer/core-icon-button#~0.5.5",
+    "google-apis": "GoogleWebComponents/google-apis#~0.4.2",
+    "core-component-page": "Polymer/core-component-page#~0.5.5"
+  },
+  "devDependencies": {
+    "web-component-tester": "Polymer/web-component-tester#^2.2.6"
+  }
+}

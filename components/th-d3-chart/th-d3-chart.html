@@ -1,0 +1,90 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../th-animated/th-animated.html">
+<link rel="import" href="../th-theme/th-theme.html">
+<link rel="import" href="lib/d3-import.html">
+      
+
+<polymer-element name="th-d3-chart" extends="th-animated" attributes="chartData input chartOptions defaultDisplayValues">
+  
+  <script src="utility.js"></script> 
+  <script>
+
+      Polymer('th-d3-chart', Platform.mixin({
+         /**
+          * Chart data
+          * @type {Array}
+          */
+         chartData: [{label: 'medicaid', value: 20, display_value: '$20', color:''},{label: 'gap', value: 40, display_value: '$40', color:''},{label: 'sub', value: 10, display_value: '$10', color:''}],  // default data just for demo 
+         observe: {
+           // chartData: this.validateChartData  // this is not working,
+         },
+         inputChanged: function() {
+            this.chartData = this.input;
+         },
+         chartDataChanged: function() {
+            this.validateChartData(this);
+
+            // dont call updateData before init()
+            if(!this.initialized) {
+              //TODO better way of handling this is calling updateData when polymer-ready is fired. good for now!
+              return;
+            }
+            
+            if(this.errors.length==0) {
+              this.updateData();
+            }
+            else {
+              console.log('error validating data');
+            }
+         },
+         chartWidthChanged: function() {
+            
+            if(!this.initialized) {
+              return;
+            }
+            this.resize();
+         },
+         chartHeightChanged: function() {
+            if(!this.initialized) {
+              return;
+            }
+            this.resize();
+         },
+         resize: function() {
+
+         },
+         updateData: function() {
+
+         },
+         extractElementDataPoints : function() {
+
+              //setupMargins();
+              var barInfos = this.querySelectorAll('th-data-point');
+              var dataFromElements = [];
+              [].forEach.call(barInfos, function(dataPointEl) {
+                  var dataPoint = {};
+                  [].forEach.call(dataPointEl.attributes, function(attr) {
+                    dataPoint[attr.name] = attr.value;
+                  });
+                  dataFromElements.push(dataPoint);
+              });
+
+              
+            if(this.validateElementDataPoints(dataFromElements)) {
+              this.chartData= dataFromElements;
+            }
+
+          },
+          validateElementDataPoints : function(data) {
+             
+              if(data.length<1) {
+                return false;
+              }
+              return true;
+          }
+      }, Thelma.chartValidation, Thelma.chartUtils));
+
+
+  </script>
+
+</polymer-element>

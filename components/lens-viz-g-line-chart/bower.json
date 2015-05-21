@@ -1,0 +1,16 @@
+{
+  "name": "lens-viz-g-line-chart",
+  "version": "0.0.0",
+  "keywords": [
+    "lenses",
+    "polymer",
+    "web-components"
+  ],
+  "main": "lens-viz-g-line-chart",
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.5.1",
+    "google-chart": "lenses/google-chart#master",
+    "lens-u-data-selector": "lenses/lens-u-data-selector",
+    "lens-u-data-utility": "lenses/lens-u-data-utility"
+  }
+}

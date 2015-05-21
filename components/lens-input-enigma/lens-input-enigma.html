@@ -1,0 +1,328 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../th-animated/th-animated.html">
+<link rel="import" href="../core-input/core-input.html">
+<link rel="import" href="../core-selector/core-selector.html">
+
+
+<polymer-element name="lens-input-enigma" extends="th-animated" attributes="url output apiKey dataSet">
+  <template>
+    <style>
+      :host{
+        font-size: 12px;
+        display: inline-flex !important;
+        align-items: flex-start;
+        font-family: open-sans, sans-serif;
+        position: relative;
+
+      }
+      core-selector {
+        display: inline-block;
+        vertical-align: top;
+
+      }
+
+      core-selector .col {
+        padding: 3px;
+        border: 1px solid #ccc;
+      }
+      core-selector .core-selected {
+        background-color: #ccc;
+        border: 1px solid #888;
+
+      }
+
+      .error_msg {
+        font-size: 1.1em;
+        color: red;
+      }
+
+      .numeric {
+        font-size: 0.8em;
+        color: LightSkyBlue;
+      }
+
+      #query_data {
+        position: absolute;
+        top: 0;
+        right: 0;
+        background-color: #2fa3af;
+        color: #EEE;
+        border: 1px solid #AAA;
+        
+
+      }
+
+      core-input {
+        border: 1px solid #eee;
+        padding: 2px;
+      }
+
+      .selection {
+        display: inline-block;
+        position: relative;
+        width: 140px;
+      }
+
+      .controls {
+        width: 300px;
+        /*position: absolute;*/
+        display: inline-block;
+        z-index: 100;
+        background-color: rgba(255,255,255,0.9);
+      }
+
+      .long-input {
+        width: 240px;
+        float: right;
+      }
+      .row {
+        display: block;
+
+      }
+      label {
+        color: #2fa3af
+      }
+      .row label {
+        height: 15px;
+        margin-top: 5px;
+        display: inline-block;
+      }
+
+      .disabled {
+        color: #EEE;
+      }
+
+      .elTitle {
+        color: #2fa3af;
+        padding: 2px;
+      }
+
+      
+
+    </style>
+
+
+        <div class="controls">
+          <div class="row">
+            <label>API Key:</label> 
+            <input is="core-input" class="long-input" value="{{apiKey}}">
+          </div>
+          <div class="row"> 
+            <label>Dataset:</label>
+            <input is="core-input" class="long-input" value="{{dataSet}}">
+          </div>
+
+
+       
+
+      <!--
+          <paper-dropdown-menu selected="{{_selectedCols}}" multi="true">
+            <template repeat="{{colItem in _columns}}" valueattr="label">
+              <paper-item label="{{colItem.id}}">{{colItem.label}}</paper-item>
+            </template>
+
+          </paper-dropdown-menu>
+      -->
+          <template if="{{_errorMsg}}">
+            <div class="error_msg">{{_errorMsg}}</div>
+          </template>
+          <div class="selection">
+            <label for="columns_selector">Select column:</label>
+            <core-selector id="columns_selector" selected="{{_selectedCols}}" valueattr="label">
+                <template repeat="{{colItem in _columns}}">
+                  <div class="col" label="{{colItem.id}}">{{colItem.label}} <template if={{colItem.type=='type_numeric'}}><span class="numeric">Numeric</span></template></div>
+                </template>
+            </core-selector>
+          </div>
+
+          <div class="selection">
+            <label for="func_selector">Select function:</label>
+            <core-selector id="func_selector" id="" selected="{{_selectedFunc}}" valueattr="label">
+                  <div class="col" label="frequency">Frequency</div>
+                  <div class="col" label="sum">Sum</div>
+                  <div class="col" label="avg">Average</div>
+                  <div class="col" label="stddev">Standard Deviation</div>
+                  <div class="col" label="variance">Variance</div>
+                  <div class="col" label="max">Max</div>
+                  <div class="col" label="min">Min</div>
+            </core-selector>
+          </div>
+          <button id="query_data" on-click="{{queryStatData}}">query data</button>
+
+        </div> <!-- controls -->
+
+
+ 
+  </template>
+
+
+  <script>
+
+      Polymer('lens-input-enigma', {
+        //url:"https://api.enigma.io/v2/stats/"+apiKey+"/"+dataSet+"?select=namefull&operation=frequency",
+        //url: "https://api.enigma.io/v2/stats/iTX3qf5cwspm7ryII3ii5zqeHqUuoO4MctfLJFf2xU8eletxHvcI4/us.gov.whitehouse.visitor-list?select=namefull&operation=frequency",
+        url: '',
+        apiKey: 'iTX3qf5cwspm7ryII3ii5zqeHqUuoO4MctfLJFf2xU8eletxHvcI4',
+        dataSet: 'us.gov.atf.federal-firearms-licenses.complete-listing',//'us.gov.whitehouse.salaries.2011', //'us.gov.whitehouse.visitor-list',
+        _ENIGMA_API_PATH: 'https://api.enigma.io/v2',
+        _META_PATH: '/meta/',
+        _STATS_PATH: '/stats/',
+        _DATA_PATH: '/data/',
+
+        _columns: [],
+        _selectedCols: [],
+        _selectedFunc: 'frequency',
+        _errorMsg: null,
+        hasData: false,
+
+
+        output: null,
+        domReady: function() {
+
+          
+          var self = this;
+
+          setTimeout(function() {
+           // self.queryStatData();
+          }, 7000);
+          
+          self.queryMetaData();
+
+        },
+        dataSetChanged: function() {
+          this.queryMetaData();
+        },
+        queryMetaData: function() {
+
+          var self = this;
+          var url = self._ENIGMA_API_PATH+self._META_PATH+self.apiKey+"/"+self.dataSet+"?select=namefull&operation=frequency";
+          self._makeCORSCall(url, self._displayMetaData);
+
+        },
+        queryStatData: function() {
+
+
+          var self = this;
+          var url = self._ENIGMA_API_PATH;
+          if(self._selectedCols==='all') {
+            url = url +self._DATA_PATH+self.apiKey+"/"+self.dataSet;
+          } 
+          else {
+            url = url + self._STATS_PATH+self.apiKey+
+                      "/"+self.dataSet+
+                      "?select="+self._selectedCols+
+                      "&operation="+self._selectedFunc;
+          }
+          console.log(url);
+          self._makeCORSCall(url, self._displayReturnedData);
+
+        },
+
+        _displayReturnedData: function(data) {
+            var self = this;
+            if(data.success) {
+             self.hasData = true;
+             console.log(data);
+             console.log('data.success', data.success);
+             console.log('data.result', data.result);
+             self.output = [];
+             if(data.result.frequency) {
+                self.output = data.result.frequency;
+             }
+             else if (self._selectedCols==='all') {
+                //when all data is selected
+                /*
+                for(key in data.result) {
+                  if(key==0) {
+                    var keys = [];
+                    for(var k in data.result[key]) keys.push(k);
+                   // self.output.push(keys);
+                  }
+                  var vals = [];
+                  for(var k in data.result[key]) vals.push(data.result[key][k]);
+                  self.output.push(vals);
+                }
+                */
+               
+               self.output = data.result;
+
+             }
+             else {
+                for(key in data.result) {
+                  if(key!='success') {
+                    self.output = [{'column': data.info.column.label , key :data.result[key]}];
+                  }
+                }
+
+             }
+            
+             self._errorMsg = null;
+            }
+            else {
+              self.hasData = false;
+              self._errorMsg = data.info.additional;
+            }
+
+            // should be its own component...
+            //self._createChartData(data);
+
+            //console.log(self.output);
+
+        },
+        _displayMetaData: function(data) {
+            var self = this;
+            self._columns = data.result.columns;
+
+            self._columns.unshift({id: 'all',label: 'All Data (columns)'});
+            
+
+        },
+
+        _makeCORSCall: function(url, mycallback) {
+
+            var self = this;
+            var method = 'GET';
+            var xhr = new XMLHttpRequest();
+            if ("withCredentials" in xhr) {
+              xhr.open(method, url, true);
+            } else if (typeof XDomainRequest != "undefined") {
+              xhr = new XDomainRequest();
+              xhr.open(method, url);
+            } else {
+              // CORS not supported.
+              xhr = null;
+            }
+
+            if (!xhr) {
+              alert('CORS not supported');
+              return;
+            }
+
+            // Response handlers.
+            xhr.onload = function() {
+
+              var data = JSON.parse(xhr.response);
+              mycallback.call(self,data);
+              //self._displayReturnedData(data);
+
+            };
+
+            xhr.onerror = function() {
+              alert('Woops, there was an error making the request.');
+            };
+
+            xhr.send();
+            console.log('request sent');
+        },
+
+        outputChanged: function(){
+          console.log("lens-input-enigma output changed");
+          this.fire('th-output-changed', this);
+        }
+
+       
+
+      });
+
+  </script>
+</polymer-element>

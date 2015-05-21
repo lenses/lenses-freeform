@@ -1,0 +1,21 @@
+{
+  "name": "th-d3-chart",
+  "keywords": "seed, polymer, web-components",
+  "main": "th-d3-chart.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.5.1",
+    "d3": "latest",
+    "th-animated": "https://github.com/thelmanews/th-animated.git",
+    "th-theme": "https://github.com/thelmanews/th-theme.git"
+  },
+  "homepage": "https://github.com/thelmanews/th-d3-chart",
+  "_release": "def9e43701",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "def9e437018c49d288d8c47db676a422cdc9f6ed"
+  },
+  "_source": "git://github.com/thelmanews/th-d3-chart.git",
+  "_target": "*",
+  "_originalSource": "thelmanews/th-d3-chart"
+}

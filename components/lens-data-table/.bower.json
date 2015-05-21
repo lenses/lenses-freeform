@@ -1,0 +1,26 @@
+{
+  "name": "lens-data-table",
+  "keywords": [
+    "seed",
+    "polymer",
+    "web-components"
+  ],
+  "main": "lens-data-table.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.5.1",
+    "handsontable": "handsontable/handsontable#>=0.12.0"
+  },
+  "devDependencies": {
+    "polymer-test-tools": "Polymer/polymer-test-tools#^0.4.0"
+  },
+  "homepage": "https://github.com/lenses/lens-data-table",
+  "_release": "00e6094669",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "00e6094669ef91971c89a41505512c7efbcd83c4"
+  },
+  "_source": "git://github.com/lenses/lens-data-table.git",
+  "_target": "*",
+  "_originalSource": "lenses/lens-data-table"
+}

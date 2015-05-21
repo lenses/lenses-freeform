@@ -1,0 +1,89 @@
+:host {
+  display: inline-block;
+  color: black;
+  width: 300px;
+  /*height: 300px;*/
+}
+
+.selector {
+  min-height: 10px;
+  display: inline-block;
+  max-height: 123px;
+  overflow-y: scroll; 
+}
+
+.selector .col {
+  padding: 1px;
+  border: 1px solid #EEE;
+}
+.selector .core-selected {
+  background-color: #ccc;
+
+}
+.label {
+  display: block;
+  color: #2fa3af;
+}
+
+input.col-name {
+  width: 8em !important;
+}
+
+
+
+.chart {
+  display: inline-block;
+  height: 151px;
+  margin-bottom: 20px;
+}
+
+.reset {
+  padding-left: 1em;
+  font-size: smaller;
+  color: #ccc;
+}
+
+.background.bar {
+  fill: #ccc;
+}
+
+.foreground.bar {
+  fill: steelblue;
+}
+
+.axis path, .axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.axis text {
+  font: 10px sans-serif;
+}
+
+.brush rect.extent {
+  fill: steelblue;
+  fill-opacity: .125;
+}
+
+.brush .resize path {
+  fill: #eee;
+  stroke: #666;
+}
+
+.noselect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+
+aside {
+  position: absolute;
+  left: 740px;
+  font-size: smaller;
+  width: 220px;
+}

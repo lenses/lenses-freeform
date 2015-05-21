@@ -1,0 +1,25 @@
+{
+  "name": "lens-viz-g-line-chart",
+  "keywords": [
+    "lenses",
+    "polymer",
+    "web-components"
+  ],
+  "main": "lens-viz-g-line-chart",
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.5.1",
+    "google-chart": "lenses/google-chart#master",
+    "lens-u-data-selector": "lenses/lens-u-data-selector",
+    "lens-u-data-utility": "lenses/lens-u-data-utility"
+  },
+  "homepage": "https://github.com/lenses/lens-viz-g-line-chart",
+  "_release": "6ba32317e6",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "6ba32317e68d606786f727e339459e0bb50bc067"
+  },
+  "_source": "git://github.com/lenses/lens-viz-g-line-chart.git",
+  "_target": "*",
+  "_originalSource": "lenses/lens-viz-g-line-chart"
+}

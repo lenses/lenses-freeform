@@ -1,0 +1,16 @@
+{
+  "name": "lens-u-data-utility",
+  "version": "0.0.0",
+  "keywords": "lenses, polymer, web-components",
+  "main": "lens-u-data-utility.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.5.1",
+    "lodash": "lodash/lodash#~3.5.0",
+    "numeral": "adamwdraper/Numeral-js#~1.5.3",
+    "moment": "moment/moment#~2.9.0",
+    "core-component-page" : "Polymer/core-component-page#^0.5.5"
+  },
+  "devDependencies": {
+    "web-component-tester": "Polymer/web-component-tester#^1.4.2"
+  }
+}

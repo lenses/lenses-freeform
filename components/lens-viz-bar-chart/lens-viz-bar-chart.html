@@ -1,0 +1,690 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../th-d3-chart/th-d3-chart.html">
+
+<polymer-element name="lens-viz-bar-chart" extends="th-d3-chart" attributes="input showHorizontalAxis wrapLabels">
+
+  <template>
+      <core-style ref="theme"></core-style>
+      <style>
+
+        :host {
+          display: inline-block;
+          position: relative;
+          width: 300px;
+          height: 250px;
+          max-height: 100%;
+          max-width: 100%;
+        }
+
+        #data_errors {  
+          display: none;
+          font-size: 14px;
+          color: red;
+          position: absolute;
+          top: 0;
+          left: 0;
+        }
+
+        .wrapped-labels {
+          text-align: center;
+        }
+
+      </style>
+
+      <svg id="chart"></svg>
+
+      <ul id="data_errors">
+      </ul> 
+
+      <!-- to allow embeded th-editor component -->
+      <content select="th-editor"></content> 
+      
+  </template>
+
+  <script>
+
+    (function() {
+
+      //  static private methods and private attributes ...
+      var staticObj = {};
+
+      // adding methods from mixin object to staticObj
+      Thelma.BarFamilyPrivateStaticMethods.apply(staticObj);
+
+      
+      // Adding private static methods.
+     staticObj._setupElements = function(polymerObj) {
+          var height = polymerObj.dims.height;
+          // Create a container for chart
+          polymerObj.svg = d3.select(polymerObj.$.chart);
+          polymerObj.container = polymerObj.svg
+              .selectAll('.container')
+              .data([1])
+              .enter()
+              .append('g')
+              .attr('class','container');
+
+          // Append bars for each data point, initial state of 0 height
+          polymerObj.bars = polymerObj.container.selectAll('.bar')
+            .data(polymerObj.chartData)
+            .enter().append('rect')
+            .attr('class','bar')
+            .attr('height', 0)
+            .attr('y', function(d){ 
+              return polymerObj.y(0);
+            });
+
+          // Append labels using HTML or SVG, depending on if they should wrap or angle
+          if (polymerObj.wrapLabels){
+            
+            // Wrapped HTML
+            polymerObj.labels = polymerObj.container.selectAll('.label')
+              .data(polymerObj.chartData)
+              .enter()
+              .append('g').attr('class', 'labelg')
+                .attr('transform', function(d,i){
+                  var xPos = polymerObj.x(i)  ;
+                  var yPos = polymerObj.dims.height + polymerObj.dims.margin.label;
+                  return "translate("+xPos+","+yPos+")";
+                })
+              .append("foreignObject")
+              .append('xhtml:div');
+
+            polymerObj.labelGroups = polymerObj.labels.select(function(){return this.parentNode.parentNode;}).attr('class', 'labelg');
+                
+          } else {
+            // Angled labels with SVG text
+            polymerObj.labels = polymerObj.container.selectAll('.label').data(polymerObj.chartData).enter().append('text').attr('class','label')
+              .attr('text-anchor',function(){ return polymerObj.dims.labels.angle > 0 ? "left" : "middle";})
+              .attr('transform', function(d,i){
+                  var xPos = polymerObj.x(i) + polymerObj.dims.bars.width/2 ;
+                  var yPos = polymerObj.dims.height + polymerObj.dims.margin.label;
+                  var rotation = polymerObj.dims.labels.angle;
+
+                  //if there is an angle, move labels slightly to top left
+                  if(rotation> 0) {
+                    xPos = xPos -7;
+                    yPos = yPos -3;
+                  }
+                  return "translate("+xPos+","+yPos+") rotate("+ rotation +")"
+            });
+
+          }
+
+          // Append values, initial state of no opacity
+          polymerObj.values = polymerObj.container.selectAll('.value').data(polymerObj.chartData).enter().append('text').attr('class','value')
+          .attr('y', polymerObj.dims.height)
+          .style('opacity', 0);
+
+          // Append a horizontal x-axis 
+          var horClass = 'horAxis'+(polymerObj.showHorizontalAxis ? ' stroke-foreground' : '');
+          polymerObj.horAxis = polymerObj.container.selectAll('.horAxis').data([1]).enter().append('line').attr('class', horClass);
+
+
+      };
+
+      staticObj._setElementSizes = function(polymerObj) {
+
+          var margin = polymerObj.dims.margin,
+            width = polymerObj.dims.width,
+            height = polymerObj.dims.height,
+            x = polymerObj.x,
+            y = polymerObj.y;
+
+          staticObj._setupContainerSize(polymerObj);
+          
+          // add more colors if there are more bars than colors
+          while (polymerObj.chartData.length > polymerObj.colors.count) {
+            polymerObj.addMoreColors(polymerObj);
+          }
+
+          polymerObj.bars
+            .attr("class", function(d,i){return "bar data"+i;})
+            .attr('fill', function(d,i){ return polymerObj.colors.accents[i]; })
+            .attr('stroke', function(d,i){ return polymerObj.colors.accents[i]; })
+            .style("fill", function(d){ return d.color })
+            .style("stroke", function(d){ return d.color });
+
+          if(polymerObj.wrapLabels){
+            polymerObj.labels.select(function() {return this.parentNode; })
+              .attr('width', polymerObj.dims.bars.width)
+              .attr('height', polymerObj.dims.labels.height);  
+            polymerObj.labels
+              .attr("class", function(d,i){return "label wrapped-labels data"+i;})
+              .style('color', function(d){ return d.color });
+
+          } else {
+            polymerObj.labels
+            .attr("class", function(d,i){return "label no-stroke data"+i;})
+            .attr('fill', function(d,i){ return polymerObj.colors.accents[i]; })
+            .style("fill", function(d){ return d.color });
+          }
+          
+          
+          polymerObj.values
+            .attr("class", function(d,i){return "value data"+i;})
+            .attr('text-anchor','middle')
+            //.style('opacity', 0)
+            //.attr('x', function(d) { return x(i) + polymerObj.dims.bars.width/2; })
+            .attr('font-size', polymerObj.dims.values.size+"px")
+            .attr('fill', function(d,i){ return polymerObj.colors.accents[i]; })
+            .attr('stroke', function(d,i){ return polymerObj.colors.accents[i]; })
+            .style("fill", function(d){ return d.color })
+            .style("stroke", function(d){ return d.color });
+
+         polymerObj.horAxis
+            .attr('x1', 0)
+            .attr('y1', polymerObj.dims.height - y(0))
+            .attr('x2', polymerObj.dims.width)
+            .attr('y2', polymerObj.dims.height - y(0));
+
+                    // this is independent of size but dependent on data
+          if (polymerObj.wrapLabels){
+            polymerObj.labels.html(function(d) {return d.label;});
+          } else {
+            polymerObj.labels.text(function(d) {return d.label;});  
+          }
+
+      };
+
+      staticObj._setupContainerSize = function(polymerObj) {
+          var margin = polymerObj.dims.margin,
+            width = polymerObj.dims.width,
+            height = polymerObj.dims.height;
+
+          polymerObj.svg
+            .attr('width', width + margin.left + margin.right)
+            .attr('height', height + margin.top + margin.bottom);
+
+          // setting up the size. needed for resizing
+          polymerObj.container.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+      };
+
+    // POLYMER OBJECT DEF.
+
+    Polymer('lens-viz-bar-chart', {
+      chartData: [
+        {label: 'Player', value: 15, display_value: '$15',  color:''},
+        {label: 'Vendor', value: 20, display_value: '$20',  color:''},
+        {label: 'Mascot', value: 35, display_value: '$35',  color:''}
+      ],
+      /**
+       * show horizontal line from zero point when dealing with negative values
+       * @type {Boolean}
+       */
+      showHorizontalAxis: false,
+      /**
+       * 'wrapLabels' if true will wrap labels on multiple lines. If false, it will angle them.
+       * @type {Boolean}
+       */
+      wrapLabels: false, 
+      init: function() {
+        
+          var self = this;
+          self.parseValues();
+          self.dims = self.setupDimensions(self);
+
+          self.dims = staticObj.setupBarLabelDims(self.dims, self.chartData, 1, 1.3, self.wrapLabels);
+
+          self.colors = self.getColors();
+
+          var margin = self.dims.margin,
+              width = self.dims.width,
+              height = self.dims.height ;
+
+          self.dataLength = self.chartData.length;
+
+          // creating scales
+          var scales = self.simpleScaleBuilder(width, height, self.chartData);
+
+          var x = scales.x;
+          var y = scales.y;
+
+          self.y = y;
+          self.x = x;
+
+          //create bars, values, labels
+          staticObj._setupElements(self);
+          
+          //add touch interaction to bars
+          self.setupTouchAnimate();
+
+          //setting sizes
+          staticObj._setElementSizes(self);
+
+          // this is independent of size but dependent on data
+          if (self.wrapLabels){
+            self.labels.html(function(d) {return d.label;});
+          } else {
+            self.labels.text(function(d) {return d.label;});  
+          }
+          
+          self.values.text(function(d) {            
+            return 0;
+          });
+            
+      },
+      parseValues: function(){
+        var self = this,
+            valueRegex = /(\D*)(\d*\.?\d*)(\D*)/, // Matchgroups: 1) prefix 2) value 3) suffix
+            dataLength = self.chartData.length;
+            
+        // Split display value into pieces to separate out suffix/prefix and detect decimal places    
+        for (var i=0; i<dataLength; i++){
+          var datapoint = self.chartData[i];
+          datapoint.display_value = self.escapeChars(datapoint.display_value);
+
+          if (datapoint.display_value){
+            datapoint.prefix = datapoint.display_value.replace(',','').match(valueRegex)[1];
+            datapoint.suffix = datapoint.display_value.replace(',','').match(valueRegex)[3];
+            // valueDisplayed is the number in the display_value string, used in setupTouchAnimate
+            datapoint.valueDisplayed = parseFloat(datapoint.display_value.replace(',','').match(valueRegex)[2]);
+            datapoint.decimalPlaces = self.getDecimalPlaces(datapoint.valueDisplayed);
+          } else {
+            datapoint.prefix = datapoint.value > 0 ? '' : '-';
+            datapoint.suffix = '';
+            datapoint.valueDisplayed = Math.abs(datapoint.value);
+            datapoint.decimalPlaces = self.getDecimalPlaces(datapoint.value);
+          }
+          
+        }
+      },
+      reset: function(hard) {
+          var self = this,
+              height= self.dims.height;
+          // without transition
+          if(hard) {
+            self.bars.attr('y', height).attr('height', 0);
+            self.values.attr('y', height );
+        }
+        else {
+            self.bars.transition().duration(1000).attr('y', height).attr('height', 0).style('opacity', 0);
+            self.values.transition().duration(1000).attr('y', height ).style('opacity', 0);
+
+        }
+          
+      },
+      
+      animate: function() {
+
+        var self = this,
+            margin = self.dims.margin,
+            height = self.dims.height,
+            x = self.x,
+            y = self.y,
+            progress=0;
+
+        self.bars
+          .transition().duration(this.animationDelay)
+          .attr('x', function(d, i) { return x(i); })
+          .attr('y', function(d) { 
+            // or, if data<0 start bar from 0 otherwise from value
+            return height - Math.max(y(d.value), y(0));})
+          .attr('width', self.dims.bars.width)
+          .attr('height', function(d) {
+            // subtract y(0) from height to support neg. values
+            return Math.abs(y(d.value) - y(0));})
+          .style('opacity', 1);
+
+        self.values
+          .transition().duration(this.animationDelay)
+          .attr('x', function(d,i) { return x(i) + self.dims.bars.width/2; })
+          .attr('y', function(d) {
+          return d.value<0 
+               ? height - y(0) - self.dims.values.margin // data<0 then value over zero line 
+               : height - y(d.value) - self.dims.values.margin;  // data>0 valye on top of the chart
+          })
+          .style('opacity', 1)
+          .text(function(d){ return d.display_value ? d.display_value : d.value.toFixed(2).replace(/[.,]00$/, "");});
+          
+
+        if (self.wrapLabels){
+          self.labels.select(function() {return this.parentNode.parentNode; }).transition().duration(this.animationDelay)
+            .attr('transform', function(d,i){
+              var xPos = x(i);
+              var yPos = height + self.dims.margin.label;
+              return "translate("+xPos+","+yPos+")";
+          });
+        } else {
+          self.labels.transition().duration(this.animationDelay)
+          .attr('text-anchor',function(){ 
+            return self.dims.labels.angle > 0 ? "left" : "middle";
+            
+          })
+          .attr('transform', function(d,i){
+              var xPos = x(i) + self.dims.bars.width/2 ;
+              var yPos = height + self.dims.margin.label;
+              var rotation = self.dims.labels.angle;
+
+              //if there is an angle, move labels slightly to top left
+              if(rotation> 0) {
+                xPos = xPos -7;
+                yPos = yPos -3;
+              }
+              return "translate("+xPos+","+yPos+") rotate("+ rotation +")"
+          });
+        }
+
+        self.horAxis.transition().duration(self.animationDelay)
+          .attr('x1', 0)
+          .attr('y1', self.dims.height - y(0))
+          .attr('x2', self.dims.width)
+          .attr('y2', self.dims.height - y(0));
+
+        
+
+      },
+      /**
+       * 'setupTouchAnimate' adds interaction to the bars values and labels so they can be dragged by the user
+       */
+      setupTouchAnimate: function(){
+
+        var self = this,
+            height = self.dims.height,
+            x = self.x,
+            y = self.y,
+            startY,
+            brightness = 0.35;
+       
+        var drag = d3.behavior.drag()
+            .origin(function() { 
+                  var t = d3.select(this);
+                  return {x: t.attr("cx"), y: t.attr("cy")};
+              })
+            .on("drag", dragMove)
+            .on('dragend', dragEnd);
+
+        function dragMove(d,i){
+          d3.event.sourceEvent.preventDefault(); // Prevents vertical swiping of browser
+          startY = startY || d3.event.y;
+          var yMovement = startY - d3.event.y || 0,
+              barHeight = Math.abs(y(d.value) - y(0)+ yMovement),
+              barClass = "data"+i,
+              rgbCode = d.color ? self.hexToRgb(d.color) : self.hexToRgb(self.colors.accents[i]);
+
+          // Resize bars when dragged up/down and highlight
+          d3.select(this) 
+            .attr('y', function(d){
+              return height - Math.max((y(d.value)+yMovement), y(0));
+            })
+            .attr('height',  barHeight)
+            .style("fill", function(d){ 
+              return d3.rgb(rgbCode.r, rgbCode.g, rgbCode.b).brighter(brightness);
+            })
+            .style("stroke", function(d){ 
+              return d3.rgb(rgbCode.r, rgbCode.g, rgbCode.b).brighter(brightness);
+            });
+
+          // Recalculate/reposition values based on bar position and highlight them
+          self.container.selectAll(".value").filter("."+barClass)
+            .text(function(d){
+              if (d.value > 0){
+                var value = (Math.abs(d.valueDisplayed + parseFloat(y.invert(yMovement)) - y.invert(0))).toFixed(d.decimalPlaces);
+              } else {
+                var value = (Math.abs(d.valueDisplayed - parseFloat(y.invert(yMovement)) + y.invert(0))).toFixed(d.decimalPlaces);
+              }
+              return d.prefix + self.addCommasToNum(value) + d.suffix;
+            })
+            .style('fill', function(){
+              return d3.rgb(rgbCode.r, rgbCode.g, rgbCode.b).brighter(brightness);
+            })
+            .style('stroke', function(){
+              return d3.rgb(rgbCode.r, rgbCode.g, rgbCode.b).brighter(brightness);
+            })
+            .attr('transform', function(d){
+              return d.value<0 
+                ? "translate(0,0)"
+                : "translate(0,"+(-yMovement)+")";
+            });
+
+          // Brighten the color of the labels
+          self.container.selectAll(".label").filter("."+barClass)
+            .style('fill', function(){
+              return d3.rgb(rgbCode.r, rgbCode.g, rgbCode.b).brighter(brightness);
+            });
+        }        
+        
+        // Return bars back to original position and color with elasticity
+        function dragEnd(d){
+          self.bars.transition()
+            .ease('elastic' , 1 , .7)
+            .duration(600)
+            .attr('x', function(d, i) { return self.x(i); })
+            .attr('y', function(d) { 
+              // or, if data<0 start bar from 0 otherwise from value
+              return height - Math.max(y(d.value), y(0));})
+            .attr('height', function(d) {
+              // subtract y(0) from height to support neg. values
+              return Math.abs(y(d.value) - y(0));})
+            .style("fill", function(d,i){ 
+              return d.color ? d.color : self.colors.accents[i];
+            })
+            .style("stroke", function(d,i){ 
+              return d.color ? d.color : self.colors.accents[i];
+            });              
+
+          // Return values back to original position, color and number
+          self.values
+            .transition().ease('elastic' , 1 , .7)
+            .duration(600)
+            .attr('transform', "")
+            .attr('x', function(d,i) { return self.x(i) + self.dims.bars.width/2; })
+            .attr('y', function(d) {
+              return d.value<0 
+                   ? height - y(0) - self.dims.values.margin // data<0 then value over zero line 
+                   : height - y(d.value) - self.dims.values.margin;  // data>0 valye on top of the chart
+            })
+            .text(function(d){
+              return d.display_value ? d.display_value : d.value;
+            })
+            .style('fill', function(d,i){
+              return d.color ? d.color : self.colors.accents[i];
+            })
+            .style('stroke', function(d,i){
+              return d.color ? d.color : self.colors.accents[i];
+            });
+
+          // Unbrighten the color of the labels
+          self.labels
+            .style('fill', function(d,i){
+              return d.color ? d.color : self.colors.accents[i];
+            });
+
+          startY = null;
+        }
+
+        // Add drag functionality to bars and highlight them when touched
+        self.bars
+          .call(drag)          
+          .on('down', function(d,i){
+            var rgbCode = d.color ? self.hexToRgb(d.color) : self.hexToRgb(self.colors.accents[i]);
+            d3.select(this)
+              .style('fill', d3.rgb(rgbCode.r, rgbCode.g, rgbCode.b).brighter(brightness) )
+              .style('stroke', d3.rgb(rgbCode.r, rgbCode.g, rgbCode.b).brighter(brightness) );
+          });
+
+
+      },
+
+      resize: function() {
+          
+          var self = this;
+          
+          self.dims = self.setupDimensions(self);
+
+          staticObj._setupContainerSize(self); // correct size if margins are changed (by setting the label diagonal)
+          self.dims = staticObj.setupBarLabelDims(self.dims, self.chartData, 1, 1.3, self.wrapLabels);
+          var margin = self.dims.margin,
+              width = self.dims.width,
+              height = self.dims.height- self.dims.margin.bottom;
+
+          var scales = self.simpleScaleBuilder(width, height, self.chartData);
+
+          var x = scales.x;
+          var y = scales.y;
+          
+
+          self.y = y;
+          self.x = x;
+
+          
+
+          staticObj._setElementSizes(self);
+
+          self.animate();
+
+      },
+
+      updateData: function() {
+          var self = this;
+                  // Adjust margins for changes in labels and values
+        self.dims = staticObj.setupBarLabelDims(self.dims, self.chartData, 1, 1.3, self.wrapLabels);
+
+          var width = self.dims.width,
+             height = self.dims.height - self.dims.margin.bottom;       
+
+          var scales = self.simpleScaleBuilder(self.dims.width, self.dims.height, self.chartData);
+
+          var x = scales.x;
+          var y = scales.y;
+
+          // is there a better way than exposing these?!
+          self.y = y;
+          self.x = x;
+
+          
+
+        self.bars = self.container.selectAll('.bar').data(self.chartData);
+        self.labelGroups = self.container.selectAll('.labelg').data(self.chartData);
+        self.labels = self.container.selectAll('.label').data(self.chartData);
+        self.values=self.container.selectAll('.value').data(self.chartData);
+        
+
+
+        // Resize container based on new margins
+        staticObj._setupContainerSize(self); 
+        self.parseValues();
+        
+          if(self.dataLength!=self.chartData.length) {
+
+            self.dataLength = self.chartData.length;
+            self.dims.barWidth = Math.min(70,((self.dims.width / self.dataLength)/(1+self.dims.barGap)));
+
+          // self.setupExtraDimensions();
+
+            self.bars.enter().append('rect').attr('class','bar')
+              .attr('height', 0)
+              .attr('y', height)
+              .attr('width', 0)
+              .style('opacity', 0)
+              .attr('x', function(d) {
+                return width;
+              });
+            
+            if (self.wrapLabels){
+              self.labelGroups.enter()
+                .append('g')
+                  .attr('class', 'labelg')
+                  .attr('transform', function(d,i){
+                    var xPos = self.x(i)  ;
+                    var yPos = self.dims.height + self.dims.margin.label;
+                    return "translate("+xPos+","+yPos+")";
+                  })
+                .append("foreignObject")
+                .append('xhtml:div').attr('class', function(d,i){ return "label wrapped-labels data"+i;});
+              
+            } else {
+              self.labels.enter().append('text').attr('class','label'); 
+            }
+            
+            self.values.enter().append('text').attr('class','value').attr('y', height);
+
+
+            self.bars.exit().transition().duration(1000).attr('height', 0).attr('y', height).attr('x', width).style('opacity', 0).remove();
+            if (self.wrapLabels){
+              self.labelGroups.exit().transition().duration(1000).style('opacity', 0).remove();
+            } else {
+              self.labels.exit().transition().duration(1000).style('opacity', 0).remove();
+            }
+            
+            self.values.exit().transition().duration(1000).style('opacity', 0).remove();
+
+          }
+
+          // needed here to recalculate the scale, needed when data scale changes //TODO refactoring?
+          self.resize();
+
+          // this is independent of size but dependent on data
+          if (self.wrapLabels){
+            self.labels.html(function(d) {return d.label;}); // Not working
+          } else {
+            self.labels.text(function(d) {return d.label;}); // Not working
+          }
+          
+          self.values.text(function(d) {return d.display_value ? d.display_value : d.value ;}); 
+
+      },
+
+      chartSpecificDataValidate: function() {
+      
+          var errors = [],
+              numOfBars = this.chartData.length;
+
+          // There should be at least value.
+          if(numOfBars === 0) {
+            errors.push({input: numOfBars, msg: 'Please provide at least one value for the chart.'});
+          } else {
+            for (var i=0; i < numOfBars; i++){
+              
+              // There should be a value for every bar.
+              if (!this.chartData[i].value){ 
+                errors.push({ input: this.chartData, msg: 'You must include a value for every bar.'});
+              }
+              
+              // There should be a label for every bar.
+              if (!this.chartData[i].label){ 
+                errors.push({ input: this.chartData, msg: 'You must include a label for every bar.'});
+              }
+            }
+          }
+
+            return errors;
+         },
+
+          getMetaData: function() {
+                return {
+                  "name": "lens-viz-bar-chart",
+                  "description": "Thelma n bar chart",
+                  "category":"chart",
+                  "version": "0.0.1",
+                  "thumbnail":"nbar.jpg", 
+                  "tags":["chart", "bar"],
+                  "fields":[{ "name":"label", "type":"string", "required":true},
+                            { "name":"value", "type":"num", "required":true},
+                            { "name":"display_value", "type":"string"}
+                  ],
+                  "inputAttr": {
+                    "chartData":{"friendly":"Data", "type":"table-repeating","rows":2, 
+                      "fields":{
+                        "label":{"friendly":"Label", "type":"string", "default":"Player"},
+                        "value":{"friendly":"Value", "type":"int", "default":15},
+                        "display_value":{"friendly":"Display Value", "type":"string", "default":""}
+                      },
+                      "default":[
+                        {"label": "Player", "value": 15, "display_value": "$15"},
+                        {"label": "Vendor", "value": 20, "display_value": "$20"},
+                        {"label": "Mascot", "value": 45, "display_value": "$45"}
+                      ]
+                    }
+                  }
+                }
+            }
+      
+    });
+
+  })();
+
+
+  </script>
+</polymer-element>

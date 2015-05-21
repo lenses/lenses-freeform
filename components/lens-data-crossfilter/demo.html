@@ -1,0 +1,134 @@
+<!doctype html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+    <title>lens-data-crossfilter Demo</title>
+    <script src="../webcomponentsjs/webcomponents.js"></script>
+    <link rel="import" href="lens-data-crossfilter.html">
+
+    <style>
+      body {
+        font-family: sans-serif;
+        font-size: 14px;
+      }
+
+      .logo {
+        background: url('https://avatars3.githubusercontent.com/u/8629151?v=3&s=50') 0 0 no-repeat;
+        width: 50px;
+        height: 50px;
+        display: inline-block;
+        float: left;
+        margin-left: 5px;
+        margin-right: 15px;
+      }
+
+      p {
+        font-size: 14px;
+      }
+
+      a, a:visited {
+        color: #333;
+      }
+
+      h1 {
+        font-size: 18px;
+        font-family: monaco;
+      }
+
+      pre {
+        border: 1px solid #EEE;
+        font-size: 12px;
+        max-width: 300px;
+        max-height: 300px;
+        overflow: scroll;
+
+      }
+      #component {
+        border: 1px solid #BBB;
+        margin: 10px;
+        padding: 5px;
+        display: block;
+        width: 300px;
+      }
+
+      .component::before, .component::after {
+        content: '\2794';
+        position: absolute;
+        top: 50%;
+      }
+      .component::before {
+        right: -15px;
+      }
+
+      .component::after {
+        left: -15px;
+      }
+
+      section {
+        display: inline-block;
+        margin: 8px;
+        vertical-align: top;
+        position: relative;
+      }
+      html /deep/ input[is=core-input] {
+        border-bottom: 1px solid #E5E5E5 !important;
+      }
+
+      .count {
+        float: right;
+        font-size: 12px;
+      }
+
+    </style>
+
+    <script>
+      // helper function to stringify objects, used below like {{outputs | json}}
+      PolymerExpressions.prototype.json = function(object) {
+        return JSON.stringify(object, undefined, 2);
+      };
+    </script>
+  </head>
+  <body unresolved>
+
+    <div class="logo">
+    </div> 
+    <h1>lens-data-crossfilter</h1>
+    <p>
+      A '<a href="http://lenses.github.io/lenses-freeform/components/lenses-freeform/" target="_blank">lenses</a>'' component to visually crossfilter input. Source on <a href="https://github.com/lenses/lens-data-crossfilter" target="_blank">Github</a>
+    </p>
+    
+      
+    
+
+    <template id="auto-bind-demo" is="auto-binding">
+
+      <section>
+        <label>Input:</label><span class="count">{{myinput.length}} records</span>
+        <pre id="input">{{myinput | json}}</pre>
+      </section>
+      <section class="component">
+        <label>Component:</label>
+        <lens-data-crossfilter id="component" input="{{myinput}}" output="{{myoutput}}"></lens-data-crossfilter>
+      </section>
+      <section>
+        <label>Output:</label><span class="count">{{myoutput.length}} records</span>
+        <pre>{{myoutput | json}}</pre>
+      </section>
+      
+      <script>
+
+        // input data
+        var input = new Object([{"HT":"73","WT":"200","AGE":"25","POS":"S"},{"HT":"72","WT":"204","AGE":"29","POS":"S"},{"HT":"77","WT":"308","AGE":"23","POS":"G"},{"HT":"76","WT":"263","AGE":"36","POS":"LB"},{"HT":"75","WT":"257","AGE":"26","POS":"LB"},{"HT":"73","WT":"215","AGE":"22","POS":"WR"},{"HT":"79","WT":"305","AGE":"25","POS":"T"},{"HT":"79","WT":"323","AGE":"24","POS":"T"},{"HT":"71","WT":"200","AGE":"33","POS":"S"},{"HT":"71","WT":"195","AGE":"26","POS":"CB"},{"HT":"70","WT":"195","AGE":"25","POS":"S"},{"HT":"75","WT":"260","AGE":"27","POS":"DE"},{"HT":"70","WT":"247","AGE":"23","POS":"FB"},{"HT":"74","WT":"215","AGE":"25","POS":"WR"},{"HT":"73","WT":"210","AGE":"23","POS":"CB"},{"HT":"75","WT":"215","AGE":"27","POS":"WR"},{"HT":"77","WT":"310","AGE":"30","POS":"T"},{"HT":"73","WT":"244","AGE":"31","POS":"LB"},{"HT":"73","WT":"220","AGE":"24","POS":"S"},{"HT":"70","WT":"186","AGE":"26","POS":"CB"},{"HT":"73","WT":"210","AGE":"26","POS":"S"},{"HT":"74","WT":"333","AGE":"23","POS":"DT"},{"HT":"73","WT":"196","AGE":"26","POS":"CB"},{"HT":"75","WT":"265","AGE":"24","POS":"TE"},{"HT":"78","WT":"270","AGE":"32","POS":"DE"},{"HT":"76","WT":"307","AGE":"25","POS":"G"},{"HT":"74","WT":"211","AGE":"22","POS":"WR"},{"HT":"73","WT":"210","AGE":"27","POS":"S"},{"HT":"74","WT":"215","AGE":"24","POS":"P"},{"HT":"73","WT":"200","AGE":"32","POS":"S"},{"HT":"75","WT":"295","AGE":"27","POS":"DE"},{"HT":"77","WT":"265","AGE":"22","POS":"TE"},{"HT":"71","WT":"195","AGE":"29","POS":"WR"},{"HT":"73","WT":"194","AGE":"23","POS":"CB"},{"HT":"72","WT":"207","AGE":"25","POS":"CB"},{"HT":"68","WT":"224","AGE":"24","POS":"RB"},{"HT":"78","WT":"230","AGE":"31","POS":"QB"},{"HT":"75","WT":"202","AGE":"26","POS":"P"},{"HT":"78","WT":"278","AGE":"25","POS":"DE"},{"HT":"68","WT":"173","AGE":"23","POS":"RB"},{"HT":"69","WT":"197","AGE":"27","POS":"CB"},{"HT":"77","WT":"304","AGE":"23","POS":"T"},{"HT":"75","WT":"234","AGE":"23","POS":"LB"},{"HT":"70","WT":"190","AGE":"28","POS":"CB"},{"HT":"76","WT":"305","AGE":"26","POS":"G"},{"HT":"72","WT":"234","AGE":"27","POS":"RB"},{"HT":"73","WT":"303","AGE":"26","POS":"DT"},{"HT":"75","WT":"252","AGE":"22","POS":"LB"},{"HT":"76","WT":"258","AGE":"27","POS":"TE"},{"HT":"74","WT":"312","AGE":"26","POS":"DT"},{"HT":"74","WT":"215","AGE":"30","POS":"WR"},{"HT":"68","WT":"176","AGE":"23","POS":"WR"},{"HT":"72","WT":"210","AGE":"31","POS":"WR"},{"HT":"71","WT":"200","AGE":"30","POS":"WR"},{"HT":"75","WT":"260","AGE":"28","POS":"DE"},{"HT":"75","WT":"255","AGE":"25","POS":"LB"},{"HT":"75","WT":"275","AGE":"29","POS":"DE"},{"HT":"75","WT":"267","AGE":"34","POS":"LB"},{"HT":"74","WT":"300","AGE":"33","POS":"DT"},{"HT":"72","WT":"200","AGE":"24","POS":"S"},{"HT":"75","WT":"288","AGE":"25","POS":"DE"},{"HT":"75","WT":"320","AGE":"23","POS":"T"},{"HT":"72","WT":"191","AGE":"27","POS":"K"},{"HT":"78","WT":"290","AGE":"30","POS":"DE"},{"HT":"74","WT":"325","AGE":"27","POS":"DE"},{"HT":"76","WT":"310","AGE":"23","POS":"T"},{"HT":"70","WT":"189","AGE":"26","POS":"WR"},{"HT":"74","WT":"197","AGE":"29","POS":"CB"},{"HT":"73","WT":"209","AGE":"27","POS":"S"},{"HT":"70","WT":"215","AGE":"24","POS":"RB"},{"HT":"74","WT":"185","AGE":"25","POS":"CB"},{"HT":"76","WT":"310","AGE":"30","POS":"T"},{"HT":"74","WT":"227","AGE":"24","POS":"QB"},{"HT":"77","WT":"326","AGE":"27","POS":"T"},{"HT":"78","WT":"321","AGE":"32","POS":"T"},{"HT":"79","WT":"364","AGE":"24","POS":"DT"},{"HT":"76","WT":"306","AGE":"26","POS":"C"},{"HT":"78","WT":"250","AGE":"29","POS":"TE"},{"HT":"77","WT":"255","AGE":"22","POS":"LB"},{"HT":"73","WT":"220","AGE":"24","POS":"LB"},{"HT":"74","WT":"213","AGE":"25","POS":"S"},{"HT":"73","WT":"229","AGE":"24","POS":"LB"},{"HT":"74","WT":"230","AGE":"25","POS":"LB"},{"HT":"76","WT":"264","AGE":"28","POS":"LB"},{"HT":"76","WT":"256","AGE":"24","POS":"DE"},{"HT":"71","WT":"225","AGE":"24","POS":"LB"},{"HT":"74","WT":"220","AGE":"31","POS":"RB"},{"HT":"76","WT":"258","AGE":"24","POS":"TE"},{"HT":"75","WT":"303","AGE":"25","POS":"T"},{"HT":"76","WT":"305","AGE":"28","POS":"G"},{"HT":"68","WT":"180","AGE":"25","POS":"WR"},{"HT":"72","WT":"232","AGE":"30","POS":"LB"},{"HT":"78","WT":"319","AGE":"29","POS":"T"},{"HT":"71","WT":"198","AGE":"22","POS":"WR"},{"HT":"77","WT":"340","AGE":"26","POS":"T"},{"HT":"71","WT":"229","AGE":"28","POS":"RB"},{"HT":"73","WT":"244","AGE":"23","POS":"RB"},{"HT":"73","WT":"250","AGE":"25","POS":"LB"},{"HT":"77","WT":"220","AGE":"24","POS":"WR"},{"HT":"70","WT":"175","AGE":"25","POS":"WR"},{"HT":"78","WT":"265","AGE":"28","POS":"TE"},{"HT":"76","WT":"274","AGE":"29","POS":"DE"},{"HT":"70","WT":"188","AGE":"25","POS":"CB"},{"HT":"72","WT":"185","AGE":"23","POS":"CB"},{"HT":"77","WT":"305","AGE":"32","POS":"G"},{"HT":"77","WT":"310","AGE":"28","POS":"G"},{"HT":"72","WT":"194","AGE":"23","POS":"S"},{"HT":"76","WT":"333","AGE":"29","POS":"G"},{"HT":"69","WT":"208","AGE":"24","POS":"RB"},{"HT":"72","WT":"211","AGE":"26","POS":"S"},{"HT":"75","WT":"210","AGE":"24","POS":"WR"},{"HT":"71","WT":"206","AGE":"30","POS":"S"},{"HT":"72","WT":"190","AGE":"24","POS":"CB"},{"HT":"75","WT":"255","AGE":"29","POS":"DE"},{"HT":"72","WT":"185","AGE":"27","POS":"CB"},{"HT":"77","WT":"320","AGE":"25","POS":"DT"},{"HT":"72","WT":"301","AGE":"24","POS":"NT"},{"HT":"76","WT":"305","AGE":"23","POS":"T"},{"HT":"75","WT":"220","AGE":"31","POS":"LB"},{"HT":"72","WT":"204","AGE":"30","POS":"CB"},{"HT":"69","WT":"198","AGE":"24","POS":"CB"},{"HT":"76","WT":"326","AGE":"31","POS":"G"},{"HT":"73","WT":"200","AGE":"25","POS":"S"},{"HT":"72","WT":"250","AGE":"28","POS":"RB"},{"HT":"74","WT":"222","AGE":"23","POS":"RB"},{"HT":"75","WT":"306","AGE":"22","POS":"C"},{"HT":"73","WT":"247","AGE":"24","POS":"FB"},{"HT":"71","WT":"220","AGE":"25","POS":"RB"},{"HT":"70","WT":"195","AGE":"26","POS":"S"},{"HT":"73","WT":"220","AGE":"34","POS":"WR"},{"HT":"77","WT":"310","AGE":"25","POS":"G"},{"HT":"77","WT":"325","AGE":"31","POS":"G"},{"HT":"71","WT":"248","AGE":"24","POS":"LB"},{"HT":"77","WT":"232","AGE":"23","POS":"QB"},{"HT":"72","WT":"208","AGE":"27","POS":"P"},{"HT":"73","WT":"246","AGE":"23","POS":"LB"},{"HT":"75","WT":"250","AGE":"25","POS":"TE"},{"HT":"73","WT":"205","AGE":"22","POS":"S"},{"HT":"72","WT":"191","AGE":"23","POS":"CB"},{"HT":"78","WT":"300","AGE":"23","POS":"C"},{"HT":"74","WT":"221","AGE":"30","POS":"WR"},{"HT":"76","WT":"288","AGE":"24","POS":"DE"},{"HT":"73","WT":"196","AGE":"30","POS":"CB"},{"HT":"75","WT":"310","AGE":"25","POS":"DT"},{"HT":"70","WT":"185","AGE":"24","POS":"CB"},{"HT":"74","WT":"218","AGE":"25","POS":"WR"},{"HT":"76","WT":"308","AGE":"27","POS":"T"},{"HT":"73","WT":"252","AGE":"22","POS":"LB"},{"HT":"76","WT":"224","AGE":"27","POS":"QB"},{"HT":"74","WT":"241","AGE":"25","POS":"LB"},{"HT":"70","WT":"217","AGE":"28","POS":"RB"},{"HT":"76","WT":"225","AGE":"37","POS":"QB"},{"HT":"77","WT":"241","AGE":"27","POS":"LB"},{"HT":"77","WT":"265","AGE":"25","POS":"DE"},{"HT":"72","WT":"210","AGE":"28","POS":"S"},{"HT":"71","WT":"197","AGE":"23","POS":"CB"},{"HT":"72","WT":"209","AGE":"36","POS":"QB"},{"HT":"77","WT":"230","AGE":"24","POS":"LS"},{"HT":"78","WT":"330","AGE":"27","POS":"T"},{"HT":"74","WT":"210","AGE":"22","POS":"QB"},{"HT":"73","WT":"244","AGE":"34","POS":"LB"},{"HT":"76","WT":"248","AGE":"25","POS":"LS"},{"HT":"73","WT":"252","AGE":"29","POS":"LB"},{"HT":"78","WT":"325","AGE":"23","POS":"T"},{"HT":"75","WT":"223","AGE":"26","POS":"WR"},{"HT":"70","WT":"197","AGE":"26","POS":"CB"},{"HT":"73","WT":"255","AGE":"28","POS":"TE"},{"HT":"77","WT":"326","AGE":"24","POS":"DT"},{"HT":"75","WT":"306","AGE":"22","POS":"DT"},{"HT":"75","WT":"259","AGE":"30","POS":"LB"},{"HT":"77","WT":"335","AGE":"25","POS":"G"},{"HT":"70","WT":"190","AGE":"26","POS":"CB"},{"HT":"71","WT":"200","AGE":"23","POS":"S"},{"HT":"70","WT":"186","AGE":"26","POS":"WR"},{"HT":"72","WT":"235","AGE":"24","POS":"LB"},{"HT":"72","WT":"220","AGE":"23","POS":"RB"},{"HT":"77","WT":"300","AGE":"27","POS":"T"},{"HT":"71","WT":"190","AGE":"28","POS":"CB"},{"HT":"70","WT":"207","AGE":"27","POS":"RB"},{"HT":"76","WT":"303","AGE":"29","POS":"T"},{"HT":"74","WT":"205","AGE":"25","POS":"WR"},{"HT":"71","WT":"179","AGE":"24","POS":"WR"},{"HT":"72","WT":"202","AGE":"35","POS":"K"},{"HT":"75","WT":"209","AGE":"23","POS":"WR"},{"HT":"77","WT":"214","AGE":"23","POS":"WR"},{"HT":"70","WT":"200","AGE":"26","POS":"WR"},{"HT":"71","WT":"180","AGE":"23","POS":"WR"},{"HT":"73","WT":"251","AGE":"22","POS":"LB"},{"HT":"73","WT":"223","AGE":"33","POS":"RB"},{"HT":"74","WT":"218","AGE":"26","POS":"S"},{"HT":"71","WT":"215","AGE":"27","POS":"S"},{"HT":"71","WT":"190","AGE":"30","POS":"CB"},{"HT":"71","WT":"190","AGE":"26","POS":"WR"},{"HT":"73","WT":"248","AGE":"25","POS":"LB"},{"HT":"76","WT":"221","AGE":"30","POS":"CB"},{"HT":"70","WT":"195","AGE":"26","POS":"WR"},{"HT":"74","WT":"217","AGE":"27","POS":"S"},{"HT":"76","WT":"265","AGE":"24","POS":"DE"},{"HT":"76","WT":"300","AGE":"27","POS":"DT"},{"HT":"78","WT":"310","AGE":"29","POS":"DE"},{"HT":"74","WT":"222","AGE":"26","POS":"WR"},{"HT":"76","WT":"211","AGE":"23","POS":"WR"},{"HT":"69","WT":"203","AGE":"39","POS":"K"},{"HT":"76","WT":"323","AGE":"30","POS":"DE"},{"HT":"73","WT":"208","AGE":"22","POS":"S"},{"HT":"78","WT":"255","AGE":"24","POS":"DE"},{"HT":"77","WT":"314","AGE":"25","POS":"T"},{"HT":"69","WT":"206","AGE":"25","POS":"K"},{"HT":"74","WT":"306","AGE":"31","POS":"NT"},{"HT":"73","WT":"248","AGE":"24","POS":"LB"},{"HT":"70","WT":"215","AGE":"24","POS":"RB"},{"HT":"71","WT":"185","AGE":"24","POS":"CB"},{"HT":"73","WT":"209","AGE":"26","POS":"S"},{"HT":"74","WT":"220","AGE":"26","POS":"LB"},{"HT":"70","WT":"188","AGE":"23","POS":"WR"},{"HT":"75","WT":"235","AGE":"23","POS":"TE"},{"HT":"72","WT":"200","AGE":"30","POS":"CB"},{"HT":"71","WT":"205","AGE":"25","POS":"S"},{"HT":"71","WT":"200","AGE":"27","POS":"S"},{"HT":"72","WT":"205","AGE":"29","POS":"RB"},{"HT":"77","WT":"315","AGE":"30","POS":"T"},{"HT":"75","WT":"210","AGE":"25","POS":"WR"},{"HT":"73","WT":"191","AGE":"27","POS":"CB"},{"HT":"70","WT":"188","AGE":"28","POS":"CB"},{"HT":"73","WT":"242","AGE":"26","POS":"LB"},{"HT":"71","WT":"190","AGE":"24","POS":"CB"},{"HT":"70","WT":"203","AGE":"28","POS":"S"},{"HT":"76","WT":"220","AGE":"25","POS":"WR"},{"HT":"73","WT":"210","AGE":"26","POS":"RB"},{"HT":"72","WT":"200","AGE":"29","POS":"WR"},{"HT":"77","WT":"249","AGE":"26","POS":"TE"},{"HT":"69","WT":"185","AGE":"24","POS":"WR"},{"HT":"80","WT":"300","AGE":"28","POS":"DE"},{"HT":"77","WT":"235","AGE":"33","POS":"QB"}]);
+
+        //set the input
+        component.input = input;
+	
+        component.selectedLabels = ['HT','AGE'];
+        component.selectedRanges[0] = [70,74];
+
+
+      </script>
+    </template>
+  </body>
+
+</html>

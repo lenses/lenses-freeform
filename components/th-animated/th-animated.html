@@ -1,0 +1,136 @@
+<!--
+    @license
+    Copyright (c) 2014 Thelma Project Authors. All rights reserved.
+    This code may only be used under the MIT license found at http://thelmanews.github.io/LICENSE.txt
+    The complete set of authors may be found at http://thelmanews.github.io//AUTHORS.txt
+    The complete set of contributors may be found at http://thelmanews.github.io/CONTRIBUTORS.txt
+-->
+
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../th-theme/th-theme.html">
+
+<!--
+A Core element which all thelma animated elements extend. No use as a stand alone component 
+
+@element th-animated
+@blurb A Core element which all thelma animated elements extend. No use as a stand alone component
+-->
+
+<polymer-element name="th-animated" attributes="animateOnInit animateAfter completed animate getState reset color" resetable="true" animatable="true">
+  
+  <script>
+      Polymer('th-animated', { 
+        /**
+         * Milliseconds to wait before animating the element (calling animate method)
+         * It has higher priority than animateOnInit
+         * @type {Number}
+         */
+        animateAfter: 0,
+        /**
+         * Animate the component as soon as the component is ready
+         * Setting animateAfter disables animateOnInit
+         * @type {Boolean}
+         */
+        animateOnInit: false,
+        /**
+         * Default animation duration used by the components
+         * @type {Number}
+         */
+        animationDelay: 1000,
+        /**
+         * Flag indicates if the element is initialized
+         * @type {Boolean}
+         */
+        initialized: false,
+        /**
+         * Initialize input type as array for components that 'connect'
+         * @type {Array}
+         */
+        input: [],
+        domReady: function() {
+            this.init();
+
+            if(this.animateOnInit || this.animateAfter>0) {
+                if(this.animateAfter>0) {
+                  var self = this;
+                  setTimeout(function() {
+                    self.animate();
+                  },self.animateAfter);
+                }
+                else {
+                  this.animate();
+                }
+            }
+
+            this.initialized = true;
+
+            //TODO should it be triggered by a callback in the end of init() ?
+            this.fire('th-ready', {msg: 'element ready', element: this});
+
+
+        },
+        /**
+         * This method is called by automatically. All the components extending th-animated need to implement it.
+         * @return {Null} 
+         */
+        init: function() {
+        },
+        /**
+         * Reset the animation. All the components extending th-animated need to implement it.
+         * @return {null} 
+         */
+        reset: function() {
+        },
+        /**
+         * Starts the animation. All the components extending th-animated need to implement it.
+         * @return {null} 
+         */
+        animate: function() {
+        },
+        /**
+         * Save can be called to retrieve the current state of all published attributes of a component.
+         * @return {JSON string} serialized object of all attributes and values.
+         */
+        getState: function(){
+          var currentState = {};
+          for(var attribute in this.publish){
+            currentState[attribute] = this[attribute];
+          }
+          return JSON.stringify(currentState);
+        },
+        computeWidth: function(){
+          // NOTE: getComputedStyle and this.style are not as reliable; offset works better, as long as there is no padding on elements
+
+          var width = this.offsetWidth;
+
+          if (width <= 0){
+            width = this.style.width;
+            if(/.*\%/.test(width)){
+              width = parseInt(window.getComputedStyle(this).width);
+            }else {
+              width = parseInt(width);
+            }
+          }
+          return width;
+        },
+        computeHeight: function(){
+          // NOTE: getComputedStyle and this.style are not as reliable; offset works better, as long as there is no padding on elements
+          var height = this.offsetHeight;
+
+          if (height <= 0){
+            height = this.style.height;
+            if(/.*\%/.test(height)){
+              height = parseInt(window.getComputedStyle(this).height);
+            }else {
+              height = parseInt(height);
+            }
+          }
+          return height;
+        }
+
+
+      });
+  </script>
+
+</polymer-element>
+

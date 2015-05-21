@@ -1,0 +1,19 @@
+core-selector {
+  min-height: 10px;
+  display: inline-block;
+  max-height: 123px;
+  overflow-y: scroll; 
+}
+
+core-selector .col {
+  padding: 1px;
+  border: 1px solid #EEE;
+}
+core-selector .core-selected {
+  background-color: #ccc;
+
+}
+label {
+  display: block;
+  color: #2fa3af;
+}

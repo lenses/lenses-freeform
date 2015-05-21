@@ -1,0 +1,84 @@
+<!doctype html>
+<html>
+<head>
+  <title>lens-data-sort</title>
+
+  <script src='../../webcomponentsjs/webcomponents.js'></script>
+  <script src='../../web-component-tester/browser.js'></script>
+
+  <link rel='import' href='../lens-data-array-func.html'>
+
+</head>
+<body>
+
+  <lens-data-array-func id='component'></lens-data-array-func>
+
+  <script>
+    var should = chai.should();
+    var component = document.querySelector('lens-data-array-func');
+
+    // some input data
+    var input = [{a: 2, b: 5},{a: 10, b: 40, c: {ca: 10} }];
+
+    // testing suite
+    suite('<lens-data-array-func>', function() {
+
+      test('component can be created and exist', function(done) {
+        should.exist(component);
+        done();
+      });
+
+      test('accepts input', function(done) {
+        should.not.exist(component.input);
+        component.input = input
+        component.input.should.equal(input);
+        done();
+      });
+
+      test('returns raw output', function(done) {
+        component.functionContent = 'return current';
+        flush(function() {
+          for (var i = 0; i < component.output.length; i++) {
+            component.output[i].should.equal(component.input[i]);
+          }
+          done();
+        });
+      });
+
+      test('defaults to map and can return mapped output', function(done) {
+        component.functionName.should.equal('map');
+        component._function.toString().indexOf('previous').should.equal(-1);
+
+        component.functionContent = "return array[index].a * 2 + array[index].b / 2";
+        flush(function() {
+          component.output[0].should.equal(6.5);
+          component.output[1].should.equal(40);
+          done();
+        });
+      });
+
+      test('can change function to reduce', function(done) {
+        component.functionName = 'reduce';
+        component.functionChanged();
+
+        flush(function() {
+          component.functionName.should.equal('reduce');
+          component._function.toString().indexOf('previous').should.not.equal(-1);
+          done();
+        });
+      })
+
+      test('returns reduced output', function(done) {
+        component.functionContent = "return previous.a + current.a";
+        flush(function() {
+          component.output.should.equal(12);
+          done();
+        });
+      });
+
+  });
+
+  </script>
+
+</body>
+</html>

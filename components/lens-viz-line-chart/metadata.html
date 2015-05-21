@@ -1,0 +1,19 @@
+<x-meta id="lens-viz-line-chart" label="Lenses line graph" group="Lenses  chart">			<template>			<lens-viz-line-chart animateOnInit="true"/></template>
+			<template id="imports">			<link rel="import" href="lens-viz-line-chart.html"/></template>
+			<property name="chartWidth" kind="number"/>
+			<property name="chartHeight" kind="number"/>
+			<property name="lineStyle" kind="select" options="linear,basis,cardinal,monotone,step-before,step-after"/>
+			<property name="animateStyle" kind="select" options="draw,raise"/>
+			<property name="fillArea" kind="boolean"/>
+			<property name="xAxisLabels" kind="boolean"/>
+			<property name="yAxisLabels" kind="boolean"/>
+			<property name="yAxisMin" kind="number"/>
+			<property name="yAxisMax" kind="number"/>
+			<property name="joyStick" kind="boolean"/>
+			<property name="dataPosition" kind="select" options="left,right"/>
+			<property name="color" kind="color"/>
+			<property name="textColor" kind="color"/>
+			<property name="defaultDisplayValues" kind="boolean"/>
+			<property name="dateType" kind="select" options="DD-MM-YY,DD-MM,DD-Mth,MM-YY,Mth-YY,YY,YYYY"/>
+			<property name="chartData" kind="json"/>
+</x-meta>

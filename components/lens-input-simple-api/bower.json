@@ -1,0 +1,11 @@
+{
+  "name": "lens-input-simple-api",
+  "version": "0.0.0",
+  "keywords": "lenses, polymer, web-components",
+  "main": "lens-input-simple-api.html",
+  "dependencies": {  
+    "core-input": "Polymer/core-input",
+    "polymer": "Polymer/polymer#~0.5.1"
+  }
+}
+

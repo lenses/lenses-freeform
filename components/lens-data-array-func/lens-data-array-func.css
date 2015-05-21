@@ -1,0 +1,48 @@
+:host{
+  font-size: 12px;
+  font-family: open-sans, sans-serif;
+  width: 150px;
+
+} 
+core-input, textarea {
+  border: 1px solid #eee;
+  height: 50px;
+  vertical-align: top;
+  outline: none;
+}
+.error {
+  color: #F00;
+  height: 1em;
+}
+core-selector {
+  width: 150px;
+  display: inline-block;
+  vertical-align: top;
+}
+.core-selected {
+  background-color: #ccc;
+  border: 1px solid #888;
+}
+.func-signature {
+  display: inline-block;
+  width: 295px;
+  text-align: right;
+}
+.code {
+
+  font-family: monaco monospace 'courier' 'courier new'  ;
+  font-size: 11px;
+
+}
+.data {
+  max-width: 500px;
+  max-height: 50px;
+  overflow: scroll;
+}
+.elTitle {
+  color: #2fa3af;
+  padding: 2px;
+}
+label {
+  color: #2fa3af;
+}

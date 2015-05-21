@@ -1,0 +1,10 @@
+{
+  "name": "lens-viz-bar-chart",
+  "version": "0.0.0",
+  "keywords": "lenses, polymer, web-components",
+  "main": "lens-viz-bar-chart.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.5.1",
+    "th-d3-chart": "thelmanews/th-d3-chart"
+  }
+}

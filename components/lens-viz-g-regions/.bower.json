@@ -1,0 +1,24 @@
+{
+  "name": "lens-viz-g-regions",
+  "keywords": [
+    "seed",
+    "polymer",
+    "web-components"
+  ],
+  "main": "lens-viz-g-regions.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.5.1",
+    "th-animated": "thelmanews/th-animated",
+    "google-chart": "GoogleWebComponents/google-chart#master"
+  },
+  "homepage": "https://github.com/lenses/lens-viz-g-regions",
+  "_release": "63bfc16326",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "63bfc163265b86b2c96546fc096f419a7ae4e12b"
+  },
+  "_source": "git://github.com/lenses/lens-viz-g-regions.git",
+  "_target": "*",
+  "_originalSource": "lenses/lens-viz-g-regions"
+}

@@ -1,0 +1,283 @@
+<link rel="import" href="../polymer/polymer.html"> 
+<link rel="import" href="../th-d3-chart/th-d3-chart.html"> 
+<link rel="import" href="../google-chart/google-chart.html">
+<link rel="import" href="../lens-u-data-utility/lens-u-data-utility.html">
+<link rel="import" href="../lens-u-data-selector/lens-u-data-selector.html">
+
+<!--
+A Thelma component providing solution to no problem in particular.
+
+##### Example
+
+    <lens-viz-g-bar-chart></lens-viz-g-bar-chart>
+
+@element lens-viz-g-bar-chart
+@blurb Element providing solution to no problem in particular.
+@status alpha
+@homepage http://lenses.github.io/lens-viz-g-bar-chart
+-->
+
+<polymer-element name="lens-viz-g-bar-chart" extends="th-d3-chart"  attributes="input chartData output selectedLabel selectedValues orientation legend showOptions labelValueSelection chartTitle chartSubtitle gridlines yAxisMin yAxisMax fontSize hAxisTitle vAxisTitle backgroundColor textColor gridlinesColor numberPattern">
+  <template>
+    <core-style ref="theme"></core-style>
+    <link rel="stylesheet" href="lens-viz-g-bar-chart.css">
+    <lens-u-data-utility id="utility"></lens-u-data-utility>
+    <lens-u-data-selector id="data_selector" input="{{chartData}}" selections="{{labelValueSelection}}" style="display: {{showOptions | displayFilter}}; height: 10%;"></lens-u-data-selector>
+    <google-chart id="googleChart" on-google-chart-render="{{chartReady}}" style="width:100%; height: {{showOptions | heightFilter}};"
+          type='column'
+          options= "{{options}}"
+          data="{{_data}}"
+          numberFormats="{{numberFormats}}">
+    </google-chart>
+  </template>
+  <script>
+// TODO 
+// - accept array of arrays as input, and get attributes accordingly
+// - integrate data utility to convert strings
+// - integrate data utility to detect numerical column
+
+
+    Polymer({
+      // selectedLabel: "Year",
+      // selectedValues: ["Sales","Profit"],
+      chartData: [
+        {"Year": "2014", "Sales": 100, "Profit": 50},
+        {"Year": "2015", "Sales": 50, "Profit": 40},
+        {"Year": "2016", "Sales": 300, "Profit": 200}
+      ],
+      // chartData: [
+      //   ["Year", "Sales","Profit"],
+      //   ["2014", 100, 50],
+      //   ["2015", 50, 40],
+      //   ["2016", 300, 200]
+      // ],
+      orientation: "horizontal",
+      labelValueSelection: null,
+      legend: true,
+      showOptions: true,
+      numberPattern: "",
+      observe: {
+        legend: "updateOptions",
+        orientation: "updateOptions",
+        gridlines: "updateOptions",
+        gridlinesColor: "updateOptions",
+        backgroundColor: "updateOptions",
+        textColor: "updateOptions",
+        chartTitle: "updateOptions",
+        hAxisTitle: "updateOptions",
+        vAxisTitle: "updateOptions",
+        fontSize: "updateOptions",
+        yAxisMin: "updateOptions",
+        yAxisMax: "updateOptions",
+        numberPattern:  "updateData"
+      },
+      ready : function() {
+        var self = this;
+        this.dataSelector = this.$.data_selector;
+
+        // Listen for theme changes
+        document.addEventListener('th-theme-changed', function(e) {
+          this.getColors();
+          this.updateOptions();
+        }.bind(this));
+
+        
+        this.reformatData();
+        this.updateOptions();
+        
+        this.dataSelector.addEventListener('th-data-selection-changed', function() {
+          this.labelValueSelection = this.dataSelector.selections;
+          //set published selections for saving the component
+          this.selectedLabel = this.labelValueSelection[0];
+          this.selectedValues = this.labelValueSelection[1];
+          this.reformatData();
+        }.bind(this));
+      },
+      selectedLabelChanged: function() {
+        //if selectedLabel changed from outside, set the internal data_selector    
+        this.dataSelector.selections[0] = this.selectedLabel;
+      },
+      selectedValuesChanged: function() {
+        //if selectedValue changed from outside, set the internal data_selector
+        this.dataSelector.selections[1] = this.selectedValues;
+      },
+      inputChanged: function () {
+        var self = this;
+        self.chartData = self.input;
+        self.reformatData();
+        self.configureOptions();
+      },
+      /**
+       * 'reformatData' converts chartData into the correct data structure for the map
+       */
+      reformatData: function(){
+        var self = this; 
+
+        self.numberFormats= [];
+        if(!self.labelValueSelection || !self.labelValueSelection[0] || !self.labelValueSelection[1]) {
+          return;
+        }
+        var firstRow = self.labelValueSelection[1].map(function(item){ return item;}) ;
+          
+
+        self._data = self.chartData.map(function(item, index){
+          var row = [];
+          row.push(item[self.labelValueSelection[0]]);
+          for(var i=0; i<self.labelValueSelection[1].length; i++){
+            
+            if (index === 0){
+              // Extract the number format of the first row of data and apply to tooltips
+              var format = self.$.utility.extractNumberFormat(item[self.labelValueSelection[1][i]]);
+              if (format){
+                self._numberPattern = format.pattern; // Use this pattern to apply to axis numbers 
+                self.numberFormats.push({col: i + 1, prefix: format.prefix, suffix: format.suffix, groupingSymbol:',', fractionDigits: format.decimalPlaces});
+              }
+            }
+            var unformattedValue = self.$.utility.unformatString(item[self.labelValueSelection[1][i]]);
+            row.push(unformattedValue);
+          }
+          return row;
+        });
+
+        firstRow.unshift(self.labelValueSelection[0]);
+        self._data.unshift(firstRow);
+
+        // If a specific number pattern is given, override the default pattern extracted from values
+        if (self.numberPattern){
+          self.numberFormats = [];
+          firstRow.forEach(function(item, index){
+            self.numberFormats.push({col: index, pattern: self.numberPattern});
+          })  
+        }
+        
+      },
+      /**
+       * Overrides th-d3-chart function. called by observers when input or chartData changes
+       * @return {[type]} [description]
+       */
+      updateData: function() {
+        this.reformatData();
+        this.updateOptions();
+      },
+      updateOptions: function(){
+        this.configureOptions();
+        this.$.googleChart.drawChart();
+      },
+      /**
+       * 'configureOptions' sets the appropriate options properties for the map, given the attribute values
+       */
+      configureOptions: function(){
+        var self = this,
+            colors =  self.getColors();
+
+        var fgColor = self.textColor || colors.theme.foreground1 || "black";
+        var bgColor = self.backgroundColor || colors.theme.background || "none";
+
+        // Define chart options 
+        self.options = {
+          title: self.chartTitle,
+          titleTextStyle: { color: fgColor, fontName: colors.theme.font, fontSize: self.fontSize*1.5},
+          fontSize: self.fontSize,
+          orientation: self.orientation,
+          colors: colors.accents,
+          chartArea:{left:'auto',top:'auto', width: '80%', height:'80%'},
+          backgroundColor: bgColor,
+          animation: {duration: "500"},
+          legend: { 
+            position: "bottom",
+            alignment: "center",
+            textStyle: { 
+              color: fgColor, 
+              fontName: colors.theme.font, 
+              fontSize: '0.85em',
+              stroke: 'none',
+              strokeWidth: '0'            
+            } 
+          },
+          vAxis: {
+            title: self.vAxisTitle,
+            titleTextStyle: { color: fgColor, fontName: colors.theme.font, fontSize: self.fontSize*1.25},
+            baselineColor: fgColor,
+            format: self.numberPattern || self._numberPattern || "#,###.##", // numberPattern is exposed as an attribute and _numberPattern is the pattern extracted from data
+            textStyle:{ color: fgColor, fontName: colors.theme.font, fontSize: '0.85em'},
+            minValue: self.orientation === "horizontal" ? self.yAxisMin : "automatic",
+            maxValue: self.orientation === "horizontal" ? self.yAxisMax : "automatic",
+            gridlines: {
+              count: self.gridlines,
+              color: self.gridlinesColor || fgColor
+            }
+          },
+          hAxis: {
+            title: self.hAxisTitle,
+            titleTextStyle: { color: fgColor, fontName: colors.theme.font, fontSize: self.fontSize*1.25},
+            baselineColor: fgColor,
+            format: self.numberPattern || self._numberPattern || "#,###.##", // numberPattern is exposed as an attribute and _numberPattern is the pattern extracted from data
+            textStyle:{ color: fgColor, fontName: colors.theme.font, fontSize: '0.85em'},
+            minValue: self.orientation === "vertical" ? self.yAxisMin : "automatic",
+            maxValue: self.orientation === "vertical" ? self.yAxisMax : "automatic",
+            gridlines: {
+              count: self.gridlines,
+              color: self.gridlinesColor || fgColor
+            }
+          }
+        };
+
+        if (!self.legend) { self.options.legend = 'none';}
+        
+      },
+      reset: function(){
+        // Reset is a method inherited from the 'th-animated' Thelma component.
+        // You can include code that takes the component back to the pre-animated state.
+
+      },
+      getColors: function(){
+        colors = {};
+        colors.theme = window.CoreStyle.g.theme;
+        colors.accents = [];
+
+        for (var color in colors.theme){
+          if(/^accent/.test(color)){
+            colors.accents.push(colors.theme[color]);
+          }
+        }
+
+        colors.count = colors.accents.length;
+
+        return colors;
+      },
+      resize: function() {
+        this.$.googleChart.drawChart();
+      },
+      displayFilter: function(value){
+        return value ? "inline-block" : "none";
+      },
+      heightFilter: function(value){
+        return value ? "90%" : "100%";
+      },
+      getMetaData: function(){
+        return {
+          "name": "lens-viz-g-bar-chart",
+          "description": "Multi Bar Chart by Google",
+          "category":"chart",
+          "version": "0.0.1",
+          "inputAttr": {
+            "chartTitle":{"friendly":"Title", "type":"string", "default":""},
+            "vAxisTitle":{"friendly":"Vertical Axis Title", "type":"string", "default":""},
+            "hAxisTitle":{"friendly":"Horizontal Axis Title", "type":"string", "default":""},
+            "orientation": {"friendly":"Orientation", "type": "dropdown", "default": "horizontal", "values":["horizontal", "vertical"]},
+            "numberPattern": {"friendly":"Number Pattern", "type":"string", "default":""},
+            "fontSize":{"friendly":"Font Size", "type":"int", "default":""},
+            "textColor":{"friendly":"Text Color", "type":"color", "default":""},
+            "backgroundColor":{"friendly":"Background Color", "type":"color", "default":""},
+            "gridlinesColor":{"friendly":"Gridlines Color", "type":"color", "default":""},
+            "gridlines":{"friendly":"Number of Gridlines", "type":"int", "default":"5"},
+            "yAxisMin":{"friendly":"Y Axis Min", "type":"int", "default":""},
+            "yAxisMax":{"friendly":"Y Axis Max", "type":"int", "default":""},
+            "legend":{"friendly":"Show Legend?", "type":"boolean", "default": true}
+          }
+        }
+      }
+
+    });
+  </script>
+</polymer-element>

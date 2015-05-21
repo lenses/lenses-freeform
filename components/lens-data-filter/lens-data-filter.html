@@ -1,0 +1,246 @@
+<link rel="import" href="../polymer/polymer.html"> 
+<link rel="import" href="../core-selector/core-selector.html">
+<link rel="import" href="../core-input/core-input.html">
+<link rel="import" href="../lens-u-data-utility/lens-u-data-utility.html">
+
+<!--
+A data transform component for filtering output. Can filter by dates and numeric values
+(i.e. "greater than") or a plain text search i.e. "contains".
+
+##### Example
+
+    <lens-data-filter></lens-data-filter>
+
+@element lens-data-filter
+@blurb A data transform component for filtering output.
+@status alpha
+@homepage http://lenses.github.io/lens-data-filter
+-->
+
+<polymer-element name="lens-data-filter" attributes="input output whereOperator whereClause whereColumn">
+  <template>
+    <link rel="stylesheet" href="lens-data-filter.css">
+
+      <div class="lens-container lens-data">
+        <p class="info">Apply a filter on another column to narrow down the results.</p>
+        <label for="func_selector">When:</label>
+        <core-selector id="value_selector" selected="{{whereColumn}}" valueattr="label">
+            <div class="col" label="none">-- no filter --</div>
+          <template repeat="{{attr in _dataAttributes}}">
+            <div class="col" label="{{attr}}">{{attr}}</div>
+          </template>
+        </core-selector>
+        <label for="where_ops_selector">Is:</label>
+        <core-selector id="where_ops_selector" selected="{{whereOperator}}" valueattr="label">
+              <div class="col" label="eq">Equal</div>
+              <div class="col" label="ne">Not Equal</div>
+              <div class="col" label="gt">Greater than</div>
+              <div class="col" label="st">Smaller than</div>
+              <div class="col" label="ct">Contains</div>
+        </core-selector>
+        <label for="where_ops_selector">To: (select from values below)</label>
+        <core-selector id="value_selector" selected="{{whereClause}}" valueattr="label">
+          <template repeat="{{option in whereOptions}}">
+            <div class="col" label="{{option.value}}">{{option.value}} ({{option.count}})</div>
+          </template>
+        </core-selector>
+        <label for="where_ops_selector">or type in the value:</label>
+        <input is="core-input" value="{{whereClause}}" placeHolder="(e.g. blank or  New York)"></input>
+      </div> <!-- end container -->
+
+  </template>
+
+  <script src="../lodash/lodash.js"></script>
+
+  <script>
+    Polymer({
+
+      /**
+       * Input data
+       *
+       * @property input
+       * @type Array
+       * @default null
+       */
+      input: null,
+      /**
+       * Output data
+       *
+       * @property output
+       * @type Array
+       * @default null
+       */
+      output: null,
+
+      /**
+       *  Name of the column to filter-by.
+       *  
+       *  @property whereColumn
+       *  @type String
+       *  @default ''
+       */
+      whereColumn: '',
+
+      /**
+       *  Operator to apply to the column. Options are:
+       *
+       *  - "eq" - Equal
+       *  - "ne" - Not Equal
+       *  - "gt" - Greater than
+       *  - "st" - Smaller than
+       *  - "ct" - Contians
+       *  
+       *  @property whereOperator
+       *  @type String
+       */
+      whereOperator: '',
+
+      /**
+       *  Clause to apply to the whereOperator.
+       *  Can be a String, Object or Number.
+       *
+       *  @property whereClause
+       *  @type Object
+       */
+      whereClause: '',
+
+      dataUtil: document.createElement('lens-u-data-utility'),
+
+      ready: function () {
+        this.inputChanged();
+      },
+      _calculateOutput: function() {
+
+        var self = this;
+
+        var inputCopy =  JSON.parse(JSON.stringify(self.input));
+        var clauseCopy = self.whereClause;
+        var isDate = false;
+
+        // if column title has the word "date" in it, assume we're dealing with dates
+        if (self.whereColumn.toLowerCase().indexOf('date') > -1) {
+          isDate = true;
+          for (var i in inputCopy) {
+            inputCopy[i][self.whereColumn] = self.dataUtil.parseDate( inputCopy[i][self.whereColumn] );// = inputCopy
+          }
+          clauseCopy = self.dataUtil.parseDate( String(clauseCopy) );
+        }
+
+        // if numeric, convert inputCopy and clauseCopy to numeric values.
+        else if (self.dataUtil.isColumnNumeric(inputCopy, self.whereColumn)) {
+
+          for (var i in inputCopy) {
+            inputCopy[i][self.whereColumn] = self.dataUtil.unformatStringIfNumeric( inputCopy[i][self.whereColumn] );// = inputCopy
+          }
+          clauseCopy = self.dataUtil.unformatStringIfNumeric(clauseCopy);
+        }
+
+        if(self.whereColumn && self.whereColumn!=='none' && self.whereClause && self.whereClause.length>0) {
+          var i = -1, col = self.whereColumn;
+          switch(self.whereOperator) {
+            case 'eq':
+              self.output = _.filter(inputCopy,function(element) {
+                i++;
+                if (isDate) {
+                  return moment(element[col]).isSame(clauseCopy) ? element[col] = self.input[i][col] : false;
+                } else {
+                  return element[col] == clauseCopy ? element[col] = self.input[i][col] : false;
+                }
+              });
+              break;
+            case 'ne':
+              self.output = _.filter(inputCopy,function(element) {
+                i++
+                if (isDate) {
+                  return !moment(element[col]).isSame(clauseCopy) ? element[col] = self.input[i][col] : false;
+                } else {
+                  return element[col] != clauseCopy ? element[col] = self.input[i][col] : false;
+                }
+              });
+              break;
+            case 'gt':
+              self.output = _.filter(inputCopy,function(element) {
+                i++
+                if (isDate) {
+                  return moment(element[col]).isAfter(clauseCopy) ? element[col] = self.input[i][col] : false;;
+                } else {
+                  return element[col] > clauseCopy ? element[col] = self.input[i][col] : false;
+                }
+              });
+              break;
+            case 'st':
+              self.output = _.filter(inputCopy,function(element) {
+                i++;
+                if (isDate) {
+                  return moment(element[col]).isBefore(clauseCopy) ? element[col] = self.input[i][col] : false;;
+                } else {
+                  return element[col] < clauseCopy ? element[col] = self.input[i][col] : false;;
+                }
+              });
+              break;
+            case 'ct':
+              self.output = _.filter(self.input,function(element, index) {
+                i++;
+                return (element[col].toString()).indexOf(self.whereClause.toString()) >= 0;
+              });
+          }
+        }
+
+        // if no filter, return unfiltered output
+        else {
+          self.output = self.input;
+        }
+
+
+      },
+      inputChanged: function() {
+
+          var self = this;
+          if(!self.input || self.input.length == 0) {
+            return;
+          }
+          var firstItem = self.input[0];
+          if(!firstItem) {
+            return;
+          }
+          var attributes = Object.keys(firstItem);
+          
+          if(JSON.stringify(self._dataAttributes) === JSON.stringify(attributes) ) {
+            //self._mapChartData();
+          }
+          else {
+            self._dataAttributes = attributes;
+          }
+
+          self._calculateOutput();
+
+
+      },
+      _updateWhereClauses: function() {
+        var self = this;
+
+        if(!self.whereColumn || self.whereColumn=='none') {
+          return;
+        }
+        self.whereOptions = _.chain(self.input)
+                .countBy(function(item) { return item[self.whereColumn]; } )
+                .map(function(value, key) { return {'value': key, 'count': value} })
+                .sortBy(function(item) { return item.count})
+                .reverse()
+                .value();
+
+        self._calculateOutput();
+      },
+      whereColumnChanged: function() {
+        this._updateWhereClauses();
+      },
+      whereClauseChanged: function() {
+        this._calculateOutput(); 
+      },
+      whereOperatorChanged: function() {
+        this._calculateOutput(); 
+      }
+
+    });
+  </script>
+</polymer-element>

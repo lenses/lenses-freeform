@@ -1,0 +1,202 @@
+<link rel="import" href="../polymer/polymer.html"> 
+<link rel="import" href="../lens-u-data-utility/lens-u-data-utility.html"> 
+<link rel="import" href="../core-selector/core-selector.html"> 
+<link rel="import" href="../core-input/core-input.html"> 
+
+<!--
+A data transform component for applying a mathematical formula on input.
+
+##### Example
+
+    <lens-data-formula></lens-data-formula>
+
+@element lens-data-formula
+@blurb A data transform component for applying mathematical formula on input.
+@status alpha
+@homepage http://lenses.github.io/lens-data-formula
+-->
+
+<polymer-element name="lens-data-formula" attributes="input output formula resultColumnName">
+  <template>
+    <lens-u-data-utility id="data_utility"></lens-u-data-utility>
+    <link rel="stylesheet" href="lens-data-formula.css">
+
+      <div class="lens-container lens-data">
+            <p class="info">Calculate a mathematical formula based on column values</p>
+            <label>Formula:</label>
+            <input is="core-input" id="formula" value="{{formula}}" class="formula" placeHolder="e.g. col1 + col2" >
+            <label>Name of the new calculated column:</label>
+            <input is="core-input" id="colNameField" committedValue="{{resultColumnName}}">            
+            <label>Available columns:</label>
+            <core-selector id="col_selector" selected="{{_selectedCol}}" valueattr="label">
+              <template repeat="{{attr in _dataAttributes}}">
+                <div class="col" label="{{attr}}">{{attr}}</div>
+              </template>
+            </core-selector>
+            <label>Available functions:</label>
+            <core-selector id="func_selector" selected="{{_selectedFunc}}" valueattr="label">
+              <template repeat="{{func in _functions}}">
+                <div class="col" label="{{func}}">{{func}}</div>
+              </template>
+            </core-selector>
+      </div>
+  </template>
+  <script src="js/parser.js"></script>
+  <script>
+    Polymer({
+
+      /**
+       * Input data
+       *
+       * @property input
+       * @type Array
+       * @default [ ]
+       */
+      input: [],
+      /**
+       * Output data
+       *
+       * @property output
+       * @type Array
+       * @default [ ]
+       */
+      output: [],
+
+      /**
+       *  Name of the output column
+       *  
+       *  @property resultColumnName
+       *  @type String
+       *  @default 'result'
+       */
+      resultColumnName: 'result',
+
+      /**
+       *  Formula to apply on input data.
+       *  
+       *  @property formula
+       *  @type String
+       *  @default ''
+       *  @example "a + b"
+       */
+      formula: '',
+
+      /**
+       * invalid characters to be escaped with _ in variable name [space,(,)]
+       */
+      _invalidCharsRegex: /[\s\(\)]/g,
+
+      _functions: [ 'sqrt(x)','log(x)', 'exp(x)' ,'abs(x)', 'round(x)', 'ceil(x)' ,'floor(x)',
+                    'sin(x)', 'cos(x)', 'tan(x)', 'asin(x)', 'acos(x)', 'atan(x)'  ],
+
+      observe: {
+        resultColumnName: '_calculateOutput'
+      },
+
+      domReady: function() {
+        var self = this;
+
+        //to render available columns if any
+        this.$.colNameField.value = this.resultColumnName;
+
+        this.$.col_selector.addEventListener('core-select', function(e) {
+          self._colSelected(e);
+        });
+
+        this.$.func_selector.addEventListener('core-select', function(e) {
+          self._funcSelected(e);
+        });
+
+      },
+      _calculateOutput: function() {
+
+        var self = this;
+        if(self.input && self.formula && self.formula.length>0) {
+          try {
+            var expr = Parser.parse(self.formula);
+          }
+          catch(e) {
+            console.log(e.message);
+            return;
+          }
+          var vars = expr.variables();
+
+
+            self.output = self.input.map(function(item) {
+              var clone = self.$.data_utility.clone(item);
+              //escape space in key names to get valid math formula
+              var spaceEscapedNames = {};
+              for(key in clone) {
+                spaceEscapedNames[key.replace(self._invalidCharsRegex,'_')] = clone[key];
+              }
+              var unformatted = self.$.data_utility.unformatObject(spaceEscapedNames);
+              //var ret = self.$.data_utility.unformatObject(clone, false);
+              try {
+                clone[self.resultColumnName] = expr.evaluate(unformatted);
+              }
+              catch(e) 
+              {
+                console.log(e.message);
+                return;
+              }
+              return clone;
+          });
+
+        }
+
+      },
+
+      inputChanged: function() {
+
+          var self = this;
+          var firstItem = self.input[0];
+          if(!firstItem) {
+            return;
+          }
+          var attributes = Object.keys(firstItem);
+          
+          if(JSON.stringify(self._dataAttributes) === JSON.stringify(attributes) ) {
+            //self._mapChartData();
+          }
+          else {
+            self._dataAttributes = attributes;
+          }
+
+          self._calculateOutput();
+
+      },  
+
+      _colSelected: function(e) {
+        var self = this;
+        if(!e.detail.isSelected) {
+          return;
+        }
+        if(self._selectedCol) {
+          self.formula = (self.formula===undefined ? '' : self.formula).concat(' '+self._selectedCol.replace( self._invalidCharsRegex,'_')+' ');
+        }
+        self.$.formula.focus();
+
+      },
+      _funcSelected: function(e) {
+        var self = this;
+        if(!e.detail.isSelected) {
+          return;
+        }
+        if(self._selectedFunc) {
+          self.formula = (self.formula===undefined ? '' : 
+            self.formula).concat(' '+self._selectedFunc.substring(0, self._selectedFunc.length-2)+' ');
+        }
+        self.$.formula.focus();
+
+      },
+      resultColumnNameChanged: function() {
+        this._calculateOutput();
+      },   
+
+      formulaChanged: function() {
+        this._calculateOutput();
+      }
+
+    });
+  </script>
+</polymer-element>

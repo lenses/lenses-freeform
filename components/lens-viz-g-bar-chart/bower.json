@@ -1,0 +1,15 @@
+{
+  "name": "lens-viz-g-bar-chart",
+  "version": "0.0.0",
+  "keywords": "lenses, polymer, web-components",
+  "main": "lens-viz-g-bar-chart.html",
+  "dependencies": {
+    "th-animated": "thelmanews/th-d3-chart", 
+    "th-theme": "thelmanews/th-theme",
+    "polymer": "Polymer/polymer#~0.5.1",
+    "google-chart": "lenses/google-chart#master",
+    "lens-u-data-selector": "lenses/lens-u-data-selector",
+    "lens-u-data-utility": "lenses/lens-u-data-utility"
+  }
+}
+

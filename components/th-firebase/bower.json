@@ -1,0 +1,11 @@
+{
+  "name": "th-firebase",
+  "version": "0.0.0",
+  "keywords": "thelma, polymer, web-components",
+  "main": "thelma-components.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.5.1",
+    "firebase": "~1.0.17",
+    "core-ajax": "polymer/core-ajax#~0.5.1"
+  }
+}

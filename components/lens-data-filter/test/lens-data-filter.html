@@ -1,0 +1,183 @@
+<!doctype html>
+<html>
+<head>
+  <title>core-data-filter</title>
+
+  <script src="../../webcomponentsjs/webcomponents.js"></script>
+  <script src="../../web-component-tester/browser.js"></script>
+
+  <link rel="import" href="../lens-data-filter.html">
+
+</head>
+<body>
+
+  <lens-data-filter id="data-filter"></lens-data-filter>
+
+  <script>
+    var should = chai.should();
+    var component = document.querySelector("#data-filter");
+
+    // some input data
+    var input = new Object([
+      {"index":1, "text":"Texas","dollar":"$139,000","text_number":"125 1ST ST","percent":"12.2%","date":"2-12-2015","date_unformat":"2-12-2015","billion":"1.2B"},
+      {"index":2, "text":"Vermont","dollar":"$15,300","text_number":"$126,000 Reward","percent":"0.6%","date":"2-12-2010","date_unformat":"12/25/1995","billion":".2B"},
+      {"index":3, "text":"New York","dollar":"$205,800","text_number":"2nd Place","percent":"1.5%","date":"5-12-2015","date_unformat":"February 20, 2015","billion":"1.2B"},
+      {"index":4, "text":"New Mexico","dollar":"$1,180,700","text_number":"only text","percent":"1.5%","date":"12-12-2012","date_unformat":"Jan 20, 2015","billion":"0.5B"},
+      {"index":5, "text":"California","dollar":"$188,400","text_number":"$ value","percent":"-0.4%","date":"1-1-2015","date_unformat":"3-3-2015","billion":"11B"},
+      {"index":6, "text":"Alaska","dollar":"$145,900","text_number":"Q3 2012","percent":"3.3%","date":"10-30-1915","date_unformat":"4/4/2015","billion":"9B"}
+      ]);
+
+    // testing suite
+    suite("<lens-data-filter>", function() {
+
+      test("component can be created as an object", function(done) {
+        should.exist(component);
+        done();
+      });
+
+      test("accepts input", function(done) {
+ 
+        // change input
+        component.input = input;
+
+        flush(function() {
+          component.input.should.equal(input);
+          done();
+        });
+      });
+
+      test("outputs unfiltered output on init / if no filter", function() {
+        component.whereColumn.should.eql('');
+        component.output.should.eql(component.input);
+      });
+
+
+      test("set whereColumn", function() {
+        component.whereColumn = 'index';
+        component.whereColumn.should.eql('index');
+      });
+
+      test("set whereOperator", function() {
+        component.whereOperator = 'ne';
+        component.whereOperator.should.eql('ne');
+      });
+
+      test("whereClause options populate automatically", function(done) {
+        flush(function() {
+          component.whereOptions.length.should.eql(input.length);
+
+          var options = [1, 2, 3, 4, 5, 6];
+
+          for (var i = 0; i < component.whereOptions.length; i++) {
+            options.splice(options.indexOf(component.whereOptions[i].value), 1);
+          }
+
+          options.length.should.eql(0);
+          done();
+        })
+      });
+
+      test("setting whereClause triggers new output", function(done) {
+        component.output.length.should.eql(component.input.length);
+        component.whereClause = "3";
+
+        flush(function() {
+          component.output.length.should.eql(5);
+          for (var i in component.output) {
+            component.output[i].index.should.not.eql(3);
+          }
+          done();
+        })
+      });
+
+      test("changing whereOperator triggers new output", function(done) {
+        component.whereOperator = 'eq';
+
+        flush(function() {
+          component.output.length.should.eql(1);
+          console.log(component.output[0]);
+          done();
+        })
+      });
+
+      test("filter greaterThan with formatted dates column", function(done) {
+        component.whereOperator = 'gt';
+        component.whereClause = "2012";
+        component.whereColumn = 'date';
+
+        var results = ['2-12-2015', '5-12-2015', '12-12-2012', '1-1-2015'];
+        flush(function() {
+          component.output.forEach(function(item) {
+            results.splice(results.indexOf(item.date), 1);
+          });
+          results.length.should.eql(0);
+          done();
+        });
+      });
+
+      test("filter lessThan", function(done) {
+        component.whereOperator = 'st';
+
+        var results = ['2-12-2010', '10-30-1915'];
+        flush(function() {
+          component.output.forEach(function(item) {
+            results.splice(results.indexOf(item.date), 1);
+          });
+          results.length.should.eql(0);
+          done();
+        });
+      });
+
+      test("filter lessThan with unformatted dates column", function(done) {
+        component.whereColumn = 'date_unformat';
+
+        var results = ['12/25/1995'];
+        flush(function() {
+          component.output.forEach(function(item) {
+            results.splice(results.indexOf(item.date_unformat), 1);
+          });
+          results.length.should.eql(0);
+          done();
+        });
+      });
+
+      test("filter percentages", function(done) {
+        component.whereColumn = 'percent';
+        component.whereClause = '1.5%';
+        component.whereOperator = 'st';
+
+        var results = ['-0.04%', '0.6%'];
+
+        flush(function() {
+          component.output.forEach(function(item) {
+            console.log(item.percent);
+            results.splice(results.indexOf(item.percent), 1);
+          });
+          results.length.should.eql(0);
+          done();
+        });
+
+      });
+
+      test("filter strings by contains", function(done) {
+        component.whereColumn = 'text';
+        component.whereClause = 'New';
+        component.whereOperator = 'ct';
+
+        var results = ['New York', 'New Mexico'];
+
+        flush(function() {
+          component.output.forEach(function(item) {
+            results.splice(results.indexOf(item.text), 1);
+          });
+          results.length.should.eql(0);
+          done();
+        });
+
+      });
+
+    });
+  </script>
+
+</body>
+</html>

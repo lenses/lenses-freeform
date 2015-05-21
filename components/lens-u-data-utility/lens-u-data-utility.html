@@ -1,0 +1,197 @@
+<link rel="import" href="../polymer/polymer.html"> 
+
+<!--
+A Thelma component providing data utility functions.
+
+This component does not have a UI and is meant to be included inside of other components.
+
+##### Example
+
+    <lens-u-data-utility></lens-u-data-utility>
+
+@element lens-u-data-utility
+@blurb A thelma component providing data utility functions 
+@status alpha
+@homepage http://thelmanews.github.io/lens-u-data-utility
+-->
+
+<polymer-element name="lens-u-data-utility" attributes="">
+
+  <script src="../lodash/lodash.js"></script>
+  <script src="../numeral/numeral.js"></script>
+  <script src="../moment/moment.js"></script>
+
+  <script>
+    Polymer({
+      aggregateFunctions: {
+        /*
+        'min': function(data, feild) {
+          return _.chain(data)
+                  .min(function(item) {
+                    var n = item[feild];
+                    var unformat = numeral().unformat(n);
+                    unformat = (unformat===0 && n!==0) ? n : unformat;
+                    return unformat;
+                  })
+                  .pluck(feild)
+                  .value();
+
+        },
+        */
+        'min': function(data, field) {
+          return _.reduce(data, function(result, current) {
+              return _.min([result, numeral().unformat(current[field])]);
+          }, Number.MAX_VALUE);
+        },
+        'max': function(data, field) {
+          return _.reduce(data, function(result, current) {
+              return _.max([result, numeral().unformat(current[field])]);
+          }, Number.MIN_VALUE);
+        },
+        'sum': function(data, field) {
+          return _.reduce(data, function(result, current) {
+              return result + numeral().unformat(current[field]);
+          }, 0);
+        },
+        'avg': function(data, field) {
+          return _.reduce(data, function(result, current) {
+              return result + numeral().unformat(current[field]);
+          }, 0) / (data.length === 0 ? 1 : data.length);
+        },
+      },
+      /**
+       * checks if a culomn in data is numerical. 
+       * Note! current implementation is too forgiving. unformat function extracts
+       * any number within a string so turning 'my1stNumber' to 1.
+       *
+       * @method isColumnNumeric
+       * @param  {Array}  data       data in array of objects format
+       * @param  {String}  column     column name
+       * @param  {Number}  sampleSize Number of samples from from data to be checked.
+       * @return {Boolean}            [description]
+       */
+      isColumnNumeric: function(data, column, sampleSize) {
+        if(!sampleSize) {
+          sampleSize = Math.min(100, data.length);
+        }
+        return  _.chain(data)
+                 //.clone() //needed? probably not
+                 .sample(sampleSize)
+                 .pluck(column)
+                 .every(function(n) {
+                   var unformat = numeral().unformat(n);
+                   //numeral.unformat returns 0 for NaN 
+                   unformat = (unformat===0 && n!==0) ? n : unformat;
+                   return !isNaN(parseFloat(unformat)) && isFinite(unformat);
+
+                 })
+                 .value();
+      },
+
+      /**
+       *  Returns the unformatted numeral value of an object.
+       *  
+       *  @method unformatObject
+       *  @param  {object} obj Single object of one-level deep. Not an array
+       *  @return {object} ret
+       */
+      unformatObject: function(obj) {
+        var ret = _.clone(obj);
+        ret = _.mapValues(obj, function(value) {
+          return numeral().unformat(value);
+        });
+        return ret;
+
+      },
+
+      unformatString: function(str){
+        var ret = _.clone(str);  //TODO does string need cloning?
+        return numeral().unformat(ret);
+      },
+
+      unformatStringIfNumeric: function(str){
+        
+        var unformatted = numeral().unformat(str);
+
+        //a quick check to see if the string was actually a number or string containing number
+        // length of unfomatted is smaller than 0.6 of original length, not sure how useful though
+        
+        var ret = ((unformatted.length < str.length*0.6) || (unformatted===0 && str!==0)) ? str : unformatted; 
+
+        return ret;
+      },
+
+      formatNumber: function(number, format) {
+        if(format) {
+          //replace # (google charts number format) to 0 (numeral number format)
+          format = format.replace(/#/g,'0');
+          return numeral(number).format(format);
+        }
+        return number;
+      },
+
+      parseDate: function(str) {
+        var date = moment(str);
+        return date.isValid() ? date : null;
+
+      },
+
+      clone: function(obj, deep) {
+        return _.clone(obj, deep);
+      },
+
+      /**
+       *  Determines whether arrays are equal.
+       *  Returns false if one value is unequal.
+       *  
+       *  @method arraysEqual
+       *  @param  {Array} arrayA array
+       *  @param  {Array} arrayB array
+       *  @return {boolean}
+       */
+      arraysEqual: function(a, b) {
+        if (a === b) return true;
+        if (a == null || b == null) return false;
+        if (a.length != b.length) return false;
+
+        // If you don't care about the order of the elements inside
+        // the array, you should sort both arrays here.
+
+        for (var i = 0; i < a.length; ++i) {
+          if (a[i] !== b[i]) return false;
+        }
+        return true;
+      },
+      /**
+       *  Extracts the prefix, suffix, decimal places and pattern from a string value
+       *  
+       *  @method extractNumberFormat
+       *  @param  {String} str - number given in string format
+       *  @return {Object} properties - prefix, suffix, decimalPlaces, pattern
+       */
+      extractNumberFormat: function(str){
+        if (!str){ return;}
+        var format = {},
+            str = ''+str,
+            patternMatch = str.replace(/,/g,'').match(/(\D*)\d*\.?\d*(\D*)/), // Matchgroups: 1) prefix 2) suffix
+            decimalsMatch = str.match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/); // Matchgroups: 1) numbers to right of decimal point 2) scientific notation decimal places
+        
+        format.prefix = patternMatch ? patternMatch[1] : "";
+        format.suffix = patternMatch ? patternMatch[2] : "";
+
+        if (!decimalsMatch) { 
+          format.decimalPlaces = 0; 
+        } else {
+          format.decimalPlaces = Math.max( 0,
+             // Number of digits right of decimal point.
+             (decimalsMatch[1] ? decimalsMatch[1].length : 0)
+             // Adjust for scientific notation.
+             - (decimalsMatch[2] ? +decimalsMatch[2] : 0)); 
+        }
+        format.pattern = format.prefix + "#,###.##" + format.suffix; // Does not incorporate decimal places
+
+        return format;
+      }
+    });
+  </script>
+</polymer-element>

@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>lens-input-simple-api</title>
+
+  <script src="../../webcomponentsjs/webcomponents.js"></script>
+  <script src="../../web-component-tester/browser.js"></script>
+
+  <!-- Step 1: import the element to test -->
+  <link rel="import" href="../lens-input-simple-api.html">
+
+</head>
+<body>
+
+  <lens-input-simple-api id="fixture"></lens-input-simple-api>
+
+  <script>
+    var should = chai.should();
+    var myEl = document.getElementById("fixture");
+
+    // the event listener callback will be added / removed in every async test
+    var callback = function() {};
+
+    var enigmaURL = "https://api.enigma.io/v2/data/iTX3qf5cwspm7ryII3ii5zqeHqUuoO4MctfLJFf2xU8eletxHvcI4/us.gov.atf.federal-firearms-licenses.complete-listing?limit=200"
+    var weatherURL = "http://api.openweathermap.org/data/2.5/weather?q=New+York&units=imperial"
+
+    suite("<lens-input-simple-api>", function() {
+
+      test("component can be created as an object", function(done) {
+        should.exist(myEl);
+        done();
+      });
+
+      test("finds first array", function() {
+        var testObj = {"zero": "a string of text!!", "first": [1, 2, 3], "second": [4, 5, 6]};
+        var firstArray = myEl._findFirstArray(testObj, 2);
+        firstArray.should.equal(testObj["first"]);
+      });
+
+      test("flattens multi-level array", function() {
+
+        var testArray = [{
+          'zero': {
+            'test': {
+              'thing1': 1,
+              'thing2': 2
+            }
+          },
+          "lic_regn": {
+            "1": 1000,
+            "2": 2000
+          },
+          "lic_dist": "66",
+          "serialid": 1
+        }
+        ];
+
+        var before = testArray[0]['zero'];
+        should.exist(before);
+
+        var flat = myEl._flattenJSONArray(testArray)
+        var after = flat[0]['zero'];
+        should.not.exist(after);
+
+        after = flat[0]['zero.test.thing1'];
+        after.should.equal(1);
+
+        after = flat[0]['lic_regn.2'];
+        after.should.equal(2000);
+      });
+
+      test("set api url", function(done) {
+
+        // set the event listener callback
+        myEl.removeEventListener("th-output-changed", callback);
+        callback = function(e) {
+          myEl.url.should.equal(enigmaURL);
+          done();
+        };
+        myEl.addEventListener("th-output-changed", callback);
+
+        // set input url
+        myEl.url = enigmaURL;
+
+        // fire th-outputReady event
+        flush(function() {
+        });
+      });
+
+      test("outputs result with length 200", function() {
+        myEl.output.length.should.equal(200);
+      });
+
+      test("accepts custom callback", function(done) {
+        myEl.removeEventListener("th-output-changed", callback);
+
+        function customCallback(xhr) {
+          var data = JSON.parse(xhr.response);
+          var firstArray = myEl._findFirstArray(data, 2);
+          firstArray.should.be.an('array');
+          firstArray.length.should.equal(myEl.output.length);
+          done();
+        }
+        myEl.queryData(customCallback);
+      });
+
+      test("returns flattened result on JSON that has no array", function(done) {
+        var originalJSON = {};
+        var flatJSON = {};
+
+        // set the event listener callback
+        myEl.removeEventListener("th-output-changed", callback);
+        callback = function(e) {
+          myEl.url.should.equal(weatherURL);
+          flatJSON = myEl.output;
+          // done();
+        };
+        myEl.addEventListener("th-output-changed", callback);
+
+        // set input url
+        myEl.url = weatherURL;
+
+        function customCallback(xhr) {
+          var data = JSON.parse(xhr.response);
+          originalJSON = data;
+          flush(function() {
+            flatJSON[0]['coord.lon'].should.equal(originalJSON['coord']['lon']);
+            done();
+          });
+        }
+        myEl.queryData(customCallback);
+
+      });
+
+    });
+
+  </script>
+
+</body>
+</html>

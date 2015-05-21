@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+    <title>lens-data-groupby Demo</title>
+    <script src="../webcomponentsjs/webcomponents.js"></script>
+    <link rel="import" href="lens-data-groupby.html">
+
+    <style>
+      body {
+        font-family: sans-serif;
+        font-size: 14px;
+      }
+
+      pre {
+        border: 1px solid #EEE;
+        font-size: 12px;
+        max-width: 300px;
+        max-height: 300px;
+        overflow: scroll;
+
+      }
+      #component {
+        border: 1px solid #BBB;
+        margin: 10px;
+        padding: 5px;
+        display: block;
+        width: 300px;
+      }
+
+      .component::before, .component::after {
+        content: '\2794';
+        position: absolute;
+        top: 50%;
+      }
+      .component::before {
+        right: -15px;
+      }
+
+      .component::after {
+        left: -15px;
+      }
+
+      section {
+        display: inline-block;
+        margin: 8px;
+        vertical-align: top;
+        position: relative;
+      }
+      html /deep/ input[is=core-input] {
+        border-bottom: 1px solid #E5E5E5 !important;
+      }
+
+    </style>
+
+    <script>
+      // helper function to stringify objects, used below like {{outputs | json}}
+      PolymerExpressions.prototype.json = function(object) {
+        return JSON.stringify(object, undefined, 2);
+      };
+    </script>
+
+  </head>
+  <body unresolved>
+
+    <template id="auto-bind-demo" is="auto-binding">
+
+      <section>
+        <label>Input:</label>
+        <pre id="input">{{myinput | json}}</pre>
+      </section>
+      <section class="component">
+        <label>Component:</label>
+        <lens-data-groupby id="component" input="{{myinput}}" output="{{myoutput}}"></lens-data-groupby>
+      </section>
+      <section>
+        <label>Output:</label>
+        <pre id="output">{{myoutput | json}}</pre>
+      </section>
+      
+      <script>
+
+        // input data
+        var input = new Object([
+          {"index":1, "state":"Texas","dollar":"$139,000", "date":"1-2-1910"},
+          {"index":2, "state":"Texas","dollar":"$15,300", "date":"2-12-2010"},
+          {"index":3, "state":"New York","dollar":"$205,800","date":"5-12-2015"},
+          {"index":4, "state":"New York","dollar":"$1,180,700","date":"12-12-2012"},
+          {"index":5, "state":"Texas","dollar":"$188,400","date":"1-1-2015"},
+          {"index":6, "state":"Alaska","dollar":"$145,900","date":"1-2-1910"}
+          ]);
+
+        //set the input
+        component.input = input;
+
+        </script>
+      </template>
+  </body>
+</html>

@@ -1,0 +1,493 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../th-d3-chart/th-d3-chart.html">
+
+<polymer-element name="lens-viz-bar-chart-horizontal" extends="th-d3-chart" attributes="input output">
+	<template>
+	    <core-style ref="theme"></core-style>
+	    <style>
+	       :host {
+	        display: inline-block;
+	        position: relative;
+	        width: 300px;
+          height: 350px;
+          max-height: 100%;
+          max-width: 100%;
+	      }
+
+	       #data_errors {  
+	        display: none;
+	        font-size: 14px;
+	        color: red;
+	        position: absolute;
+	        top: 0;
+	        left: 0;
+	      }
+	      </style>
+	     <svg id="chart"></svg>
+	     <ul id="data_errors">
+	     </ul> 
+
+      <!-- to allow embeded th-editor component -->
+      <content select="th-editor"></content> 
+	    
+	    </template>  
+
+	<script>
+
+    (function() {
+
+
+		Polymer('lens-viz-bar-chart-horizontal', {
+		  /**
+		   * chartData as an array of object. 
+		   * label and value are required. 
+		   * color is optional to override the color set by th-theme component.
+		   * display_value is optional. used to have the displayed value to be different from value.
+		   * 
+	       * @attribute isHorizontal
+	       * @type {boolean}
+		   */
+		  chartData: [
+		    {label: 'Player of the day', value: 15, display_value: '$15', color:""},
+		    {label: 'Vendor', value: 20, display_value: '$20', color:"", color:""},
+		    {label: 'Cheerleader', value: 40, display_value: '$40', color:""},
+		    {label: 'Designer', value: 70, display_value: '$70', color:""}
+		  ],
+  
+		  /**
+		   * Initializes the component. Called by th-animated component (th-animated/th-animated.html)
+		   * 
+		   * @return {undefined}
+		   */
+		  init: function() {
+		    
+		  	  var self = this;
+		  	  
+		  	  self._setupHorizontalDims();
+			      
+		      var chart_svg = self.$.chart;
+
+
+		      //creating all the svg items
+		      self.svg = d3.select(chart_svg);
+		      
+		      self._setupElements();
+
+		      // this is independent of size but dependent on data
+		      self.labels.text(function(d) {return d.label;});
+		      self.values.text(function(d) {return d.display_value ? d.display_value : d.value ;});
+
+		      // creating scales
+		      var scales = self.simpleScaleBuilder(self.dims.bars.area, self.dims.height, self.chartData, 'horizontal');
+
+		      var x = scales.x;
+		      var y = scales.y;
+		      
+
+		      // is there a better way than exposing these?!
+		      self.y = y;
+		      self.x = x;
+
+		      //setting sizes 
+		      self._setElementSizes();
+
+
+		      //intitalize dimensions that are needed for the first time but not set in  _setElementSizes method
+		      self.bars		        
+		      	.attr('x', x(0)) //function(d) { return x(d.label); })  rev
+		       // .attr('y', function(d,i) { return y(i); }) //function(d) { return height; })  rev
+		        .attr('height', self.dims.bars.width)
+		        .attr('width', 0);
+
+		      self.labels
+		        .attr('x', 0)
+		        .attr('y', function(d,i) { return y(i) + self.dims.bars.width + self.dims.labels.height* 0.6; });
+
+		      self.values
+		        .attr('y', function(d,i) { return y(i) + self.dims.bars.width/2 + self.dims.values.height* 0.4; })
+		        .style('font-size', function(d) { return self.dims.values.fontSize+'px';});
+
+
+		  },
+		  /**
+		   * Sets up elements for the first time. Doesn't set any placement or data-driven attributes
+		   * @return {undefined}
+		   */
+		  _setupElements: function () {
+		      
+		      var self = this;
+
+		      self.container = self.svg
+		          .selectAll('.container')
+		          .data([1])
+		          .enter()
+		          .append('g')
+		          .attr('class','container');
+
+
+		      this.barContainer = this.container.append('g')
+		      		.attr('class','bar_container');
+
+		      this.bars = this.barContainer.selectAll('.bar').data(this.chartData).enter().append('rect')
+		      		.attr('class','bar');
+
+
+		      this.labelContainer = this.container.append('g')
+		      		.attr('class','label_container');
+
+		      this.labels = this.labelContainer.selectAll('.label').data(this.chartData).enter().append('text').attr('class','label');
+
+		      this.valueContainer = this.container.append('g')
+		      		.attr('class','value_container');
+
+		      this.values = this.valueContainer.selectAll('.value').data(this.chartData).enter().append('text').attr('class','value');
+
+
+		  },
+		  /**
+		   * Sets up all the dimentions. First, setting general dims by calling setupBarDims function (in utility.js)
+		   *  and then setting/tuning dimensions specific to horizontal bar chart
+		   * @return {undefined}
+		   */
+		  _setupHorizontalDims: function() {
+
+		  	  var self = this;
+		  	  self.chartData = self.cleanChartData(self.chartData);
+		  	  self.dims = self.setupDimensions(self);
+		  	  self.dims.margin.left = 2; 
+		  	  self.dims.margin.top = 5; // override default margin, not necessary
+		  	  self.dims.margin.bottom = 0; // override default margin, not necessary
+					self.dims.height = self.computedHeight - self.dims.margin.top - self.dims.margin.bottom; // override default margin, not necessary
+		  	  
+		  	  self.setupBarDims(self, 1, 1.6, 'horizontal'); // self, overlap, gap
+
+		      self.colors = self.getColors();
+		      
+	    	  var margin = self.dims.margin,
+	    	  	  width = self.dims.width,
+	    	      height = self.dims.height;
+
+	    	 // margin.left = 50; //TODO, dependent on max
+		      
+		      self.dataLength = self.chartData.length;
+
+		      var maxValueLength = d3.max(self.chartData, function(d) {
+		      	return d.display_value ? d.display_value.length : d.value.length;
+		      });
+
+		      // self.dims.bars.gap = 0.7; // Make this wider than default to make room for text
+		     	// self.dims.barWidth = Math.min(70,((self.dims.width / self.dims.numBars)/(1+self.dims.barGap)));
+		      self.dims.labels =  {};
+		      self.dims.values = {};
+		      self.dims.labels.height = 25;
+		      self.dims.values.height = self.dims.bars.width;
+		      self.dims.values.fontSize = Math.max (Math.min(self.dims.values.height,42) , 15);
+
+		      // calculate the width of values by createing mock text elements and then removing them.
+		      // not the best way of doing that but the most plausable without requiring major changes
+
+		      var mockValues = d3.select(this.$.chart).selectAll('.mock').data(self.chartData);
+		      mockValues.enter().append('text');
+
+		      var computedLengths = [];
+
+		      mockValues
+		        .style('text-anchor','end')
+		        .style('font-size', function(d) { return self.dims.values.fontSize+'px';})
+			    .text(function(d) {return d.display_value ? d.display_value : d.value ;})
+      			.attr('class', function(d) {
+      				computedLengths.push(this.getComputedTextLength());
+      				return 'mock';
+      			});
+
+			  d3.select(this.$.chart).selectAll('.mock').remove();
+
+			  var computedValueWidth = d3.max(computedLengths);
+				
+
+		      self.dims.values.containerWidth = computedValueWidth - self.dims.margin.left*2;		      
+		      //self.dims.values.containerWidth = maxValueLength * self.dims.values.fontSize * 0.675;  // characters x font size x 0.675 (average width/height)
+		      self.dims.bars.area = width - self.dims.values.containerWidth; // increase width by the extra space taken by values
+		      
+		      
+
+		  },
+		  /**
+		   * Sets up element sizes. Doesn't set any data-driven attributes so the animate function animate them.
+		   * @return {undefined}
+		   */
+		  _setElementSizes: function() {
+
+		  	  var self = this;
+
+	    	  var margin = self.dims.margin,
+			    	  width = self.dims.width,
+			    	  height = self.dims.height,
+			    	  x = self.x,
+			    	  y = self.y;
+
+			  self.svg
+		      	.attr('width', width + margin.left + margin.right)
+		        .attr('height', height + margin.top + margin.bottom);
+		      // setting up the size. needed for resizing
+
+		      self.valueContainer.attr('transform','translate ('+(self.dims.values.containerWidth + self.dims.margin.left)+',0)');
+		       
+		       
+		      self.container.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+		      self.barContainer.attr('transform','translate ('+(self.dims.values.containerWidth+self.dims.margin.left*2)+',0)');
+
+		      self.labelContainer.attr('transform','translate ('+(self.dims.values.containerWidth+self.dims.margin.left*2)+',0)');
+
+
+
+		      // add more colors if there are more bars than colors
+		      while (self.chartData.length > self.colors.count) {
+		      	self.addMoreColors(self);
+		      }
+
+		      this.bars
+		        .attr("class", function(d,i){return "bar data"+i;})
+		        .attr('x', x(0)) //function(d) { return x(d.label); })  rev
+		        .attr('fill', function(d,i){ return self.colors.accents[i]; })
+		        .attr('stroke', function(d,i){ return self.colors.accents[i]; })
+		        .style('fill', function(d,i){ return d.color})
+		        .style('stroke', function(d,i){ return d.color});
+
+		      
+		      this.labels
+		        .attr("class", function(d,i){return "label data"+i;})
+		        //.style('opacity', 0)
+		        .style('text-anchor','left')
+		        .attr('fill', function(d,i){ return self.colors.accents[i]; })
+		        .attr('stroke', function(d,i){ return self.colors.accents[i]; })
+		        .style('fill', function(d,i){ return d.color})
+		        .style('stroke', function(d,i){ return d.color});
+
+		      this.values
+		        .attr("class", function(d,i){return "value data"+i;})
+		        .style('text-anchor','end')
+		        .attr('fill', function(d,i){ return self.colors.accents[i]; })
+		        .attr('stroke', function(d,i){ return self.colors.accents[i]; })
+		        .style('fill', function(d,i){ return d.color})
+		        .style('stroke', function(d,i){ return d.color});
+
+		        
+
+		  },
+		  /**
+		   * resets the bars and hides value labels
+		   * @param  {boolean} hard if true, resets chart without animation
+		   * @return {undefined}
+		   */
+		  reset: function(hard) {
+		      
+		      var self = this,
+		      	  height= self.dims.height;
+		      // without transition
+		      // if(hard) {
+			      self.bars.attr('width', 0);
+			      self.values.style('opacity', 0 );
+			  // }
+			  // else {
+			  //     self.bars.transition().duration(1000).attr('width', 0).style('opacity', 0);
+			  //     self.values.transition().duration(1000).style('opacity', 0);
+
+			  // }
+		      
+		  },
+		  /**
+		   * animates chart to the current values
+		   * @return {undefined}
+		   */
+		  animate: function() {
+
+		  		var self = this;
+
+		        var x = self.x,
+		        	y = self.y;
+		        var width= self.dims.width;
+		        this.bars.transition().duration(this.animationDelay)
+		        .attr('x', x(0)) //function(d) { return x(d.label); })  rev
+		        .attr('y', function(d,i) { return y(i); }) //function(d) { return height; })  rev
+		        .attr('height', self.dims.bars.width)
+		        .attr('width', function(d) {return x(d.value)})
+		        .style('opacity', 1);
+
+
+		        this.labels.transition().duration(this.animationDelay)
+		        .attr('x', 0)
+		        .attr('y', function(d,i) { return y(i) + self.dims.bars.width + self.dims.labels.height* 0.6; });
+
+		      this.values
+		        //.attr('y', function(d,i) { return y(i) + self.dims.bars.width/2 + self.dims.values.height* 0.4; })  //x and y are not animate values!!!
+		        //.attr('x', self.dims.values.containerWidth - 8)
+		        //.style('font-size', function(d) { return self.dims.values.fontSize+'px';})
+		        .style('opacity', 1);
+		        
+		        
+		  },
+		  /**
+		   * called by chartWith and chartHeight observer methods when either got changed (In th-d3-charts.html) 
+		   * calling it directly doesn't have any effect  
+		   * @return {undefined}
+		   */
+		  resize: function() {
+
+		  	  var self = this;
+		  	  
+		  	  self._setupHorizontalDims();
+
+	    	 	var scales = self.simpleScaleBuilder(self.dims.bars.area, self.dims.height, self.chartData, 'horizontal');
+
+
+		      var x = scales.x;
+		      var y = scales.y;
+
+		      self.y = y;
+		      self.x = x;
+
+		      self._setElementSizes();
+
+		      self.animate();
+
+		  },
+		  /**
+		   * called by chartData observer methods when chartData changes (In th-d3-charts.html) 
+		   * calling it directly doesn't have any effect  
+		   * @return {undefined}
+		   */
+		  updateData: function() {
+
+		  	  var self = this;
+
+		      
+		      var scales = self.simpleScaleBuilder(self.dims.bars.area, self.dims.height, self.chartData, 'horizontal');
+
+
+		      var x = scales.x;
+		      var y = scales.y;
+
+		      // is there a better way than exposing these?!
+		      self.y = y;
+		      self.x = x;
+
+		      var width = self.dims.width,
+		      	 height = self.dims.height;	  	  
+
+			  self.bars = self.barContainer.selectAll('.bar').data(self.chartData);
+			  self.labels = self.labelContainer.selectAll('.label').data(self.chartData);
+			  self.values= self.valueContainer.selectAll('.value').data(self.chartData);
+
+		  	  if(self.dataLength!=self.chartData.length)
+		  	  {
+
+
+		  	  	  self.dataLength = self.chartData.length;
+
+				  self._setupHorizontalDims();
+
+			      self.bars.enter().append('rect').attr('class','bar')
+					.attr("class", function(d,i){return "bar data"+i;})
+			        .attr('fill', function(d,i){ return self.colors.accents[i]; })
+			        .attr('stroke', function(d,i){ return self.colors.accents[i]; })
+			        .style('fill', function(d,i){ return d.color})
+			        .style('stroke', function(d,i){ return d.color})
+			        .attr('x', x(0)) 
+		            .attr('height', self.dims.bars.width)
+		            .attr('width', 0);
+
+
+			      	
+			      self.labels.enter().append('text').attr('class','label');
+			      self.values.enter().append('text').attr('class','value');//.attr('y', height);
+
+
+			      self.bars.exit().transition().duration(1000).attr('width', 0).style('opacity', 0).remove();
+			      self.labels.exit().transition().duration(1000).style('opacity', 0).remove();
+			      self.values.exit().transition().duration(1000).style('opacity', 0).remove();
+			      
+
+
+
+
+
+			     self.resize();
+
+			    }
+
+		      // this is independent of size but dependent on data
+		      self.labels.text(function(d) {return d.label;});
+		      self.values.text(function(d) {return d.display_value ? d.display_value : d.value ;});
+
+
+		      self.animate();
+
+		  },
+		  /**
+		   * called by chartData observer methods when chartData changes (In th-d3-charts.html) to validate data 
+		   * calling it directly doesn't have any effect  
+		   * @return {undefined}
+		   */
+		  chartSpecificDataValidate: function() {
+	    
+		      var errors = [],
+		          numOfBars = this.chartData.length;
+
+		      // There should be at least value.
+		      if(numOfBars === 0) {
+		        errors.push({input: numOfBars, msg: 'Please provide at least one value for the chart.'});
+		      } else {
+		        for (var i=0; i < numOfBars; i++){
+		          
+		          // There should be a value for every bar.
+		        	if (!this.chartData[i].value){ 
+		          	errors.push({ input: this.chartData, msg: 'You must include a value for every bar.'});
+		        	}
+		          
+		          // There should be a label for every bar.
+		        	if (!this.chartData[i].label){ 
+		          	errors.push({ input: this.chartData, msg: 'You must include a label for every bar.'});
+		        	}
+		        }
+		      }
+
+	          return errors;
+	       },
+
+	        getMetaData: function() {
+                return {
+                  "name": "lens-viz-bar-chart",
+                  "description": "Thelma n bar chart",
+                  "category":"chart",
+                  "version": "0.0.1",
+                  "thumbnail":"nbar.jpg", 
+                  "tags":["chart", "bar"],
+                  "fields":[{ "name":"label", "type":"string", "required":true},
+                            { "name":"value", "type":"num", "required":true},
+                            { "name":"display_value", "type":"string"}
+                  ],
+                  "inputAttr": {
+                    "chartData":{"friendly":"Data", "type":"table-repeating","rows":2, 
+                      "fields":{
+                        "label":{"friendly":"Label", "type":"string", "default":"Player"},
+                        "value":{"friendly":"Value", "type":"int", "default":15},
+                        "display_value":{"friendly":"Display Value", "type":"string", "default":""}
+                      },
+                      "default":[
+                        {"label": "Player", "value": 15, "display_value": "$15"},
+                        {"label": "Vendor", "value": 20, "display_value": "$20"},
+                        {"label": "Mascot", "value": 45, "display_value": "$45"}
+                      ]
+                    }
+                  }
+                }
+           	}
+		  
+		});
+	})();
+
+
+	</script>
+</polymer-element>

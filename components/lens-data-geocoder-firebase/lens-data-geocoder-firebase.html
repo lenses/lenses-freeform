@@ -1,0 +1,294 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../lens-data-geocoder/lens-data-geocoder.html">
+<link rel="import" href="../th-firebase/th-firebase.html">
+<!--
+A data transform component that converts data into latitude / longitude or vice
+versa and saves the results to<a href="https://www.firebase.com/" 
+target="_blank">Firebase</a>.
+
+##### Example
+
+    <lens-data-geocoder-firebase></lens-data-geocoder-firebase>
+
+@element lens-data-geocoder-firebase
+@blurb A transform component that converts locations into
+latitude / longitude or vice versa and saves the results to Firebase.
+@status alpha
+@homepage http://lenses.github.io/lens-data-geocoder-firebase
+-->
+<polymer-element name="lens-data-geocoder-firebase" extends="lens-data-geocoder" attributes="input reverseGeocode output firebaseLocation selectedLabel">
+<template>
+  <style>
+      :host {
+        width: 150px;
+      }
+
+      core-selector {
+        min-height: 10px;
+        display: inline-block;
+        max-height: 123px;
+      }
+
+      core-selector .col {
+        display: inline-block;
+        margin: 0 3px;
+        padding: 1px;
+        border: 1px solid #EEE;
+      }
+      core-selector .core-selected {
+        background-color: #ccc;
+
+      }
+      label {
+        display: block;
+        color: #2fa3af;
+        vertical-align: top;
+      }
+  </style>
+  
+    <div class="lens-container lens-data">
+      <th-firebase id="firebase" directory="geocodes/" locationRequestRoute="{{firebaseLocationRequestRoute}}" location="{{firebaseLocation}}" ></th-firebase>
+      
+      <!-- Menu for selecting input column --> 
+      <label for="label_selector">Select location column: </label> 
+      <core-selector id="label_selector" selected="{{selectedLabel}}" valueattr="label">
+        <template repeat="{{attr in _dataAttributes}}">
+          <div label="{{attr}}" class="col">{{attr}}</div>
+        </template>
+      </core-selector>
+      
+      <!-- Progress and error details -->
+      <!-- note: this does not work in case of fallback to google api-->
+        <p>{{firebaseOutput.length}} of {{input.length}} locations processed.</p>
+      
+
+      <template if="{{errors.length > 0}}">
+        <p>{{errors.length}} location(s) NOT found:</p>
+        <template repeat="{{error in errors}}">
+          <li><strong> Location: </strong>{{error.location}} <strong> Reason: </strong>{{error.reason}}</li>
+        </template>
+      </template>
+    </div> 
+    
+
+  </template>
+
+  <script>
+
+    Polymer({
+      /**
+       *  Array of objects. Examples: <br/><br/>
+       *  <code>['paris, texas', 'toledo, ohio', 'new york, ny']</code><br/>
+       *  <br/>
+       *  <code>[{'addr':'San Francisco, CA'}, {'addr':'Tokyo, Japan'}]</code>
+       *  <br/><br/>
+       *  <code>[{"name": "loc1", "latlng": "35.7090259, 139.73199249999993"},
+       *  {"name": "loc2", "latlng": "40.7017076, -73.99701829999998"}];</code>
+       *  
+       *  @property input
+       *  @type Array
+       *  @default [ ]
+       */
+      /**
+       *  Array of output objects.
+       *  
+       *  @property output
+       *  @type Array
+       *  @default [ ]
+       */
+      /**
+       *  'reverseGeocode' is set to true when input is a set of lat/lng
+       *  coordinates that need to be converted to a location
+       *  
+       *  @property reverseGeocode
+       *  @type Boolean
+       *  @default false
+       */
+      /**
+       *  Label of the column to be geocoded.
+       *  
+       *  @property selectedLabel
+       *  @type String
+       *  @default null
+       */
+
+      firebaseOutput: [],
+      firebaseLocation: 'https://shining-fire-6376.firebaseio.com/',
+      ready: function(){
+        var self = this;
+        self.firebase = self.$.firebase;
+        self.setupFirebase();
+        // Fired from lens-data-geocoder with object to save to firebase
+        self.addEventListener('lens-new-geocode', function(response){
+          self.firebaseOutput.push(response.detail);
+        })
+      },
+      apiReady: function(){
+        var self = this;
+        self.geocoder = new google.maps.Geocoder(); 
+        self.geocodeFunc = self.reverseGeocode ? self._addLocationToOutput : self._addGeocodeToOutput;
+
+        if(self.input && self.input.length){
+          self.setupOutput();
+          self.parseInput();
+          // self.getLocations();
+        }
+
+      },
+      /**
+       * inputChanged - when input changes, reset the outputs, and send it back through the parser
+       * @return {[type]} [description]
+       */
+      inputChanged:function(){
+        var self = this;
+        self.fire('lens-input-changed', self);
+        self.setupOutput();
+        self.errors = [];
+        self.parseInput();
+        self.selectedLabelChanged();
+        // self.hash = self.createHash(self.inputArray);
+        // console.log("input array", self.inputArray);
+
+        // self.checkFirebase();
+      },
+      /**
+       * selectedLabelChanged - when selection changes, clear the results and restart the process of geocoding
+       */
+      selectedLabelChanged: function(){
+        console.log('geocoder-firebase selection changed');
+        var self = this;
+        self.firebaseOutput = [];
+        self.errors = [];
+        self.setupOutput();
+        self.errors = [];
+        if(self.input.length > 0){
+          self.inputArray = self.input.map(function(obj){return obj[self.selectedLabel]});
+        } else {
+          self.inputArray = [self.input[self.selectedLabel]];
+        }
+
+        self.hash = self.createHash(self.inputArray);
+        if (self.hash && self.selectedLabel){
+          self.checkFirebase();
+        }
+
+      },
+      /**
+       * setupFirebase - set event listeners for responses from firebase and the appropriate responses
+       */
+      setupFirebase: function(){
+        console.log('setup firebase');
+        var self = this;
+        
+        // Listen for firebase responses
+        self.firebase.addEventListener('th-data-ready', function(response) {
+            // Data found in firebase, so output is ready
+            console.log("data received from firebase");
+            self.mapOutputFromFirebase(response.detail);
+          });
+
+        self.firebase.addEventListener('th-data-error', function(response) {
+          // No data in firebase for that URL, so pass it to lens-data-geocoder
+          console.log("not found in firebase, request from geocode API");
+          self.getLocations();
+        });
+      },
+      /**
+       * createHash - converts the input into a unique identifier, used as a key to save geocodes in firebase
+       * @param  {Array} input - an array of strings, representing the locations that need geocodes
+       * @return {String} hash - the resulting unique identifier
+       */
+      createHash: function(input){
+        console.log('create hash');
+        var input = input.toString(),
+            inputLength = input.length;
+        
+        var hash = 0;
+          var i, chr, len;
+            if (inputLength == 0) return hash;
+            for (i = 0; i < inputLength; i++) {
+              chr   = input.charCodeAt(i);
+              hash  = ((hash << 5) - hash) + chr;
+              hash |= 0; // Convert to 32bit integer
+            }
+            
+        return hash;
+      },
+      /**
+       * checkFirebase - once the hash for inputs is created, check if geocodes are in firebase
+       */
+      checkFirebase: function(){
+        console.log('check firebase', this.hash);
+        var self = this;
+        self.firebase.load(self.hash);
+      },
+      /**
+       * firebaseOutputChanged - when the output for firebase is finished, call saveToFirebase()
+       */
+      firebaseOutputChanged: function(){
+        var self = this;
+        if (self.firebaseOutput.length === self.inputArray.length){
+          self.saveToFirebase();
+        }
+      },
+      /**
+       * saveToFirebase - send the collected geocodes to firebase with the hash as the identifier
+       * @return {[type]} [description]
+       */
+      saveToFirebase: function(){
+        var self = this;
+        console.log("save geocodes to firebase");
+        self.firebase.save(self.firebaseOutput, self.hash);
+      },
+      /**
+       * mapOutputFromFirebase - called when a response is received from firebase, and maps the response to the existing dataset
+       * @param  {Array} geocodesArr - array of objects containing lat/lng coordinates and any potential errors
+       */
+      mapOutputFromFirebase: function(geocodesArr){
+        console.log("combine firebase result with input data")
+        var self = this;
+        self.firebaseOutput = geocodesArr;
+        self.errors=[]; 
+        self.output = self.input.map(function(item){
+          // Clone new object
+          var newItem = {},
+              keys = Object.keys(item);
+          keys.forEach(function(key) {
+            newItem[key] = item[key];
+          })
+          geocodesArr.forEach(function(geocode){
+            // Match coordinates to the correct place
+            if(geocode.input === item[self.selectedLabel]){
+              
+              newItem.latitude = geocode.latitude;
+              newItem.longitude = geocode.longitude;
+              
+              // Collect errors to display
+              if(geocode.errors){
+                self.errors.push(geocode.errors);
+              }
+            }
+          })
+          return newItem;
+        })
+      },
+      /**
+       * outputChanged - when output changes, check if the entire output is ready and fire an event
+       * @return {[type]} [description]
+       */
+      outputChanged: function(){
+        var self = this;
+        self.fire('lens-output-changed', self);
+        // When output is ready, fire event for other components to use
+        if (self.output.length === self.inputLength){
+          if(self.output[self.output.length-1]['latitude'] && self.output[self.output.length-1]['longitude']){
+          console.log('geocoder output ready');
+          self.fire('lens-output-ready', self.output)
+          }
+        }
+      }
+    });
+
+  </script>
+
+</polymer-element>

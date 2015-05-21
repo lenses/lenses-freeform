@@ -1,0 +1,65 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../core-ajax/core-ajax.html">
+<link rel="import" href="lib/firebase-import.html">
+
+<polymer-element name="th-firebase" attributes="locationRequestRoute location directory">
+  <template>
+    <core-ajax auto 
+      id="token"
+      url="{{locationRequestRoute}}"
+      handleAs="text"  
+      on-core-response="{{_receiveLocation}}">
+    </core-ajax>
+
+  </template>  
+  <script>
+    Polymer('th-firebase', {
+      data: null,
+      locationRequestRoute: '/admin/token/THELMA_FIREBASE_URL',
+      location: null,
+      directory: "",
+      _receiveLocation: function(event, r){
+        var self = this;
+        if (event.detail.response){
+          self.location = self.location || event.detail.response; 
+          self.dataRef = new Firebase(self.location+self.directory); 
+        }
+      },
+      save: function(data, subdirectory){
+        var self = this;
+        var locationInterval = setInterval(function(){
+          if(self.location){
+            if (subdirectory){  
+              self.dataRef = new Firebase(self.location + self.directory + subdirectory);
+              self.dataRef.set(data);
+            } else {
+              self.dataRef.push(data);
+            }
+            clearInterval(locationInterval);
+          }
+        },10)
+      },
+      load: function(subdirectory){
+        console.log("****");
+        console.log("load");
+        var self = this;
+        var locationInterval = setInterval(function(){
+          if(self.location){
+            self.dataRef = new Firebase(self.location + self.directory + subdirectory);
+            self.dataRef.on('value', function(snapshot){
+              self.data = snapshot.val();
+              if (self.data){
+                self.asyncFire('th-data-ready', self.data);
+              } else {
+                self.asyncFire('th-data-error', "No such data.");
+              }
+            });
+            clearInterval(locationInterval);
+          }
+        },10)
+      }
+      
+    });
+  </script>
+</polymer-element>
+

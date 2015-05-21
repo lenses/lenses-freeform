@@ -1,0 +1,23 @@
+{
+  "name": "lens-viz-g-bar-chart",
+  "keywords": "lenses, polymer, web-components",
+  "main": "lens-viz-g-bar-chart.html",
+  "dependencies": {
+    "th-animated": "thelmanews/th-d3-chart",
+    "th-theme": "thelmanews/th-theme",
+    "polymer": "Polymer/polymer#~0.5.1",
+    "google-chart": "lenses/google-chart#master",
+    "lens-u-data-selector": "lenses/lens-u-data-selector",
+    "lens-u-data-utility": "lenses/lens-u-data-utility"
+  },
+  "homepage": "https://github.com/lenses/lens-viz-g-bar-chart",
+  "_release": "1fb43222f5",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "1fb43222f55dd81f1ae0d9a7327dea2197a7c2d4"
+  },
+  "_source": "git://github.com/lenses/lens-viz-g-bar-chart.git",
+  "_target": "*",
+  "_originalSource": "lenses/lens-viz-g-bar-chart"
+}

@@ -1,0 +1,10 @@
+{
+  "name": "th-theme",
+  "version": "0.1",
+  "keywords": "thelma, polymer, web-components, theme",
+  "main": "th-theme.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.5.1",
+    "core-style": "Polymer/core-style#~0.5.1"
+  }
+}

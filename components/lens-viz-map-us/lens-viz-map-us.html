@@ -1,0 +1,548 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../th-d3-chart/th-d3-chart.html">
+<link rel="import" href="../lens-u-data-selector/lens-u-data-selector.html">
+
+<polymer-element name="lens-viz-map-us" extends="th-d3-chart" attributes="input output">
+	<template>
+
+		<core-style ref="theme"></core-style>
+
+	    <style>
+
+	      :host {
+	        display: inline-block;
+	        position: relative;
+	        width: 300px;
+	        height: 300px;
+	      }
+
+	      div, span {
+	      	pointer-events:none;
+	      }
+
+	      #state {
+	      	position: absolute;
+	      	transition: opacity 0.7s;
+	      	opacity: 0;
+	      	top: 5px;
+	      	width: 100%;
+	      	text-align: center;
+	      	font-size: 1.6em;
+	      }
+
+	      #legend {
+	      	position: absolute;
+	      	transition: opacity 0.7s;
+	      	opacity: 0;
+	      	bottom: 5px;
+	      	width: 100%;
+	      }
+	      #legend div {
+	      	display: inline-block;
+	      	height: 1.2em;
+
+	      }
+
+	      #value {
+	      	float: right;
+	      	margin-right: 15px;
+	      }
+
+	      #tip {
+	      	position: absolute;
+	      	transition: opacity 0.7s;
+	      	opacity: 0;
+	      	top: 40px;
+	      	width: 100%;
+	      	text-align: center;
+	      	font-size: 0.6em;
+	      }	      
+
+	    </style>
+	    <lens-u-data-selector id="data_selector" input="{{input}}" selections="{{labelValueSelection}}" ></lens-u-data-selector>
+	    <lens-u-data-utility id="data_utility"></lens-u-data-utility>
+		<div id="state"></div>
+		<span id="tip">(tap again to zoom out)</span>
+	    <svg id="chart"></svg>
+	    <div id="legend" >
+		    <div id="label"></div>
+		    <div id="value"></div>
+		</div>
+
+		<!-- to allow embeded th-editor component -->
+      	<content select="th-editor"></content> 
+
+	</template>
+	
+	<script src="../topojson/topojson.js"></script> 
+	<script src="js/code-to-statename.js"></script> 
+
+	<script>
+	
+		Polymer('lens-viz-map-us', {
+			
+		  	chartData: [
+						{"state":"Alabama","value":0.16490015, "crossed": true, "color": "#000"},
+						{"state":"Alaska","value":1.27506968, "crossed": true},
+						{"state":"Arizona","value":1.3},
+						{"state":"Arkansas","value":1.3},
+						{"state":"California","value":1.3},
+						{"state":"Colorado","value":1.3},
+						{"state":"Connecticut","value":2.0},
+						{"state":"Delaware","value":1.3},
+						{"state":"District of Columbia","value":2},
+						{"state":"Florida","value":0.34861751, "crossed": true},
+						{"state":"Georgia","value":0.38855606, "crossed": true},
+						{"state":"Hawaii","value":1.3},
+						{"state":"Idaho","value":0.27427035, "crossed": true},
+						{"state":"Illinois","value":1.3},
+						{"state":"Indiana","value":0.2404761, "crossed": true},
+						{"state":"Iowa","value":1.3},
+						{"state":"Kansas","value":0.37995391, "crossed": true},
+						{"state":"Kentucky","value":1.3},
+						{"state":"Louisiana","value":0.23986175, "crossed": true},
+						{"state":"Maine","value":1.0503072, "crossed": true},
+						{"state":"Maryland","value":1.3},
+						{"state":"Massachusetts","value":1.3},
+						{"state":"Michigan","value":1.3},
+						{"state":"Minnesota","value":2.0},
+						{"state":"Mississippi","value":0.29024577, "crossed": true},
+						{"state":"Missouri","value":0.23863287, "crossed": true},
+						{"state":"Montana","value":0.51758832, "crossed": true},
+						{"state":"Nebraska","value":0.55384024, "crossed": true},
+						{"state":"Nevada","value":1.3},
+						{"state":"New Hampshire","value":0.7498463, "crossed": true},
+						{"state":"New Jersey","value":1.3},
+						{"state":"New Mexico","value":1.3},
+						{"state":"New York","value":1.3},
+						{"state":"North Carolina","value":0.45368663, "crossed": true},
+						{"state":"North Dakota","value":1.3},
+						{"state":"Ohio","value":1.3},
+						{"state":"Oklahoma","value":0.48010752, "crossed": true},
+						{"state":"Oregon","value":1.3},
+						{"state":"Pennsylvania","value":0.37995391, "crossed": true},
+						{"state":"Rhode Island","value":1.3},
+						{"state":"South Carolina","value":0.66996927, "crossed": true},
+						{"state":"South Dakota","value":0.53909370, "crossed": true},
+						{"state":"Tennessee","value":1.10990783, "crossed": true},
+						{"state":"Texas","value":0.19132104, "crossed": true},
+						{"state":"Utah","value":0.46658986},
+						{"state":"Vermont","value":1.3},
+						{"state":"Virginia","value":0.51820276, "crossed": true},
+						{"state":"Washington","value":1.3},
+						{"state":"West Virginia","value":1.3},
+						{"state":"Wisconsin","value":0.99992319, "crossed": true},
+						{"state":"Wyoming","value":0.58640553}
+
+		  	],
+		  	dataLabel: "Data",
+
+		  	labelValueSelection: null,
+
+			
+			dataUrls : {
+                us: "data/us.json"  //TODO needs to be corrected!
+       		},
+       		centers: [],
+       		centered: false,
+       		observe: {
+       			input: "inputChanged"
+       		},
+       		/**
+       		 * domReady function is defined here overriding hte definition in th-animated not to fire th-ready too early
+       		 * @return {[type]} [description]
+       		 */
+	        domReady: function() {
+	            this.init();
+
+	            if(this.animateAfter>0) {
+	                if(this.animateAfter>0) {
+	                  var self = this;
+	                  setTimeout(function() {
+	                    self.animate();
+	                  },self.animateAfter);
+	                }
+	            }
+
+	             this.$.data_selector.addEventListener('th-data-selection-changed', function() {
+		        	if(this.labelValueSelection.length==2) {
+		        		var firstValue = this.input[0][this.labelValueSelection[1][0]];
+
+		        		this.valueFormat = this.$.data_utility.extractNumberFormat(firstValue);
+			        	this.chartData = this.input.map(function(row) {
+			        		return {
+			        			label: row[this.labelValueSelection[0]],
+			        			value: this.$.data_utility.unformatString(row[this.labelValueSelection[1][0]])
+			        		}
+
+			        	}.bind(this));
+			        }
+		        }.bind(this));
+
+
+	        },
+	        
+	        inputChanged: function() {
+	        	/*
+	        	
+				// not needed. handeled in th-data-selection-changed event listener
+
+	        	console.log('labelValueSelection',this.labelValueSelection,this.labelValueSelection[0],this.labelValueSelection[1][0]);
+	        	if(this.labelValueSelection.length==2) {
+		        	this.chartData = this.input.map(function(row) {
+		        		return {
+		        			label: row[this.labelValueSelection[0]],
+		        			value: row[this.labelValueSelection[1][0]]
+		        		}
+
+		        	}.bind(this));
+		        }
+		        console.log(this.chartData);
+		        */
+
+	        },
+	        
+			init: function() {
+		    
+			  	var self = this;
+			  	  
+			  	self.dims = self.setupDimensions(self);
+
+			  	self.formats = {
+                	percent: d3.format('%')
+            	};
+
+            	var width = self.dims.width,
+            		height = self.dims.height;
+            
+	            // projection and path setup
+	            var projection = d3.geo.albersUsa()
+	                .scale(width)
+	                .translate([width / 2, height / 2]);
+	            
+	            self.path = d3.geo.path()
+	                .projection(projection);
+            
+			    var chart_svg = self.$.chart;
+
+
+		      	//creating all the svg items
+		      	self.svg = d3.select(chart_svg);
+
+		      	self.svg.style('height', height + 'px')
+	                .style('width', width + 'px');
+
+            
+            	// make a map
+	             self.map = self.svg.append('g')
+	                .attr('class','states_map');
+	            
+
+	            d3.json(self.resolvePath(self.dataUrls.us), function(error, us) {
+	                self._processData(error,us);
+	            
+	            });    
+
+		  	},
+
+		  	_processData: function(err, us) {
+		  		this.us = us;
+
+		  		//this._render( this.animateOnInit ? this.animte : null);
+
+		  		if(this.animateOnInit) {
+		  			this._render(this.animate);
+		  		}
+		  		else {
+		  			this._render();
+		  		}
+
+		  	},
+
+		  	_render: function(callback) {
+            	var self = this;
+
+            	if(!self.us) {
+            		return;
+            	}
+
+                var scale = 0.05,
+		        	centers = self.centers,
+                	states = topojson.feature(self.us, self.us.objects.states);
+
+
+            	self.states = null;
+
+                self.states = self.map.selectAll('path.state')
+                    .data(states.features);
+
+                  self.states.enter().append('path');
+
+
+                  self.states.attr('class', function(d) { 
+                    	var classes = 'state map-border '+d.properties.name.toLowerCase().replace(/\s/g, '-');
+                        return classes;
+                    })
+                    .attr('d', self.path)
+                    //.style('fill', CoreStyle.g.theme.background)
+                    .on("click", function(d) { return self._clicked(d,self); })
+                    .attr("centroid", function(d) {
+                      var centroid = self.path.centroid(d);
+                      centers[d.properties.name.toLowerCase().replace(/\s/g, '-')]= centroid;
+                    })
+                    .attr("color", function(d) { return d.color;})
+                    .attr("state", function(d) { 
+                    	//TODO: doesn;t do anything! cleanup?
+
+                    	var stateName = d.state || d.label; // accept d.label for consistancy with other charts
+                    	// if(stateName.length==2) {
+                    	// 	stateName = codeToStateName(sateName);
+                    	// }
+
+                    	return stateName;
+                    });
+
+
+
+                var marks = self.chartData ? self.chartData.filter(function(d) {
+
+                		return d.crossed ? d : null;
+                }) : [];
+
+
+                self.marks = self.map.selectAll('.mark').data(marks).enter().append('g')
+	            .attr('class', function(d) {
+	            	// /[\s\t]+/g is there for cases where there is more than one white space or a tab in the state name (that actually happened)
+	                var name = d.state.toLowerCase().replace(/[\s\t]+/g,"-");
+	                return 'mark data0 mark-'+name;
+	            })
+	            .style('opacity',0)
+	            .attr('transform', function(d, i) {
+	                var name = d.state.toLowerCase().replace(/[\s\t]+/g,"-");
+	                //TODO change to a more elegant formatting....
+	            	return 'translate ('+parseInt(centers[name][0]-7)+','+parseInt(centers[name][1]-7)+') scale('+scale+','+scale+')';
+	            })
+	            .attr('width', 12)
+	            .attr('height', 12);
+	            //.on("click", self.clicked);	// d is going to be state name
+
+
+	            self.marks.append('path')
+	            .attr('d', 'm100,60l-40,40l170,170l40,-40l-170,-170z');
+
+	            self.marks.append('path')
+	            .attr('d', 'm60,230l170,-170l40,40l-170,170l-40,-40z');
+
+
+	        	self.dataMap = d3.map();
+
+	        	var minValue = d3.min(self.chartData, function(d) {return d.value;});
+	        	var maxValue = d3.max(self.chartData, function(d) {return d.value;});
+
+
+	        	var breaks = 4;
+	        	var interval = (maxValue - minValue) / breaks;
+
+	        	var domain = d3.range(breaks).map(function(i) {
+	        		return minValue + ((i) * interval);
+	        	});
+
+	            range = CoreStyle.g.theme.mapColors;
+
+				for(index in self.chartData) {
+
+					var name = self.chartData[index].state || self.chartData[index].label;
+					name = name.replace(/[\s\t]+/g," ");
+					name = self._formatStateName(name);
+					self.dataMap.set(name, self.chartData[index].value);
+				}
+
+			      
+			    self.colors = d3.scale.threshold()
+			        .domain(domain)
+			        .range(range);
+
+			    if(!self.initialized) {
+
+				    self.initialized = true;
+		            self.fire('th-ready', {msg: 'element ready', element: this});
+
+
+		        }
+
+		        //call callback (e.g. animate) after setup
+		        if(callback) {
+		        	callback.call(self);
+		        }
+
+
+                    
+             }, 
+             reset : function() {
+             	var self = this;
+             	self.marks.style('opacity', 0);
+
+             },
+             
+             _clicked: function(d, self) {  //TODO make it realy private
+             	  //var self = this;
+
+                  var x, y, k,
+                  	  width = self.dims.width,
+                  	  height = self.dims.height;
+
+				  if (d && self.centered !== d) {
+				    var centroid = self.path.centroid(d);
+				    x = centroid[0];
+				    y = centroid[1];
+				    k = 4;
+				    self.centered = d;
+
+				    self.$.state.innerText = d.properties.name ;
+				    self.$.state.style.opacity = 1;
+				    self.$.tip.style.opacity = 1;
+
+				    if(self.dataMap) {
+	
+					    // self.$.label.innerText = self.chartData.state_data.label;
+					    // self.$.value.innerText = self.dataMap.get(d.properties.name).toFixed(2);
+					    
+					    self.$.label.innerText = self.dataLabel;
+					    var dataPointValue = self.dataMap.get(d.properties.name.toLowerCase());
+					    self.$.value.innerText =  self.$.data_utility.formatNumber(dataPointValue, self.valueFormat.pattern);
+
+					    self.$.legend.style.opacity = 1;
+
+				    }
+
+				  } else {
+				    x = width / 2;
+				    y = height / 2;
+				    k = 1;
+				    self.centered = null;
+
+				    self.$.legend.style.opacity = 0;
+				    self.$.state.style.opacity = 0;
+				    self.$.tip.style.opacity = 0;
+
+				    //self.$.state.innerText = '';
+				    //self.$.label.innerText = '';
+				    //self.$.value.innerText = '';
+
+				  }
+
+				  self.map.selectAll("path")
+				      .classed("active", self.centered && function(d) { return d === self.centered; });
+
+				  self.map.transition()
+				      .duration(750)
+				      .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")scale(" + k + ")translate(" + -x + "," + -y + ")")
+				      .style("stroke-width", 1.5 / k + "px");
+             },
+             animate : function() {
+
+		        var self = this;
+
+		        var initDelay = 100;
+		        var pause = 100;
+                
+
+	            self.marks.transition().duration(pause).delay(function(d, i) {
+	                return i * pause;
+	            })
+	            .style('opacity',1);
+
+	            self.states.transition().duration(pause*10)
+	            .style('fill',function(d,i) {
+	            	//TODO color doesn't work because d.color is not there
+	            	// self.states has path information and not what is set in the render method, WHY?!?
+			        var pc = d.color ? d.color : self.colors(self.dataMap.get(d.properties.name.toLowerCase()));
+			        return pc;
+			        
+			    });
+
+
+		   },
+
+		   resize: function() {
+
+		   		var self = this;
+
+
+		   		self.dims = self.setupDimensions(self);
+
+
+            	var width = self.dims.width,
+            		height = self.dims.height;
+            
+	            // projection and path setup
+	            var projection = d3.geo.albersUsa()
+	                .scale(width)
+	                .translate([width / 2, height / 2]);
+	            
+	            self.path = d3.geo.path()
+	                .projection(projection);
+            
+			    var chart_svg = self.$.chart;
+
+
+		      	self.svg.style('height', height + 'px')
+	                .style('width', width + 'px');
+
+
+				self.states.attr('d', self.path)	                
+
+
+
+
+		   },
+
+		   updateData: function() {
+		   	var self = this;
+		   	self._render(self.animate);
+
+		   },
+
+		   _formatStateName: function(dataPoint) {
+		   		var name = dataPoint;//dataPoint.state || dataPoint.label; // label for consistancy with other chart types
+		   		name = name.trim();
+		   		if(name && name.length==2) {
+		   			name = codeToStatename[name];
+		   		}
+		   		return name.toLowerCase();
+
+		   },
+
+		   getMetaData: function() {
+		   	return {
+				  "name": "lens-viz-map-us",
+				  "description": "Thelma US Map",
+				  "category":"chart",
+				  "version": "0.0.1",
+				  "thumbnail":"map.jpg", 
+				  "tags":["chart", "bar"],
+				  "inputAttr": {
+				    "chartWidth":{"friendly":"Width", "type":"int", "default":300},
+				    "chartHeight":{"friendly":"Height", "type":"int", "default":200},
+				    "dataLabel":{"friendly":"Data Label", "type":"String", "default":"Medicaid Coverage"},
+				    "chartData":{"friendly":"Data", "type":"table-repeating","rows":2, 
+				      "fields":{
+				        "state":{"friendly":"State", "type":"string", "readonly": "true"},
+				        "value":{"friendly":"Value", "type":"int", "default":15},
+				        "crossed":{"friendly":"Cross Mark", "type":"boolean"}
+				      }
+				    }
+				  }
+				}
+		   }
+
+
+                
+            
+            
+        });
+
+
+	</script>
+
+</polymer-element>

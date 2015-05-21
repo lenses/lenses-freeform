@@ -1,0 +1,215 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../core-menu/core-menu.html">
+<link rel="import" href="../core-menu/core-submenu.html">
+<link rel="import" href="../core-icon-button/core-icon-button.html">
+<link rel="import" href="../core-icons/core-icons.html">
+<link rel="import" href="../core-icons/image-icons.html">
+
+
+<!--
+<link rel="import" href="../lens-data-geocoder-firebase/lens-data-geocoder-firebase.html">
+<link rel="import" href="../lens-input-csv/lens-input-csv.html">
+<link rel="import" href="../lens-input-enigma/lens-input-enigma.html">
+<link rel="import" href="../lens-input-paste/lens-input-paste.html">
+<link rel="import" href="../lens-data-array-func/lens-data-array-func.html">
+
+<link rel="import" href="../lens-data-groupby/lens-data-groupby.html">
+<link rel="import" href="../lens-data-split/lens-data-split.html">
+<link rel="import" href="../lens-data-sort/lens-data-sort.html">
+<link rel="import" href="../lens-data-formula/lens-data-formula.html">
+<link rel="import" href="../lens-data-join/lens-data-join.html">
+<link rel="import" href="../lens-data-filter/lens-data-filter.html">
+
+<link rel="import" href="../lens-viz-g-map/lens-viz-g-map.html">
+<link rel="import" href="../lens-viz-map-us/lens-viz-map-us.html">
+<link rel="import" href="../lens-viz-mapbox/lens-viz-mapbox.html">
+
+<link rel="import" href="../lens-viz-bar-chart/lens-viz-bar-chart.html">
+<link rel="import" href="../lens-viz-bar-chart-horizontal/lens-viz-bar-chart-horizontal.html">
+
+<link rel="import" href="../lens-viz-g-scatter-bubble/lens-viz-g-scatter-bubble.html">
+<link rel="import" href="../lens-viz-g-regions/lens-viz-g-regions.html">
+<link rel="import" href="../lens-viz-g-pie-chart/lens-viz-g-pie-chart.html">
+<link rel="import" href="../lens-viz-g-bar-chart/lens-viz-g-bar-chart.html">
+<link rel="import" href="../lens-viz-g-line-chart/lens-viz-g-line-chart.html">
+-->
+
+
+
+<!--
+Element providing solution to no problem in particular.
+
+##### Example
+
+    <lenses-component-list></lenses-component-list>
+
+@element lenses-component-list
+@blurb Element providing solution to no problem in particular.
+@status alpha
+@homepage http://polymerlabs.github.io/lenses-component-list
+-->
+<polymer-element name="lenses-component-list" attributes="componentList">
+
+  <template>
+
+    <link rel="stylesheet" href="lenses-component-list.css" />
+<!--
+    <template if="{{componentList.length>0}}">
+        <core-menu id="component-list">
+          <template repeat="{{component in componentList}}">
+            <core-item class="{{component.name}}" on-dragStart="{{dragStartList}}"  draggable="true" label="{{component.friendly || component.name}}"></core-item>
+          </template>
+        </core-menu>
+      </template>
+  -->
+
+    <template if="{{_sortedComponentList.length>0}}">
+        <core-menu id="component-list">
+          <template repeat="{{category in _sortedComponentList}}">
+            <core-submenu icon="expand-more" label="{{category.name}}">
+              <template repeat="{{component in category.components}}">
+                <core-item class="{{component.name}}" on-dragStart="{{dragStartList}}"  draggable="true" >
+                  <span class="abrv">{{component.abrv}}</span><span class="desc">{{component.friendly || component.name}}</span>
+                </core-item>
+              </template>
+            </core-submenu>
+          </template>
+        </core-menu>
+      </template>
+
+
+  </template>
+
+  <script>
+
+    Polymer({
+      /**
+       * Main categories for the menu. Anything other than categories here will be after the main categories in the list
+       * @type {Array}
+       */
+      mainCategories: ['input', 'transform', 'visualize'],
+      /**
+       * List of components as an array of objects.
+       * @type {Array}
+       * @example [{"name":"lens-viz-mapbox", "friendly":"Mapbox", "category":"Maps"}]
+       */
+      componentList: [
+                        {name:'lens-input-csv', abrv: 'csv', friendly: 'CSV Input', category: 'input'},
+                        {name: 'lens-input-enigma', abrv: 'eni', friendly: 'Enigma Input', category: 'input'},
+                        {name:'lens-input-paste', abrv: 'pas', friendly: 'Paste Input', category: 'input'},
+                        {name:'lens-input-simple-api', abrv: 'api', friendly: 'API Input', category: 'input'},
+
+                        {name:'lens-data-array-func', abrv: 'arr', friendly: 'JS Array Functions', category: 'transform'},
+                        {name:'lens-data-geocoder-firebase', abrv: 'geo', friendly: 'Geocode Data', category: 'transform'},
+                        {name:'lens-data-groupby', abrv: 'grp', friendly: 'Group Rows', category: 'transform'},
+                        {name:'lens-data-split', abrv: 'spt', friendly: 'Split Columns', category: 'transform'},
+                        {name:'lens-data-sort', abrv: 'sor', friendly: 'Sort Rows', category: 'transform'},
+                        {name:'lens-data-formula', abrv: 'mth', friendly: 'Math Formula', category: 'transform'},
+                        {name:'lens-data-join', abrv: 'joi', friendly: 'Join Two Columns', category: 'transform'},
+                        {name:'lens-data-filter', abrv: 'fil', friendly: 'Filter Data', category: 'transform'},
+                        {name:'lens-data-crossfilter', abrv: 'xfl', friendly: 'Crossfilter Data', category: 'transform'},
+                        {name:'lens-data-zip', abrv: 'zip', friendly: 'Zip Datasets', category: 'transform'},
+
+                        {name:'lens-viz-g-map', abrv: 'gmp', friendly: 'Google Map', category: 'visualize'},
+                        {name:'lens-viz-g-scatter-bubble', abrv: 'bub', friendly: 'Bubble Chart', category: 'visualize'},
+                        {name:'lens-viz-g-pie-chart', abrv: 'pie', friendly: 'Pie Chart', category: 'visualize'},
+                        {name:'lens-viz-g-regions', abrv: 'reg', friendly: 'Regions Chart', category: 'visualize'},
+                        {name:'lens-viz-g-bar-chart', abrv: 'gbr', abrv: 'csv', friendly: 'G Bar Chart', category: 'visualize'},
+                        {name:'lens-viz-g-line-chart', abrv: 'gln', friendly: 'G Line Chart', category: 'visualize'},
+                        {name:'lens-viz-mapbox', abrv: 'mbx', friendly:'Mapbox', category:'visualize'},
+
+                        {name:'lens-viz-bar-chart', abrv: 'bar', friendly: 'Bar Chart', category: 'visualize'},
+                        {name:'lens-viz-bar-chart-horizontal', abrv: 'hbr', friendly: 'Horizontal Bar Chart', category: 'visualize'},
+                        {name:'lens-viz-map-us', abrv: 'usm', friendly: 'US Map', category: 'visualize'}
+
+
+                       ],
+        /**
+         * Component list orderes by category
+         * @type {Array}
+         * @example [{name: 'input', components [{name:'lens-input-csv', friendly: 'CSV Loader', category: 'input'}, ...]}, ...]
+         */
+        _sortedComponentList: [],
+        ready: function() {
+          this._sortByCategory();
+        },
+        /**
+         * DragStart event handler sets component name in dataTransfer Object
+         * @param  {[type]} e         Event
+         * @param  {[type]} detail    Details
+         * @param  {[type]} selection Selection
+         * @return {[None]}           
+         */
+        dragStartList: function(e, detail, selection) {
+           e.dataTransfer.setData("text/plain",selection.classList[0]);
+
+        },
+        /**
+         * Checks to see if the custom element is already imported. If not imports it.
+         * @param  {DOM}   element  DOM element to check
+         * @param  {Function} callback Callback function to call after done
+         */
+        checkAndImport: function(element, callback) {
+          if (element.constructor == HTMLElement) {
+            var name = element.tagName.toLowerCase();
+            //import on the fly.
+            var elInfo = this._findElementInfoByName(name);
+	    
+	   //assuming lenses-component-list and the lenses are installed in the same directory by bower (which is the defualt)
+	   var pathPrefix = this.resolvePath('lenses-component-list.html').replace('lenses-component-list/lenses-component-list.html','');
+
+	    var path = elInfo.installPath || pathPrefix+name+'/'+name+'.html';
+            Polymer.import([path], callback);
+          }
+          else {
+            callback();
+          }
+
+        },
+        /**
+         * Returns component info
+         * @return {Object} JSON element containing the element info.
+         */
+        getComponentInfo: function(tagName) {
+          return this._findElementInfoByName(tagName);
+        },
+        /**
+         * Sorts componentList by category
+         * @return {[type]} [description]
+         */
+        _sortByCategory: function() {
+          var self = this;
+
+          // create empty categoryList
+          self._sortedComponentList = self.mainCategories.map(function(item) {
+            return {name: item, components: []};
+          });
+
+          self._sortedComponentList = self.componentList.reduce(function(prev, item) {
+            var cat = item.category;
+            var category = prev.filter(function(item) {
+              return item.name === cat;
+            });
+            if(category.length==0) {
+              prev.push({name: cat, components: [item]});
+            }
+            else {
+              category[0].components.push(item);
+            }
+            return prev;
+
+          }, self._sortedComponentList);
+
+        },
+        _findElementInfoByName: function(name) {
+          var info = this.componentList.filter(function(item) {
+            return item.name===name;
+          })
+          return info.length>0 ? info[0] : null;
+        }
+
+    });
+
+  </script>
+
+</polymer-element>

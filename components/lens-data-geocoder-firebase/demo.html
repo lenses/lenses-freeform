@@ -1,0 +1,104 @@
+<!doctype html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <title>lens-data-geocoder-firebase Demo</title>
+
+  <script src="../webcomponentsjs/webcomponents.js"></script>
+  <link rel="import" href="lens-data-geocoder-firebase.html">
+
+</head>
+<body unresolved>
+
+    <style>
+      body {
+        font-family: sans-serif;
+        font-size: 14px;
+      }
+
+      pre {
+        border: 1px solid #EEE;
+        font-size: 12px;
+        max-width: 300px;
+        max-height: 300px;
+        overflow: scroll;
+
+      }
+      #component {
+        border: 1px solid #BBB;
+        margin: 10px;
+        padding: 5px;
+        display: block;
+        width: 300px;
+      }
+
+      .component::before, .component::after {
+        content: '\2794';
+        position: absolute;
+        top: 50%;
+      }
+      .component::before {
+        right: -15px;
+      }
+
+      .component::after {
+        left: -15px;
+      }
+
+      section {
+        display: inline-block;
+        margin: 8px;
+        vertical-align: top;
+        position: relative;
+      }
+      html /deep/ input[is=core-input] {
+        border-bottom: 1px solid #E5E5E5 !important;
+      }
+
+    </style>
+
+    <script>
+
+      // helper function to stringify objects, used below like {{outputs | json}}
+      PolymerExpressions.prototype.json = function(object) {
+        return JSON.stringify(object, undefined, 2);
+      };
+
+    </script>
+  </head>
+
+
+  <body unresolved>
+
+    <template id="auto-bind-demo" is="auto-binding">
+      <section>
+        <label>Input:</label>
+        <pre id="input">{{myinput | json}}</pre>
+      </section>
+      <section class="component">
+        <label>Component:</label>
+          <lens-data-geocoder-firebase id="component" input="{{myinput}}" output="{{myoutput}}"></lens-data-geocoder-firebase>
+      </section>
+      <section>
+        <label>Output:</label>
+        <pre>{{myoutput | json}}</pre>
+      </section>
+
+      <script>
+        // var input = [{'address1':'1501 Lexington Avenue, New York, NY 10029', 'address2':'Columbus Circle, New York, NY'},{'address1':'San Francisco, CA', 'address2':'Tokyo, Japan'},{'address1':'Cairo, Egypt', 'address2':'Buenos Aires, Argentina'}, {'address1':'54 West 40th Street, New York, NY 10018', 'address2':'Brooklyn Bridge Park, New York, NY'}];
+
+        // var input = ['paris, texas', 'toledo, ohio', 'new york, ny'];
+        // set the input
+
+        var input = [{"name": "24", "latlng": "35.7090259, 139.73199249999993"}, {"name": "thirty four", "latlng": "40.7017076, -73.99701829999998"}];
+
+        component.reverseGeocode = true;
+
+        component.input = input;
+      </script>
+
+    </template>
+
+
+</body>
+</html>

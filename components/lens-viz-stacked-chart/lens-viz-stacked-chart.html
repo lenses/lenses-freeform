@@ -1,0 +1,370 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../th-d3-chart/th-d3-chart.html">
+
+
+<polymer-element name="lens-viz-stacked-chart" extends="th-d3-chart">
+
+	<template>
+	    <core-style ref="theme"></core-style>
+	    <style>
+
+	      :host {
+	        display: inline-block;
+	        position: relative;
+	        width: 300px;
+	        height: 200px;
+	      }
+
+	      #data_errors {  
+	        display: none;
+	        font-size: 14px;
+	        color: red;
+	        position: absolute;
+	        top: 0;
+	        left: 0;
+	      }
+
+	      .wrapped-labels {
+	      	text-align: right;
+	      }
+
+	      .wrapped-values {
+	      	text-align: left;
+	      }
+
+	    </style>
+
+	    <svg id="chart"></svg>
+
+	    <ul id="data_errors">
+	    </ul>  
+
+	    <!-- to allow embeded th-editor component -->
+	    <content select="th-editor"></content> 
+	    
+	</template>
+
+	<script>
+
+		Polymer('lens-viz-stacked-chart', {
+			chartData: [{label: 'medicaid', value: 20, display_value: '', color:'', offset: 0},{label: 'gap', value: 40, display_value: '', color:'', offset: 0},{label: 'sub', value: 0.1, display_value: '', color:'', offset: 5}], 
+		  init: function() {
+		      var self = this;
+		      
+		      // setup dimensions
+		      self.dims = self.setupStackedDims(self);
+
+		      var margin = self.dims.margin,
+		          width = self.dims.width,
+		          height = self.dims.height,
+		          barWidth = self.dims.bar.width;
+
+		      self.MIN_BAR_HEIGHT = 5;
+		      var scaleHeight = height - (self.MIN_BAR_HEIGHT*self.chartData.length);
+
+		      // setup scales
+		      var scales = self.simpleScaleBuilder(width, scaleHeight, self.chartData),
+		      x = scales.x,
+		      y = scales.y;
+		      self.y = y;
+		      self.x = x;
+
+		      var total = 0;
+		      self.chartData.forEach(function(d) {
+		          d.offset = d.offset || 0;
+		          d.total = total;
+		          total+=parseFloat(d.value);
+		      });
+
+		      console.log(self.chartData);
+
+		      self.y.domain([0, total]); 
+			      
+		      // setup chart area
+		      var chart_svg = this.$.chart;
+		      self.svg = d3.select(chart_svg);
+
+
+		      self.container = self.svg.append('g');
+
+
+	      // set up initial state of data
+		      self.bars = this.container.selectAll('.bar').data(this.chartData).enter().append('rect');
+
+		      self.labels = this.container.selectAll('.label').data(this.chartData).enter()
+		      				.append('g')
+		      					.attr('transform',function(d) {
+						        	return 'translate(0,'+self.dims.height+')';}) 
+		      				.append('foreignObject')
+		      				.append('xhtml:div').style('opacity', 1);
+
+		      self.labelGroups = self.labels.select(function() {return this.parentNode.parentNode; }).attr('class','labelg');
+
+		      self.values = this.container.selectAll('.value').data(this.chartData).enter()
+		      				.append('g')
+		      					.attr('transform',function(d) {
+						        	var xx = self.dims.labels.containerWidth + self.dims.margin.label*2 + self.dims.bar.width;
+						        	//var xx = 0;
+						        	return 'translate('+xx+','+self.dims.height+')';}) 
+		      				.append('foreignObject')
+		      				.append('xhtml:div').style('opacity', 1);
+
+		      self.valueGroups = self.values.select(function() {return this.parentNode.parentNode; }).attr('class','valueg');
+
+
+		      self._setElementSizes();
+
+		      // first time size settings
+		      self.bars.attr('y', self.dims.height)
+			        .attr('height', 0);
+
+			  // self.labels.style('opacity', 0);
+
+			  // self.values.style('opacity', 0);
+	      
+
+		  },
+
+		  _setElementSizes: function() {
+
+		  	  var self = this;
+
+		      self.svg.attr('width', self.dims.width + self.dims.margin.left + self.dims.margin.right)
+		          .attr('height', self.dims.height + self.dims.margin.top + self.dims.margin.bottom);
+
+
+	        self.container.attr('transform', 'translate(' + self.dims.margin.left + ',' + self.dims.margin.top + ')');
+
+		  	  self.bars
+		        .attr("class", function(d,i){ return "bar data"+i; })
+		        .style('fill', function(d){ return d.color; })
+		        .style('stroke', function(d){ return d.color; });
+
+		      
+		      self.labels
+		        .attr("class", function(d,i){return "label wrapped-labels data"+i;})
+		      	.html(function(d) {return d.label;})
+		        .style('color', function(d){ return d.color; });
+
+					// for foreignObject
+					self.labels.select(function() {return this.parentNode; })
+		        .attr('width', self.dims.labels.containerWidth)
+		      	.attr('height', self.dims.labels.containerHeight);
+		        
+		      self.values
+		        .attr("class", function(d,i){return "value wrapped-values data"+i;})
+		        .html(function(d) {return d.display_value ? d.display_value : d.value ;})
+		        .style('color', function(d){ return d.color; });
+
+		      // for foreignObject
+		      self.values.select(function() {return this.parentNode; })  
+		        .attr('width', self.dims.values.containerWidth) 
+		      	.attr('height',self.dims.values.containerHeight);
+		   
+		  },
+
+		  reset: function() {
+		      var self = this;
+		      var height= this.dims.height;
+
+		      self.bars.transition().duration(self.animationDelay).attr('y', height).attr('height', 0);
+		      self.labels.select(function() {return this.parentNode.parentNode; })
+		      	.transition().duration(self.animationDelay)
+		      		.attr('transform',function(d) {
+		      			var yPos = height + 10;
+						    return 'translate(0,'+yPos+')';
+						  });
+		      self.values.select(function() {return this.parentNode.parentNode; })
+		      	.transition().duration(self.animationDelay)
+		      		.attr('transform',function(d) {
+			        	var xPos = self.dims.labels.containerWidth + self.dims.margin.label*2 + self.dims.bar.width;
+			        	var yPos = height + 10;
+			        	return 'translate('+xPos+','+yPos+')';
+			        });
+		  },
+
+		  resize: function() {
+
+
+		      var self = this;
+		      self.dims = self.setupStackedDims(self);
+
+		      var scaleHeight = self.dims.height - (self.MIN_BAR_HEIGHT*self.chartData.length);
+		      var scales = self.simpleScaleBuilder(self.dims.width, scaleHeight, self.chartData),
+		      x = scales.x,
+		      y = scales.y;
+		      self.y = y;
+		      self.x = x;
+
+		      var total = 0;
+		      self.chartData.forEach(function(d) {
+		          d.offset = d.offset || 0;
+		          d.total = total;
+		          total+=parseFloat(d.value);
+		      });
+
+		      self.y.domain([0, total]); 
+
+		      self._setElementSizes();
+
+		      self.animate();
+
+		  },
+
+		  updateData: function() {
+
+		  	  var self = this;
+
+		  	  var scaleHeight = self.dims.height - (self.MIN_BAR_HEIGHT*self.chartData.length);
+		      var scales = self.simpleScaleBuilder(self.dims.width, scaleHeight, self.chartData);
+
+		      var x = scales.x;
+		      var y = scales.y;
+
+		      // is there a better way than exposing these?!
+		      self.y = y;
+		      self.x = x;
+
+		      var width = self.dims.width,
+		      	 height = self.dims.height;	  	  
+
+				  self.bars = self.container.selectAll('.bar').data(self.chartData);
+				  self.labelGroups = self.container.selectAll('.labelg').data(self.chartData);
+				  self.labels = self.container.selectAll('.label').data(self.chartData);
+				  self.valueGroups=self.container.selectAll('.valueg').data(self.chartData);
+				  self.values=self.container.selectAll('.value').data(self.chartData);
+
+		  	  if(self.dataLength!=self.chartData.length) {
+
+		  	  	  self.dataLength = self.chartData.length;
+
+						  self.dims.barWidth = Math.min(70,((self.dims.width / self.dataLength)/(1+self.dims.barGap)));
+
+				      self.bars.enter().append('rect').attr('class','bar')
+				      	.attr('height', 0);
+
+			      	self.labelGroups.enter()
+		      				.append('g').attr('class','labelg')
+		      					.attr('transform',function(d) {return 'translate(0,'+height+')'; } )
+		      				.append('foreignObject')
+		      				.append('xhtml:div').attr('class', function(d,i){ return "label wrapped-labels data"+i;});
+		      				
+			      	self.valueGroups.enter()
+			      		   .append('g').attr('class','valueg')
+				      		   .attr('transform',function(d) {
+							        	var xx = self.dims.labels.containerWidth + self.dims.margin.label*2 + self.dims.bar.width;
+							        	return 'translate('+xx+','+height+')'; 
+							        })
+		      				.append('foreignObject')
+		      				.append('xhtml:div').attr("class", function(d,i){return "value wrapped-values data"+i;});
+		      				
+
+				      self.bars.exit().transition().duration(1000).attr('height', 0).attr('y', height).style('opacity', 0).remove();
+				      self.labelGroups.exit().transition().duration(1000).style('opacity', 0).remove();
+				      self.valueGroups.exit().transition().duration(1000).style('opacity', 0).remove();
+				      
+
+			    }
+
+			    //resize is needed to recalculate the total and set domain
+			    self.resize();
+
+		      // this is independent of size but dependent on data
+		      self.labels.html(function(d) {return d.label;});
+		      self.values.html(function(d) {return d.display_value ? d.display_value : d.value ;});
+		  },
+		  
+		  animate: function() {
+            var self = this;
+		        var y = self.y;
+		        console.log("stacked animate");
+		        self.bars.transition().duration(self.animationDelay)
+			        .attr('x', self.dims.width/2 - self.dims.bar.width/2)
+			        .attr('width', self.dims.bar.width)
+			        .attr('y', function(d,i) {return y(d.total)+(i*self.MIN_BAR_HEIGHT)})
+			        .attr('height', function(d) {return (y(d.value)+self.MIN_BAR_HEIGHT)});
+
+		        // self.labels//transition()//.duration(self.animationDelay)
+		        // .style('opacity', 1);
+
+		        self.labels.select(function() {return this.parentNode.parentNode; })
+			        .transition().duration(self.animationDelay)
+			        .attr('transform',function(d,i) {
+			        	var yPos = y(d.total) - d.offset+(i*self.MIN_BAR_HEIGHT);
+			        	return 'translate(0,'+yPos+')'; } );
+		        
+		        // self.values//transition()//.duration(self.animationDelay)
+		        // .style('opacity', 1);
+		        
+		        self.values.select(function() {return this.parentNode.parentNode; })
+		        .transition().duration(self.animationDelay)
+		        .attr('transform',function(d,i) {
+		        	var yPos = y(d.total) - d.offset +(i*self.MIN_BAR_HEIGHT);
+		        	var xPos = self.dims.labels.containerWidth + self.dims.margin.label*2 + self.dims.bar.width;
+		        	return 'translate('+xPos+','+yPos+')'; 
+		        });
+		        
+
+		  },
+		  chartSpecificDataValidate: function() {
+
+          var errors = [],
+              numOfSets = this.chartData.length;
+
+          // There should be at least one set.
+          if(numOfSets === 0) {
+            errors.push({input: numOfSets, msg: 'Please include at least one value and label.'});
+          } else {
+            for (var i=0; i < numOfSets; i++){
+          		
+              // Each set should have a value.
+              if (!this.chartData[i].value){ 
+            		errors.push({ input: this.chartData, msg: 'You must include a value for each set.'});
+          		} 
+
+              // There cannot be negative numbers.
+              if (this.chartData[i].value < 0){
+                errors.push({ input: this.chartData, msg: 'You cannot have any negative values.'}); 
+              }
+          		
+              // Each set should have a label.
+              if (!this.chartData[i].label){ 
+          			errors.push({ input: this.chartData, msg: 'You must include an label for each value.'});	
+          		}
+          		
+            }
+        	}
+        
+          return errors;
+          },
+
+          getMetaData: function() {
+          	return {
+						  "name": "lens-viz-stacked-chart",
+						  "description": "Thelma stacked chart",
+						  "category":"chart",
+						  "version": "0.0.1",
+						  "thumbnail":"stacked.jpg", 
+						  "tags":["chart", "column", "animated"],
+						  "inputAttr": {
+						    "chartData":{"friendly":"Data", "type":"table-repeating","rows":2, 
+						      "fields":{
+						        "label":{"friendly":"Label", "type":"string", "default":"Player"},
+						        "value":{"friendly":"Value", "type":"int", "default":15},
+						        "display_value":{"friendly":"Display Value", "type":"string", "default":""},
+						        "color":{"friendly":"Color", "type":"colorPicker", "default":"", "optional":true}
+						      },
+						      "default":[
+						      {"label": "medicaid", "value": 20, "color":""},
+						      {"label": "gap", "value": 40, "color":""},
+						      {"label": "sub", "value": 10, "color":""}]
+						    }
+						  }
+						};
+          }
+		  
+		  
+		});
+
+	</script>
+</polymer-element>

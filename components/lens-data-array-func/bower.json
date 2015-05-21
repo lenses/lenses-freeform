@@ -1,0 +1,19 @@
+{
+  "name": "lens-data-array-func",
+  "version": "0.0.0",
+  "keywords": [
+    "seed",
+    "polymer",
+    "web-components"
+  ],
+  "main": "lens-data-array-func.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.5.5",
+    "lodash": "lodash#~3.5.0",
+    "core-selector": "polymer/core-selector#~0.5.5",
+    "core-component-page" : "Polymer/core-component-page#^0.5.5"
+  },
+  "devDependencies": {
+    "web-component-tester": "Polymer/web-component-tester#^2.2.6"
+  }
+}

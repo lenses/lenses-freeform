@@ -1,0 +1,20 @@
+{
+  "name": "lens-input-csv",
+  "keywords": "lenses, polymer, web-components",
+  "main": "lens-input-csv.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.5.5",
+    "core-input": "polymer/core-input#~0.5.5",
+    "d3": "latest"
+  },
+  "homepage": "https://github.com/lenses/lens-input-csv",
+  "_release": "9b6d3e7b93",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "9b6d3e7b9393cac52b64bb43918ee323f20d1e56"
+  },
+  "_source": "git://github.com/lenses/lens-input-csv.git",
+  "_target": "*",
+  "_originalSource": "lenses/lens-input-csv"
+}

@@ -1,0 +1,155 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../core-selector/core-selector.html">
+<link rel="import" href="../core-selector/core-selector.html">
+
+
+<!--
+A data component with map, reduce, reduceRight and filter functions.
+
+##### Example
+
+    <lens-data-array-func></lens-data-array-func>
+
+@element lens-data-array-func
+@blurb A data component with map, reduce and filter functions.
+@status alpha
+@homepage http://lenses.github.io/lens-data-array-func
+-->
+<polymer-element name="lens-data-array-func" attributes="input output functionName functionContent">
+
+  <template>
+    <link rel="stylesheet" href="lens-data-array-func.css">
+
+    <div class="lens-container lens-data">
+
+          <label>function: </label>
+          <core-selector id="selectedFunc" selected="{{functionName}}" valueattr="label">
+            <template repeat="{{func in _functions}}">
+              <div label="{{func.name}}" class="item">{{func.name}}</div>
+            </template>
+
+          </core-selector>
+
+
+          <div class="error">{{displayError}}</div>
+          <span class="func-signature code">
+          {{_signature}}
+          </span>
+      <!--     <textarea id="map_function" value="{{functionContent}}"></textarea>
+       -->
+          <textarea value="{{functionContent}}" class="code" placeholder="enter map function" rows="4">></textarea>
+          <span class="func-temppate"> } </span>
+
+    </div>
+
+  </template>
+
+  <script src="../lodash/lodash.js"></script>
+
+  <script>
+
+    Polymer('lens-data-array-func', {
+
+      /**
+       * Input data
+       *
+       * @property input
+       * @type Array
+       * @default null
+       */
+      input: null,
+      /**
+       * Output data
+       *
+       * @property output
+       * @type Array
+       * @default null
+       */
+      output: null,
+      observe: {
+        functionContent: 'functionChanged',
+        input: '_calculateOutput',
+        functionName: 'functionChanged'
+        //output: '_calculateOutput'
+      },
+      _functions: [
+        { name: 'map', signature: 'function(current, index, array ) {', func: [].map , params: ['current', 'index', 'array'] },
+        { name: 'reduce', signature: 'function(previous, current, index, array ) {', func: [].reduce , params: ['previous','current', 'index', 'array'] },
+        { name: 'reduceRight', signature: 'function(previous, current, index, array ) {', func: [].reduceRight , params: ['previous','current', 'index', 'array'] },
+        { name: 'filter', signature: 'function(current) {', func: [].filter , params: ['current'] }
+      ],
+      _funcNames: ['map', 'reduce', 'reduceRight', 'filter'],
+      _function: undefined,
+      error: '',
+      displayError: '',
+      /**
+       *  functionName is a string that can be 'map', 'reduce', 'reduceRight' or 'filter'.
+       *  This determines the behavior of the array function.
+       *  
+       *  @property functionName
+       *  @type String
+       *  @default 'map'
+       */
+      functionName: 'map',
+      _functionIndex: 0,
+      domReady: function() {
+        var self = this;
+
+        self._signature = self._functions[self._functionIndex].signature;
+      },
+
+      functionChanged: function() {
+          var self = this;
+          self._functionIndex = self._funcNames.indexOf(self.functionName);
+
+          self._signature = self._functions[self._functionIndex].signature;
+          try {
+            self._function = new Function(self._functions[self._functionIndex].params, self.functionContent); //newFunction; //created by eval 
+          }
+          catch(e) {
+            self.error = e.message;
+            return;
+          }
+          self.error = '';
+          if(self.input) {
+            self._calculateOutput();
+          }
+
+      },
+      errorChanged: function() {
+        var self = this;
+        if(self.error.length==0) {
+          self.displayError = '';
+          return;
+
+        }
+        clearTimeout(self._timeOut);
+        self._timeOut = setTimeout(function() {
+          if(self.error.length>0) {
+            self.displayError = self.error;
+          }
+
+        }, 1000);
+      },
+
+      _calculateOutput: function() {
+        var self = this;
+        var temp = _.clone(self.input);
+        if(self._function==undefined) {
+          return;
+        }
+        try {
+          self.output = self._functions[self._functionIndex].func.call(temp, self._function); //temp.map(self._function);
+        }
+        catch(e) {
+          self.error = e.message;
+          return;
+        }
+        self.error = '';
+      }
+
+    });
+
+  </script>
+
+</polymer-element>

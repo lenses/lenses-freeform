@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <title>lens-viz-g-regions Demo</title>
+
+  <script src="../webcomponentsjs/webcomponents.js"></script>
+  <link rel="import" href="lens-viz-g-regions.html">
+
+</head>
+  
+  <style>
+    body {
+      font-family: arial;
+      background-color: #303B49;
+      color: #FFF;
+    }
+  </style>
+<body unresolved>
+
+  <p>An `lens-viz-g-regions` looks like this:</p>
+
+  <lens-viz-g-regions></lens-viz-g-regions>
+    
+</body>
+  <script> 
+    document.addEventListener('polymer-ready', function() {
+        var chart = document.querySelector('lens-viz-g-regions'); 
+        document.addEventListener('google-chart-render', function() {
+          console.log('changing selection');
+          chart.selection = [{row: 1, column: null}];
+        })
+        document.addEventListener('google-chart-select', function(e) {
+          console.log(e);
+          console.log(chart.selection);
+        })
+
+
+
+    })
+  </script>
+</html>

@@ -1,0 +1,144 @@
+<link rel="import" href="../polymer/polymer.html"> 
+<link rel="import" href="../core-selector/core-selector.html">
+<link rel="import" href="../lens-u-data-utility/lens-u-data-utility.html">
+
+<!--
+A Thelma component for sorting data by a column's values. Can sort both text and numbers in ascending or descending order.
+
+##### Example
+
+    <lens-data-sort></lens-data-sort>
+
+@element lens-data-sort
+@blurb Sort data by the values of a column.
+@status alpha
+@homepage http://lenses.github.io/lens-data-sort
+-->
+
+<polymer-element name="lens-data-sort" attributes="input output sortColumn sortType">
+  <template>
+    <link rel="stylesheet" href="lens-data-sort.css">
+
+    <lens-u-data-utility id="data_utility"></lens-u-data-utility>
+
+    <div class="lens-container lens-data">
+        <p class="info">Sort rows.</p>
+        <label for="func_selector">Sort by column:</label>
+        <core-selector id="value_selector" selected="{{sortColumn}}" valueattr="label">
+          <template repeat="{{attr in _dataAttributes}}">
+            <div class="col" label="{{attr}}">{{attr}}</div>
+          </template>
+        </core-selector>
+        <label for="sort_selector">Sort order:</label>
+        <core-selector id="func_selector" id="" selected="{{sortType}}" valueattr="label">
+            <div class="col" label="asc">Ascending</div>
+            <div class="col" label="desc">Descending</div>
+        </core-selector>
+    </div>
+
+  </template>
+
+  <script src="../lodash/lodash.js"></script>
+
+  <script>
+    Polymer({
+
+      /**
+       *  Input data
+       *
+       *  @property input
+       *  @type object
+       *  @default undefined
+       */
+
+      /**
+       *  Output data
+       *
+       *  @property output
+       *  @type object
+       *  @default undefined
+       */
+
+      /**
+       *  sortType is either 'asc' (ascending) or 'desc' (descending).
+       *
+       *  @property sortType
+       *  @type String
+       *  @default 'asc'
+       */
+      sortType: 'asc',
+
+      /**
+       *  sortColumn is the name of the column that will be used to sort the array of data.
+       *
+       *  @property sortColumn
+       *  @type String
+       */
+
+      ready: function () {
+        //open the collapse if it the component is included
+        if(this.included && !this.$.ctrl_collapse.opened) {
+          this.$.ctrl_collapse.toggle();
+        }
+      },
+
+      inputChanged: function() {
+
+          var self = this;
+          var firstItem = self.input[0];
+          if(!firstItem) {
+            return;
+          }
+          var attributes = Object.keys(firstItem);
+          
+          if(JSON.stringify(self._dataAttributes) === JSON.stringify(attributes) ) {
+            //self._mapChartData();
+          }
+          else {
+            self._dataAttributes = attributes;
+          }
+
+          self._calculateOutput();
+
+      }, 
+
+      _calculateOutput: function() {
+
+        var self = this;
+        if(self.sortColumn)
+        {
+            self.output = _.sortBy(self.input, function(item) {
+              var value = item[self.sortColumn];
+              var isDate = self.$.data_utility.parseDate(value);
+              if(isDate) {
+                return isDate;
+              }
+              var numeric = self.$.data_utility.unformatStringIfNumeric(value);
+              return numeric;
+
+              
+            });
+            if(self.sortType==='desc') {
+              self.output.reverse();
+            }
+
+        }
+
+      },
+
+      sortColumnChanged: function(e) {
+        
+        var self= this;
+        self._calculateOutput();
+
+      },
+      sortTypeChanged: function(e) {
+        
+        var self= this;
+        self._calculateOutput();
+      },
+
+    });
+
+  </script>
+</polymer-element>

@@ -1,0 +1,115 @@
+<!doctype html>
+<html>
+<head>
+  <title>lens-u-data-utility</title>
+
+  <script src='../../webcomponentsjs/webcomponents.js'></script>
+  <script src='../../web-component-tester/browser.js'></script>
+
+  <link rel='import' href='../lens-u-data-utility.html'>
+
+</head>
+<body>
+
+  <lens-u-data-utility id='data-utility'></lens-u-data-utility>
+
+  <script>
+    var should = chai.should();
+    var component = document.querySelector('lens-u-data-utility');
+
+    // some input data
+    var input = new Object([
+      {"index":1, "text":"Texas","dollar":"$139,000","text_number":"125 1ST ST","percent":"12.2%","date":"2-12-2015","date_unformat":"2-12-2015","billion":"1.2B"},
+      {"index":2, "text":"Vermont","dollar":"$15,300","text_number":"$126,000 Reward","percent":"0.6%","date":"2-12-2010","date_unformat":"12/25/1995","billion":".2B"},
+      {"index":3, "text":"New York","dollar":"$205,800","text_number":"2nd Place","percent":"1.5%","date":"5-12-2015","date_unformat":"February 20, 2015","billion":"1.2B"},
+      {"index":4, "text":"New Mexico","dollar":"$1,180,700","text_number":"only text","percent":"1.5%","date":"12-12-2012","date_unformat":"Jan 20, 2015","billion":"0.5B"},
+      {"index":5, "text":"California","dollar":"$188,400","text_number":"$ value","percent":"-0.4%","date":"1-1-2015","date_unformat":"3-3-2015","billion":"11B"},
+      {"index":6, "text":"Alaska","dollar":"$145,900","text_number":"Q3 2012","percent":"3.3%","date":"10-30-1915","date_unformat":"4/4/2015","billion":"9B"}
+      ]);
+
+    // testing suite
+    suite('<lens-u-data-utility>', function() {
+
+      test('component can be created as an object', function(done) {
+        should.exist(component);
+        done();
+      });
+
+      var ret, ret2;
+
+      test('unformatStringIfNumeric returns a number from a string if there are any numeric values present', function(done) {
+        ret = component.unformatStringIfNumeric('1000');
+        ret.should.equal(1000);
+        ret = component.unformatStringIfNumeric('abc');
+        ret.should.equal('abc');
+        ret = component.unformatStringIfNumeric('12th');
+        ret.should.equal(12);
+        ret = component.unformatStringIfNumeric('hello number nine');
+        ret.should.equal('hello number nine');
+        ret = component.unformatStringIfNumeric('hello numb3r nine');
+        ret.should.equal(3);
+        done();
+      });
+
+      test('parses dates as momentJS objects, otherwise returns null', function(done) {
+        ret = component.parseDate('10/20/2000');
+        ret2 = component.parseDate('Jan 1, 2005');
+        expect(ret._isAMomentObject).to.equal(true);
+        var ret3 = component.parseDate('Jan 100, 2005');
+        expect(ret3).to.equal(null);
+        done();
+      });
+
+      test('dates can be compared', function(done) {
+        expect(ret.isBefore(ret2)).to.equal(true);
+        done();
+      });
+
+      test('determines whether a column is numeric', function(done) {
+        ret = component.isColumnNumeric(input, 'dollar');
+        expect(ret).to.equal(true);
+        ret = component.isColumnNumeric(input, 'text');
+        expect(ret).to.equal(false);
+        ret = component.isColumnNumeric(input, 'date');
+        expect(ret).to.equal(true);
+        ret = component.isColumnNumeric(input, 'percent');
+        expect(ret).to.equal(true);
+        ret = component.isColumnNumeric(input, 'text_number');
+        expect(ret).to.equal(false);
+        done();
+      });
+
+      test('determines whether arrays are equal', function(done) {
+        var array1 = [1, 2, 3];
+        var array2 = [1, 2, 3];
+
+        ret = component.arraysEqual(array1, array2);
+        expect(ret).to.equal(true);
+
+        array2 = [1, 2, 3, 4];
+        ret = component.arraysEqual(array1, array2);
+        expect(ret).to.equal(false);
+
+        array2 = [1, 2, "3"];
+        ret = component.arraysEqual(array1, array2);
+        expect(ret).to.equal(false);
+
+        array2 = [1.1, 2, 3];
+        ret = component.arraysEqual(array1, array2);
+        expect(ret).to.equal(false);
+
+        done();
+      });
+
+      test('unformats object', function(done) {
+        ret = component.unformatObject(input[0]);
+        expect(typeof ret.dollar).to.equal('number');
+        expect(ret.dollar).to.equal(139000);
+        done();
+      });
+
+    });
+  </script>
+
+</body>
+</html>

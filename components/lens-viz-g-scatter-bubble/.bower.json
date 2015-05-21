@@ -1,0 +1,26 @@
+{
+  "name": "lens-viz-g-scatter-bubble",
+  "keywords": [
+    "lenses",
+    "polymer",
+    "web-components"
+  ],
+  "main": "lens-viz-g-scatter-bubble.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.5.1",
+    "th-animated": "thelmanews/th-animated",
+    "google-chart": "lenses/google-chart#master",
+    "lens-u-data-selector": "lenses/lens-u-data-selector",
+    "lens-u-data-utility": "lenses/lens-u-data-utility"
+  },
+  "homepage": "https://github.com/lenses/lens-viz-g-scatter-bubble",
+  "_release": "7e700b6fd1",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "7e700b6fd1301027fb43eff767dbd61f93f94ad4"
+  },
+  "_source": "git://github.com/lenses/lens-viz-g-scatter-bubble.git",
+  "_target": "*",
+  "_originalSource": "lenses/lens-viz-g-scatter-bubble"
+}

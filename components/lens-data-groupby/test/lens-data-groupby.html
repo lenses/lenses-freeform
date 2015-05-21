@@ -1,0 +1,95 @@
+<!doctype html>
+<html>
+<head>
+  <title>lens-data-groupby</title>
+
+  <script src='../../webcomponentsjs/webcomponents.js'></script>
+  <script src='../../web-component-tester/browser.js'></script>
+
+  <link rel='import' href='../lens-data-groupby.html'>
+
+</head>
+<body>
+
+  <lens-data-groupby id='data-groupby'></lens-data-groupby>
+
+  <script>
+    var should = chai.should();
+    var component = document.querySelector('lens-data-groupby');
+
+    // some input data
+    var input = new Object([
+      {"index":1, "state":"Texas","dollar":"$139,000", "date":"1-2-1910"},
+      {"index":2, "state":"Texas","dollar":"$15,300", "date":"2-12-2010"},
+      {"index":3, "state":"New York","dollar":"$205,800","date":"5-12-2015"},
+      {"index":4, "state":"New York","dollar":"$1,180,700","date":"12-12-2012"},
+      {"index":5, "state":"Texas","dollar":"$188,400","date":"1-1-2015"},
+      {"index":6, "state":"Alaska","dollar":"$145,900","date":"1-2-1910"}
+      ]);
+
+    // testing suite
+    suite('<lens-data-groupby>', function() {
+
+      test('component can be created and exist', function(done) {
+        should.exist(component);
+        done();
+      });
+
+      test('accepts input', function(done) {
+        component.input = input
+        component.input.should.equal(input);
+        done();
+      });
+
+      test('changing groupByColumn generates output', function(done) {
+        component.groupByColumn = 'index';
+        flush(function(){
+          component.output.length.should.equal(6);
+          done();
+        });
+      });
+
+      test('changing groupByColumn again generates new output', function(done) {
+        component.groupByColumn = 'state';
+        flush(function(){
+          component.output.length.should.equal(3);
+          var expected = [{"label":"Texas","value":3},{"label":"New York","value":2},{"label":"Alaska","value":1}];
+          for (var i = 0; i < component.output.length; i++) {
+            component.output[i].label.should.equal(expected[i].label);
+            component.output[i].value.should.equal(expected[i].value);
+          }
+          done();
+        });
+      });
+
+      test('output can be sorted ascending order', function(done) {
+        component.sortValues = 'asc';
+        flush(function(){
+          var expected = [{"label":"Alaska","value":1},{"label":"New York","value":2},{"label":"Texas","value":3}];
+          for (var i = 0; i < component.output.length; i++) {
+            component.output[i].label.should.equal(expected[i].label);
+            component.output[i].value.should.equal(expected[i].value);
+          }
+          done();
+        });
+      });
+
+      test('output can aggrFunction and aggrFuncOnColumn', function(done) {
+        component.aggrFunction = 'max';
+        component.aggrFuncOnColumn = 'dollar';
+        flush(function(){
+          var expected = [{"label":"Alaska","value":145900},{"label":"Texas","value":188400},{"label":"New York","value":1180700}];
+          for (var i = 0; i < component.output.length; i++) {
+            component.output[i].label.should.equal(expected[i].label);
+            component.output[i].value.should.equal(expected[i].value);
+          }
+          done();
+        });
+      });
+
+  });
+
+  </script>
+
+</body>
+</html>

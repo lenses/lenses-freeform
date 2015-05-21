@@ -1,0 +1,92 @@
+<!doctype html>
+<html>
+<head>
+  <title>core-data-formula</title>
+
+  <script src="../../webcomponentsjs/webcomponents.js"></script>
+  <script src="../../web-component-tester/browser.js"></script>
+
+  <link rel="import" href="../lens-data-formula.html">
+
+</head>
+<body>
+
+  <lens-data-formula id="data-formula"></lens-data-formula>
+
+  <script>
+    var should = chai.should();
+    var component = document.querySelector("#data-formula");
+
+    // some input data
+    var input = new Object( [{a: 2, b: 5},{a: 6, b: 10} ] );
+
+
+    // testing suite
+    suite("<lens-data-formula>", function() {
+
+      test("component can be created as an object", function(done) {
+        should.exist(component);
+        done();
+      });
+
+      test("accepts input", function(done) {
+ 
+        // change input
+        component.input = input;
+
+        flush(function() {
+          component.input.should.equal(input);
+          done();
+        });
+      });
+
+      test("changing formula to \'a+b\' calculates proper output", function(done) {
+        component.formula = 'a + b';
+
+        flush(function() {
+
+          for (var i = 0; i < component.output.length; i++) {
+            var item = component.output[i];
+            item.result.should.eql(item.a + item.b);
+          }
+
+          done();
+        });
+
+      });
+
+      test("changing formula to \'sqrt( log(a) + atan(b) )\' calculates proper output ", function(done) {
+        component.formula = 'sqrt( log(a) + atan(b) )';
+
+        flush(function() {
+
+          for (var i = 0; i < component.output.length; i++) {
+            var item = component.output[i];
+            item.result.should.eql(Math.sqrt( Math.log(item.a) + Math.atan(item.b) ));
+          }
+
+          done();
+        });
+
+      });
+
+      test("changes resultColumnName ", function(done) {
+        component.resultColumnName = 'my cool formula';
+
+        flush(function() {
+
+          for (var i = 0; i < component.output.length; i++) {
+            var item = component.output[i];
+            Object.keys(item).should.eql(["a", "b", "my cool formula"]);
+          }
+
+          done();
+        });
+
+      });
+
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,1565 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../lens-data-table/lens-data-table.html">
+<link rel="import" href="../lenses-component-list/lenses-component-list.html">
+<link rel="import" href="../paper-input/paper-input.html">
+<link rel="import" href="../core-overlay/core-overlay.html">
+
+<polymer-element name="lenses-freeform" attributes="structure" on-keydown="{{keydownHandler}}" on-keyup="{{keyupHandler}}" on-mouseout="mouseoutHandler">
+
+  <template>
+    <link rel="stylesheet" href="lenses-freeform.css">
+
+    <div class="settings-slideout slideout right">
+
+      <span class="slideout-handle">settings</span>
+      <div class="slideout-inner">
+
+        <core-icon-button id="showDataBtn" class="active" icon="view-module" on-click="{{showDataBtn}}" alt="show component data">
+          <span>show component input/output</span>
+        </core-icon-button>
+        <!--
+        <core-icon-button id="saveBtn" icon="save" on-click="{{showSaveDialog}}" alt="save">
+        </core-icon-button>
+      -->
+      </div>
+    </div>
+
+
+    <div class="zoom-slideout slideout left">
+      <span class="slideout-handle">zoom</span>
+      <div class="slideout-inner">
+        <div id="zoomOptions">
+          <core-icon-button id="zoomInBtn" class="" icon="add" on-click="{{zoomIn}}">
+          </core-icon-button>
+          <br/>
+          <input is="core-input" id="zoomRange" type="range" value="{{_zoom}}" min="{{_zoomMin}}" max="{{_zoomMax}}" step="{{_zoomStep}}" style="width:25px" list=zoomsettings>
+          </input>
+          <datalist id="zoomsettings">
+            <option>1</option>
+            <option>0.8</option>
+            <option>0.6</option>
+          </datalist>
+          <br/>
+          <core-icon-button id="zoomOutBtn" icon="remove" on-click="{{zoomOut}}">
+          </core-icon-button>
+        </div>
+      </div>
+    </div>
+
+    <div class="component-slideout slideout right">
+      <span class="slideout-handle">components</span>
+      <div class="slideout-inner">
+        <label class="label">Drag components into canvas:</label>
+        <lenses-component-list id="component_list"></lenses-component-list>
+      </div>
+    </div>
+
+    <div class="output-slideout slideout right">
+      <span class="slideout-handle">output components</span>
+      <div class="slideout-inner">
+
+
+        <label class="label">Select output component:</label>
+
+        <template if="{{_elements.length===0}}">
+          <div>No component in canvas!</div>
+
+        </template> 
+
+        <core-selector class="output-selector" selected="{{_outputComponents}}" valueattr="label" multi="true">
+          <template repeat="{{el, index in _elements}}">
+            <div class="col" label="{{el.id}}">{{el.id}}</div>
+
+          </template> 
+
+        </core-selector>
+      </div>
+    </div>
+
+    <div id="input_preview" class="data-preview {{{visible: _showDataTable && _selElement.input && _selElement.input.length>0 } | tokenList }}">
+      <template if="{{_showDataTable && _selElement.input && _selElement.input.length>0}}">
+        <label>INPUT</label>
+        <lens-data-table id="input_table" input="{{_selElement.input}}" class="table"  minimal="true"></lens-data-table>
+      </template>
+    </div>
+
+    <div id="container"  on-mousedown="{{clickInContainer}}" on-drop="{{droppedInContainer}}" on-dragover="{{draggedOverContainer}}" on-mouseup="{{dragEndSVG}}" on-mousemove="{{dragSVG}}">
+<!--       <svg id="svg" style="z-index:1000;"></svg>
+ -->      <svg id="svg"></svg>
+
+
+      <!-- Components and connector dots --> 
+      <!--<template if="{{_positioned}}">-->
+
+        <template repeat="{{el, index in _elements}}">
+          <div class="wrapper {{el.name}}" id="wrapper-{{el.id}}" component-id="{{el.id}}" on-click="{{wrapperClicked}}" 
+          style="top: {{el.top}}px; left: {{el.left}}px; transform: {{el.transform}}; width: {{el.width}}px; height: {{el.height}}px" 
+          on-click="{{wrapperClicked}}" on-dragStart="{{dragStartWrapper}}" on-drag="{{dragWrapper}}" on-dragend="{{dragEndWrapper}}" draggable="true"><!-- on-mouseover="{{dragOverWrapper}}" on-drop="{{droppedOnInArrow}}" needed? -->
+
+          
+            <label>{{el.id}}</label>
+            <div  class="deleteEl" component_id="{{el.element.id}}" on-click="{{_deleteElementEvent}}">X</div>
+             
+            <div class="connectors-in" >
+              <!-- Input -->
+              
+              <ul>
+                <template repeat="{{ins in el.element.publish | _checkForInputAttr}}">
+                     
+                    <li class="{{el.element.id}}-{{ins}} arrow in-arrow" on-dragover="{{dragOverInArrow}}" 
+                    on-drop="{{droppedOnInArrow}}" on-dragenter="{{dragEnterInArrow}}" on-dragleave="{{dragLeaveInArrow}}" on-click="{{arrowClicked}}">
+                      <div class="inputMarker">
+                        <div class="delete" on-click="{{deleteConnection}}">x</div>
+                        <span class="drop-zone">{{ins}}</span>
+                      </div>
+                    </li>
+                </template>
+              </ul>
+
+              <!-- Output -->
+            </div>
+            <!-- for components with settings (all non-resizables?) -->
+            <template if="{{!el.resizable}}">
+              <core-icon-button icon="settings" class="setting-btn {{ {open: el.settingOpen } | tokenList}}"
+                                collapse-id="collapse-{{el.id}}" component-id="{{el.id}}"
+               on-click="{{toggleSetting}}"></core-icon-button>
+            </template>
+            <!-- for resizable components-->
+            <template if="{{el.resizable}}">
+                <content select="#{{el.id}}"></content>
+            </template>
+            <div class="connectors-out" >
+              <template if="{{el.element.publish | _checkForOutputAttr}}">
+                <div id="{{index}}"  class="{{el.element.id}} arrow out-arrow" 
+                  on-drag="{{dragOutArrow}}" on-dragstart="{{dragOutArrowStart}}" on-dragend="{{dragOutArrowEnd}}"  
+                   on-click="{{arrowClicked}}" draggable="true">
+                  <div class="outputMarker"></div>
+                </div>
+              </template>
+              
+            </div>
+            <template if="{{el.resizable}}">
+              <div class="resize" draggable="true" on-dragStart="{{dragStartResize}}" on-drag="{{dragResize}}" on-dragend="{{dragEndResize}}"></div>
+            </template>
+          
+          </div>
+
+           <template if="{{!el.resizable}}">
+              <core-collapse class="settings-collapse" id="collapse-{{el.id}}" opened="{{el.settingOpen}}"
+                style="top: {{el.top+35}}px; left: {{el.left}}px; transform: {{el.transform}}; width: {{el.width}}px; height: {{el.height}}px">
+                <content select="#{{el.id}}"></content>
+              </core-collapse>
+           </template>
+
+        </template>
+    </div> 
+
+    <div id="output_preview" 
+         class="data-preview {{{visible: _showDataTable && _selElement.output && _selElement.output.length>0 } | tokenList }}">
+      <template if="{{_showDataTable && _selElement.output && _selElement.output.length>0}}">
+        <label>OUTPUT</label>
+        <lens-data-table id="output_table" input="{{_selElement.output}}" class="table"  minimal="true"></lens-data-table>
+      </template>
+    </div>       
+
+    <core-overlay autoCloseDisabled id="deleteDialog" class="dialog size-position">
+      <p>Are you sure you want to remove the selected item?</p>
+      <div horizontal end-justified layout>
+        <core-icon-button icon="clear" dismissive on-click="{{_noDelete}}" ></core-icon-button>
+        <core-icon-button icon="check" affirmative on-click="{{_yesDelete}}" ></core-icon-button>
+      </div>
+    </core-overlay>
+
+    <!-- Title and Author fields + save action in dialog-->
+    <core-overlay class="dialog" id="savedetails">
+      <h1><paper-input label="Title of Lens" value="{{lensTitle}}"></paper-input></h1>
+      <h3><paper-input label="Your Name" value="{{lensAuthor}}"></paper-input></h3>
+      <core-icon-button class="save" affirmative icon="check"  ng-click="saveLens()" on-click="{{_saveLens}}" ></core-icon-button>
+      <core-icon-button class="" dismissive icon="clear"></core-icon-button> 
+    </core-overlay>
+
+
+  </template>
+  <script>
+    Polymer({
+
+      _elements: [],
+      _connections: [],
+
+      _selElement: null,
+      _selWrappers: [],
+      _highlightedConnection: null,
+
+      /**
+       * components which are saved for creating view
+       */
+      _outputComponents: [],
+
+      _snapX: 10,
+      _snapY: 10,
+      _showDataTable: true,
+
+      _zoom: 1,
+      _zoomMax: 1,
+      _zoomMin: 0.6,
+      _zoomStep: 0.2,
+
+      /**
+       * An attribute to assign lens component structure. Needed for framework (e.g. Angular) integration
+       * @type {Object}
+       */
+      structure: null,
+
+      // if dragging in container, drag area allows selection of multiple elements
+      _makeDragArea: false,
+
+      // svg rect of drag area
+      _dragArea: null,
+
+      // state to determine whether we are selecting or de-selecting elements during multi-drag
+      _selectingElByDrag: false,
+
+      // which keys are down
+      _hotKeys: { 
+        '18' : false, // 18 = option
+        '16' : false, // 16 = shift
+        '17' : false, // 17 = control
+        '91' : false  // 91 = command
+       },
+
+      observe: {
+        structure: 'scaffold'
+      },
+
+      // if delete = true when deleteDialog is closed, it will call _deleteCallback()
+      _deleteCallback: null,
+
+      domReady: function() {
+
+        this.addEventListener('core-resize', function() {
+          this._drawConnections();
+        });
+
+        this.$.zoomRange.value = this._zoom;
+
+      },
+
+      ready: function() {
+        this.focus();
+        this.tabIndex = 0;
+
+        // for testing:
+        // window.ff = this;
+      },
+
+      addNewElToLens: function(newElName, left, top){
+        var newEl = document.createElement(newElName);
+
+        this.$.component_list.checkAndImport(newEl, function() {
+
+          newEl.style.width = '100%';
+          newEl.style.height = '100%';
+
+          this.appendChild(newEl);
+
+          this._processNewElement(newEl, top/this._zoom, left/this._zoom);
+
+        }.bind(this));
+
+
+      },
+
+      _processNewElement: function(newEl, top, left) {
+
+        newEl.id = this._generateUniqueId(newEl.tagName.toLowerCase());
+
+        var elItem = {  element: newEl, 
+                                      id: newEl.id,
+                                      name: newEl.tagName.toLowerCase(), 
+                                      top: top,
+                                      left: left,
+                                      //trying to use transform instead of top/left
+                                      //transform: 'translate(' + top + 'px, ' + left + 'px)' 
+                                  };
+
+
+        var info = this.$.component_list.getComponentInfo(newEl.tagName.toLowerCase());
+
+        if(info.resizable || info.category==='visualize') {
+          elItem.resizable = true;
+          elItem.width = 250;
+          elItem.height = 200;
+        }
+
+        this._elements.push(elItem);
+
+      },
+
+      // when delete button is clicked
+      _deleteElementEvent: function(e) {
+
+        var self = this;
+        var compId = e.target.getAttribute('component_id');
+        self._deleteElementById(compId);
+
+      },
+
+      _deleteElementById: function(compId) {
+        var self = this;
+        var compId = compId;
+
+        self.$.deleteDialog.toggle();
+
+        // set the delete callback
+        self._deleteCallback = function() {
+
+          var ebmededEl = self.querySelector('#'+compId);
+          var elInArray = self.findElById(compId);
+
+          //remove all connections
+          self.removeAllConnectionsFromElement(compId)
+
+          // remove element from elements array (which removes it from the shadowDOM)
+          var filteredEls = self._elements.filter(function(el) {
+              return el.element.id!==compId;
+          });
+          self._elements = filteredEls;
+
+          // remove elements from lens-connector 
+          self.removeChild(embeddedEl);
+        }
+      },
+
+      removeAllConnectionsFromElement: function(elId) {
+
+        var goodConnections = this._connections.filter(function (conn, index) {
+          
+          //filter if element is source or target of a connection
+          return !(conn.source.id===elId || conn.target.id === elId)
+           
+        });
+
+        this._connections = goodConnections;
+
+        this._drawConnections();
+
+
+      },
+
+      // if option key was pressed, clone the element when drag is done
+      _cloneElement: function(e, detail, selection) {
+
+        // figure out the name of the element...
+        var componentId = selection.getAttribute('component-id');
+        var idSplit = componentId.split('-');
+        var elNameArray = [];
+        var elName = '';
+        for (var i = 0; i < idSplit.length; i++) {
+          if (isNaN(Number(idSplit[i])) ) {
+            elNameArray.push(idSplit[i])
+          }
+        }
+        elName = elNameArray.join('-');
+        this.addNewElToLens(elName, e.x, e.y);
+
+        var dx = e.x - (e.toElement.getAttribute('start-x') || 0),
+            dy = e.y - (e.toElement.getAttribute('start-y')|| 0);
+        console.log(dx, dy);
+
+
+        // if other wrappers were selected, also clone those
+        for (var i = 0; i < this._selWrappers.length; i++) {
+          var target = this._selWrappers[i];
+
+          if (target === e.toElement) {
+            return;
+          } else {
+            var orig = target.getBoundingClientRect();
+
+            // find each element's distance from the e.toElement
+            var x = (orig.left + dx)/this._zoom;
+            var y = (orig.top + dy)/this._zoom;
+            this.addNewElToLens(elName, x, y);
+          }
+        }
+
+      },
+
+      /********************** Event Handlers Start ********************************/
+
+      draggedOverContainer: function(e) {
+        // Needed to enable droppedInContainer
+        e.preventDefault();
+      },
+
+      droppedInContainer: function(e, detail, selection){
+
+        var self = this;
+
+        //dont know why this method is being called instead of resizedragend?!
+        if(e.path && e.path.length>0 &&  e.path[0].classList.contains('resize')>0) {
+          self.dragResizeEnd(e, detail, selection);
+
+        }
+
+        var dataTransfer = e.dataTransfer.getData('text/plain');
+
+        //data added by lenses-component-list //TODO make better
+        if(dataTransfer && dataTransfer.length>0) {
+          var dataSeg = dataTransfer.split(',');
+
+
+          if(dataSeg.length==1) {
+            self.addNewElToLens(dataSeg[0], Math.round(e.offsetX/10)*10 * self._zoom, Math.round(e.offsetY/10)*10 * self._zoom);
+
+            return;
+          } 
+
+        }
+
+      },
+
+      clickInContainer: function(e) {
+        var className = e.toElement.className;
+
+        if ( className.baseVal && className.baseVal.indexOf('cnxn') > -1 ) {
+          console.log('clicked on connection');
+          this.clickedOnConnection(e);
+        } else {
+          this._clearHighlightedConnections();
+        }
+
+        // start drag
+        if (e.target.id === 'container') {
+          this.dragStartSVG(e);
+        }
+      },
+
+      clickedOnConnection: function(e) {
+
+        var bezier = this.shadowRoot.querySelector('#'+e.toElement.id);
+        console.log(bezier);
+
+        if (String(bezier.classList).indexOf('highlight') > -1 ) {
+          // console.log('delete');
+          this._deleteBezier(e, bezier);
+        } else {
+          // if not highlighted, then highlight
+          this._clearHighlightedConnections();
+          bezier.classList.add('highlighted');
+          this._highlightedConnection = bezier;
+        }
+
+      },
+
+      _clearHighlightedConnections: function() {
+        if (this._highlightedConnection) {
+          this._highlightedConnection.classList.remove('highlighted');
+          this._highlightedConnection = null;
+        }
+      },
+
+      // clear all _selWrappers and _selElement
+      _clearSelElement: function() {
+        if(this._selWrappers) {
+          for (var i in this._selWrappers) {
+            this._selWrappers[i].classList.remove('selected-element');
+          }
+        }
+        this._selWrappers = [];
+        this._selElement = null;
+      },
+
+      dragStartResize: function(e, details, selection) {
+         e.stopPropagation();
+      },
+
+      dragResize: function(e, details, selection) {
+
+          var self = this;
+
+          var wrapper = selection.parentNode;
+          //var styles = window.getComputedStyle(wrapper);
+          // var wrapperTop = parseInt(styles.top.replace('px',''));
+          // var wrapperLeft = parseInt(styles.left.replace('px',''));
+
+          // var w =  e.x - wrapperLeft - 65,
+          //     h = e.y - wrapperTop - 172;
+
+          var wrapperTop = parseInt(wrapper.getBoundingClientRect().top),
+              wrapperLeft = parseInt(wrapper.getBoundingClientRect().left);
+          
+
+          var w =  e.x/this._zoom - wrapperLeft,
+              h = e.y/this._zoom - wrapperTop;
+
+
+          // wrapper.style.width = w +'px';
+          // wrapper.style.height = h +'px';
+
+          var elementInsideId = wrapper.getAttribute('component-id');//wrapper.id.replace('wrapper-','');
+          var elementInside = this.querySelector('#'+elementInsideId);
+
+          var element = this.findElById(elementInsideId);
+
+          element.width = w; 
+          element.height = h; 
+
+
+          self._drawConnections();
+
+          e.stopPropagation();
+          e.preventDefault();
+
+
+        },
+
+        dragResizeEnd: function(e, details, selection) {
+
+          var wrapper = null;
+
+          if(e.path && e.path.length>0 &&  e.path[0].classList.contains('resize')>0) {
+            
+            wrapper = e.path[0].parentNode;
+
+          }
+
+          var elementInsideId = wrapper.id.replace('wrapper-','');
+          var elementInside = this.querySelector('#'+elementInsideId);
+
+          if(typeof elementInside.resize ==='function') {
+            elementInside.resize();
+          }
+
+        },
+
+        // _dragClone: function(e, details, selection) {
+        //   // TO Do
+        //   console.log(e.target);
+        // },
+
+        dragStartWrapper: function(e, details, selection) {
+
+          var target = e.target;
+
+          // make this the _selElement and _selWrapper
+          this.wrapperClicked(e, details, selection);
+
+          // set start-x and start-y for all _selWrappers
+          for (var i = 0; i < this._selWrappers.length; i++) {
+            var wrapper = this._selWrappers[i];
+            
+            this._setWrapperDragStartingPoint(wrapper, e.x, e.y);
+
+          }
+
+          if (this._hotKeys['18']) {
+            // start dragging a clone
+            this._draggingClone = true;
+            return;
+          }
+
+          var dragImgEl = document.querySelector('#wrapper-drag-img'); 
+
+          if(!dragImgEl) {
+            
+            dragImgEl = document.createElement('span');
+            dragImgEl.setAttribute('style','opacity: 0;' );
+            dragImgEl.id = 'wrapper-drag-img';
+            dragImgEl.textContent = 'a';
+            document.body.appendChild(dragImgEl);
+
+
+
+          }
+          //keep dragImage outside the canvas
+          e.dataTransfer.setDragImage(dragImgEl,-2000,-2000);
+
+        },
+
+        // set starting position of a drag for any target, not based on an event. Called by dragStartWrapper
+        _setWrapperDragStartingPoint: function(target, x, y) {
+          target.setAttribute('start-x', x);
+          target.setAttribute('start-y', y);
+        },
+
+        dragWrapper: function(e, details, selection) {
+          if (this._hotKeys['18']) {
+            // dragging a clone
+            return;
+          }
+
+         if(e.path[0].classList && e.path[0].classList.length>0 && 
+            (e.path[0].classList.contains('resize') || e.path[0].classList.contains('arrow'))) {
+            return false;
+          }
+          var target = e.target;
+
+
+          for (var i = 0; i < this._selWrappers.length; i++) {
+            
+            var wrapper = this._selWrappers[i];
+
+            var dx = e.x/this._zoom - (wrapper.getAttribute('start-x')/this._zoom || 0),
+                dy = e.y/this._zoom - (wrapper.getAttribute('start-y')/this._zoom || 0);
+
+
+            this._updateWrapperLocation(e, wrapper, dx, dy);
+
+          }
+
+          this._drawConnections();
+        },
+
+        _updateWrapperLocation: function(e, target, dx, dy) {
+          // keep the dragged position in the data-x/data-y attributes, add snap residue from previous drag
+          var x = (parseFloat(target.getAttribute('data-x')) || 0) + dx + (parseFloat(target.getAttribute('residue-x')) || 0);
+          var y = (parseFloat(target.getAttribute('data-y')) || 0) + dy + (parseFloat(target.getAttribute('residue-y')) || 0);
+          var sx = Math.round(x/this._snapX)*this._snapX;
+          var sy = Math.round(y/this._snapY)*this._snapY;
+
+
+          target.setAttribute('residue-x', x - sx);
+          target.setAttribute('residue-y', y - sy);
+
+          // translate the element. 
+          // last dragMove call passes e.x=0 and e.y=0 which causes neg x,y values. this if avoids that
+          if(e.x!==0 ||  e.y!==0)
+          {
+
+
+            var componentId = target.getAttribute('component-id');
+
+            this.findElById(componentId).transform = 'translate(' + sx + 'px, ' + sy + 'px)';
+
+            // update the posiion attributes
+            target.setAttribute('data-x', sx);
+            target.setAttribute('data-y', sy);
+
+            target.setAttribute('start-x', e.x);
+            target.setAttribute('start-y', e.y);
+          }
+        },
+
+        dragEndWrapper: function(e, details, selection) {
+          // console.log('done dragging!');
+          if (this._draggingClone) {
+            this._draggingClone = false;
+            this._cloneElement(e, details, selection);
+            return;
+          }
+
+          //if resize is being dragged don't do anything (stopPropagation is not doing anything)
+          var target = e.target;
+          target.setAttribute('residue-x', 0 );
+          target.setAttribute('residue-y', 0);
+        },
+
+        wrapperClicked: function(e, detail, selection) {
+          var wrapperEl = selection;
+
+          var elementId = wrapperEl.id;
+          elementId = elementId.substring(8, elementId.length);
+
+          var el = this.findElById(elementId).element
+
+          if (this._selElement != el) {
+            console.log('change');
+            console.log(this._selElement );
+            console.log(el);
+
+            // unhighlight other selected element if this was not one of them
+
+            if ( wrapperEl.classList.contains('selected-element') ) {
+              console.log('already selected');
+            } else {
+              this._clearSelElement();
+              console.log('not already selected');
+            }
+
+            this._selElement = el;
+
+          }
+
+          if (this._selWrappers.indexOf(wrapperEl) === -1) {
+            wrapperEl.classList.add('selected-element');
+            this._selWrappers.push(wrapperEl);
+          }
+
+
+        },
+
+        // SVG drag events, also called on mousedown
+        dragStartSVG: function(e, details, selection) {
+          console.log('hi');
+          // clear this._selWrappers [TO DO: unless Shift is clicked]
+          this._selWrappers = [];
+
+          this._makeDragArea = true;
+          this._selectingElByDrag = false;
+
+          this._dragArea = this._createDragArea(e, details, selection);
+
+          this.$.svg.insertBefore(this._dragArea, this.$.svg.firstChild);
+        },
+
+        // called when makeDragArea is true
+        dragSVG: function(e, details, selection) {
+          if (this._makeDragArea) {
+            this._updateDragArea(e, this._dragArea);
+          }
+        },
+
+        // also called on mouseup
+        dragEndSVG: function(e, details, selection) {
+
+          if (!this._dragArea) {
+            return;
+          }
+
+          // remember the old sel el
+          var oldSelElement = this._selElement;
+
+          // dimension of the rectangle:
+          var dragRect = this._dragArea.getBoundingClientRect();
+
+          // find any elements that intersect with the drag area, sort out which are _selElement and _selWrappers
+          for (var i in this._elements) {
+            var el = this._elements[i];
+
+            var wrapperEl = this.shadowRoot.querySelector('#wrapper-' + el.id);
+
+            // get element dimensions
+            var elRect = wrapperEl.getBoundingClientRect();
+
+            // compare and if there is overlap, add class
+            var overlap = this._boundingRectOverlap(elRect, dragRect);
+
+            if (overlap) {
+              // select elements that overlap
+              if (this._selWrappers.indexOf(wrapperEl) < 0) {
+                this._selWrappers.push(wrapperEl);
+              }
+              wrapperEl.classList.add('selected-element');
+
+              // remember selected element if it overlaps
+              if (el.element === oldSelElement) {
+                this._selElement = el.element;
+              }
+            }
+            else {
+              // otherwise remove selection
+              if ( wrapperEl.classList.contains('selected-element') ){
+                wrapperEl.classList.remove('selected-element');
+              } if (this._selElement === el.element) {
+                this._selElement = null;
+              }
+            }
+
+          }
+
+          this._clearDragArea();
+        },
+
+        // helper method
+        _boundingRectOverlap: function(rect1, rect2) {
+          var overlap = !(rect1.right < rect2.left || 
+                          rect1.left > rect2.right || 
+                          rect1.bottom < rect2.top || 
+                          rect1.top > rect2.bottom)
+          return overlap;
+        },
+
+        // handle selecting elements by their wrapper during drag
+        dragOverWrapper: function(e, details, selection) {
+          // if (this._makeDragArea) {
+          //   if (!this._selectingElByDrag) {
+          //     this._selectingElByDrag = true;
+          //   }
+
+          //   console.log('drag over: ' + e.target.id);
+          // }
+        },
+
+        // create a rectangle to show drag area
+        _createDragArea: function(e) {
+          var x = e.x / this._zoom, y = e.y / this._zoom;
+          var svgns = "http://www.w3.org/2000/svg";
+          var rect = document.createElementNS(svgns, 'rect');
+          rect.setAttributeNS(null, 'opacity', 0.2);
+          rect.setAttributeNS(null, 'x', x);
+          rect.setAttributeNS(null, 'y', y);
+          rect.setAttributeNS(null, 'width', '0');
+          rect.setAttributeNS(null, 'height', '0');
+          rect.setAttributeNS(null, 'fill', '#D1D1D1');
+          rect.startX = x;
+          rect.startY = y;
+          return rect;
+        },
+
+        // update drag rectangle
+        _updateDragArea: function(e, rect) {
+          var svgns = "http://www.w3.org/2000/svg";
+          var startX = rect.startX;
+          var startY = rect.startY;
+          var deltaX = e.x/this._zoom - startX;
+          var deltaY = e.y/this._zoom - startY;
+
+          if (deltaX < 0) {
+            rect.setAttributeNS(null, 'x', startX + deltaX);
+            deltaX = Math.abs(deltaX);
+          }
+
+          if (deltaY < 0) {
+            rect.setAttributeNS(null, 'y', startY + deltaY);
+            deltaY = Math.abs(deltaY);
+          }
+
+          rect.setAttributeNS(null, 'width', deltaX);
+          rect.setAttributeNS(null, 'height', deltaY);
+        },
+
+        _clearDragArea: function() {
+          if (this._dragArea) {
+            this.$.svg.removeChild(this._dragArea);
+          }
+          this._makeDragArea = false;
+          this._dragArea = null;
+          //this.$.svg.innerHTML = '';
+        },
+
+        dragOutArrowStart: function(e, details, selection) {
+
+          this.draggedEl = selection;
+          //to stop wrapper drag to be called
+          e.stopPropagation();
+
+          if(!this.svgTop || !this.svgLeft) {
+
+            var svgRect = this.$.svg.getBoundingClientRect();
+            this.svgTop = svgRect.top;
+            this.svgLeft = svgRect.left;
+
+          }
+
+
+          this.startPointX = e.x/this._zoom - this.svgLeft;
+          this.startPointY = e.y/this._zoom - this.svgTop;
+
+          // create temp bezier
+          this._addBezierPath( this.startPointX , this.startPointY , this.startPointX , this.startPointY , 70, 'temp_path');
+          //this._addBezierPath( event.x0 , event.y0 , event.x0 , event.y0 , 70, 'temp_path');
+
+        },
+
+        dragOutArrow: function(e, details, selection) {
+
+          var tempPath = this.shadowRoot.querySelector('#temp_path');
+
+          // the last dragMove call passes e.x=0 and e.y=0 which causes neg x,y values. this if avoids that
+          if(e.x!==0 ||  e.y!==0)
+          {
+
+            var newPath = this._createBezierPath( this.startPointX, this.startPointY , e.x/this._zoom - this.svgLeft  , e.y/this._zoom - this.svgTop  , 70);
+            tempPath.setAttribute('d',newPath);
+          }               
+
+        },
+
+        dragOutArrowEnd: function(e, details, selection) {
+
+          var tempPath = this.shadowRoot.querySelector('#temp_path');
+          if(tempPath) {
+            tempPath.parentNode.removeChild(tempPath);
+          }
+               
+
+        },
+
+        dragOverInArrow: function(e, details, selection) {
+
+          //important! needed to allow drop
+          e.preventDefault();
+
+        },  
+
+        dragEnterInArrow: function(e, details, selection) {
+          e.target.classList.add('drag-over');
+        },                  
+
+        dragLeaveInArrow: function(e, details, selection) {
+          e.target.classList.remove('drag-over');
+        },                  
+
+        droppedOnInArrow: function(e, details, selection) {
+
+          var self = this;
+
+          e.target.classList.remove('drag-over');
+
+          var className = selection.classList[0],
+              targetElementId = className.substring(0, className.lastIndexOf('-') ),   
+              targetField = className.substring(className.lastIndexOf('-') + 1, className.length ),      
+              source = self.findElById(self.draggedEl.classList[0]),
+              target = self.findElById(targetElementId);
+
+
+          this._connectAttributes(source, 'output', target, targetField);
+
+          self._drawConnections();
+
+          e.stopPropagation();          
+
+        }, 
+
+        arrowClicked: function(e, details, selection) {
+          //e.stopPropagation();
+
+          var wrapper = null;
+          for(var i = 0; i< e.path.length && !wrapper; i++) {
+            if(e.path[i].classList.contains('wrapper')) {
+              wrapper = e.path[i];
+            }
+          } 
+          var sourceTarget = e.path[0].classList.contains('inputMarker') ? 'target' : 'source';
+          var elementInsideId = wrapper.getAttribute('component-id');
+
+          //var elementInside = this.findElById(elementInsideId);
+
+
+          var connection = this._connections.filter(function(conn) {
+            if(conn[sourceTarget].id===elementInsideId) {
+              return true;
+            }
+
+          });
+
+
+          if(connection.length>0) {
+
+            var marker = e.path[0];
+            var bezierCssPath = '#container #svg #'+connection[0].source.id+'-'+connection[0].target.id;
+            var bezier = this.shadowRoot.querySelector(bezierCssPath);
+
+            if(connection[0].highlighted) {
+              connection[0].highlighted = false;
+
+              marker.classList.remove('highlighted');
+              bezier.classList.remove('highlighted');
+
+            }
+            else {
+
+              connection[0].highlighted = true;
+
+              marker.classList.add('highlighted');
+              bezier.classList.add('highlighted');
+
+            }
+
+          }
+
+
+        },
+
+        deleteConnection: function(e, details, selection) {
+          var self = this;
+          self.$.deleteDialog.toggle();
+
+          // set the delete callback
+          self._deleteCallback = function() {
+            if (e) {
+              e.stopPropagation();
+            }
+            var elementInsideId;
+
+            // figure out the source
+            var src;
+            if (self._highlightedConnection) {
+              var splitID = self._highlightedConnection.id.split('-');
+              src = splitID[0]+'-'+splitID[1]+'-'+splitID[2];
+              console.log(src);
+              elementInsideId = splitID[3] + '-' + splitID[4] + '-' + splitID[5];
+            }
+            else {
+              var wrapper = null;
+              for(var i = 0; i< e.path.length && !wrapper; i++) {
+                if(e.path[i].classList.contains('wrapper')) {
+                  wrapper = e.path[i];
+                }
+              }
+              elementInsideId = wrapper.getAttribute('component-id');
+            }
+
+            if (!e){
+              e = undefined;
+            }
+            self.deleteConnectionByID(e, elementInsideId)
+          }
+        },
+
+        _deleteBezier: function(e, bezier) {
+          var srcId, dstId;
+          var self = this;
+          self.$.deleteDialog.toggle();
+
+          // set the delete callback
+          self._deleteCallback = function() {
+            var idSplit = bezier.id.split('-');
+
+            // split ID at number to determine srcId and dstId
+            var i = 0;
+            while(isNaN( (Number(idSplit[i])))) {
+              i++;
+            }
+
+            dstId = idSplit.slice(i+1).join('-');
+            srcId = idSplit.slice(0, i).join('-');
+
+            self.deleteConnectionByID(e, dstId);
+
+            self._clearHighlightedConnections();
+          }
+        },
+
+        deleteConnectionByID: function(e, dstId) {
+          this._connections = this._connections.filter(function(connection) {
+            return connection.target.id!==dstId;
+          });
+
+          console.log(this._connections);
+
+          if (e) {
+            var marker = e.path[1]; 
+            marker.classList.remove('highlighted');
+          }
+
+          this._drawConnections();
+        },
+
+        toggleSetting: function(e, detail, selection) {
+          var button = e.path[0],
+              componentId = button.getAttribute('component-id'),
+              elementInfo = this.findElById(componentId);
+
+
+            elementInfo.settingOpen =! elementInfo.settingOpen;
+
+
+        },
+
+        keydownHandler: function(e) {
+          var self = this;
+          var focusedArea = e.path['0'].localName;
+
+          // make sure it is not a text or input area
+          if (focusedArea.indexOf('text') > -1 || focusedArea.indexOf('input') > 1) {
+            console.log('in a text area');
+            return;
+          }
+
+          switch(e.which) {
+
+            // if deleteKey:
+            case(8):
+              console.log('delete key');
+              // if bezier was selected, delete that. Otherwise, delete element
+              if (self._highlightedConnection) {
+                self._deleteBezier(e, self._highlightedConnection);
+              } else if (self._selWrappers.length > 0) {
+                for (var i = 0; i < self._selWrappers.length; i++) {
+                  var _id = self._selWrappers[i].getAttribute('component-id');
+                  self._deleteElementById(_id);
+                }
+              }
+              e.preventDefault();
+              e.stopPropagation();
+              break;
+            // zoom with -_ (189) and += (187)
+            case(189):
+              self.zoomOut();
+              break;
+
+            case(187):
+              self.zoomIn();
+              break;
+
+            default:
+              if (typeof(self._hotKeys[e.which]) !== 'undefined') {
+                self._hotKeys[e.which] = true;
+              }
+              break;
+          } 
+        },
+
+        keyupHandler: function(e) {
+          var self = this;
+
+          if (self._hotKeys[e.which]) {
+            self._hotKeys[e.which] = false;
+          }
+
+        },
+
+        mouseoutHandler: function(e) {
+          this._clearDragArea();
+        },
+
+
+      /********************** Event Handlers End ********************************/
+
+
+        showDataBtn: function() {
+            this._showDataTable = !this._showDataTable;
+            this.$.showDataBtn.classList.toggle('active');
+            [].forEach.call(this.shadowRoot.querySelectorAll('.data-preview'), function(el) {
+              el.style.maxHeight = el.style.maxHeight=='0px' ? '100px' : '0px';
+            });
+        },
+
+        showSaveDialog: function()  {
+          this.$.savedetails.toggle();
+        },
+
+
+
+
+
+      /**
+       * The functions which sets the connection (two way binging) between two element attrubutes
+       * There is not really a sourc/target distinction in the observer since it is a two way binging (in theory)
+       * but the distinction is conceptual and in UI.
+       * @param  {[type]} source      Source element
+       * @param  {[type]} sourceField The attribute to connect from source element
+       * @param  {[type]} target      Target element
+       * @param  {[type]} targetField The attribute to connect from target element
+       * @return {None}             
+       */
+      _connectAttributes: function(source, sourceField, target, targetField) {
+        var self = this;
+
+        //find the index of connection which has the same target
+        var connWithSameTargetIndex = self._connections.reduce(function(value, conn, index) {
+            if (conn.target.id===target.id && conn.target.field===targetField) {
+              return index;
+            }
+
+        }, -1);
+        // and remove it from connections array
+        if(connWithSameTargetIndex>-1) {
+          self._connections.splice(connWithSameTargetIndex,1);
+        }
+
+
+        if (source === target){ //if a bubble was dropped on itself
+          alert('You cannot make a connection within the same element');
+          return false;
+        } else { 
+
+          // make the connection in the elements array
+          //target.inputConnectedTo = source;  // not needed
+            
+          var observer = new PathObserver(source.element, sourceField);  
+            
+          observer.open(function(newValue, oldValue) {
+             target.element[targetField] = newValue;
+          });
+
+          var srcClone = {id: source.id, name: source.name, element: source.element};
+          var targetClone = {id: target.id, name: target.name, element: target.element};
+
+
+          
+          target.element[targetField] = source.element[sourceField]; 
+
+          targetClone.field = targetField;
+
+          //self.updateConnections();
+          
+          //push the connections anyways because it will be deleted above.
+          self._connections.push({source: srcClone, target: targetClone});
+
+          
+          return true;
+        }
+
+      },
+
+      _drawConnections: function() {
+
+        var self = this;
+
+
+        var arrowOffsetY = 7;
+        var arrowOffsetX = 7;
+        var bezierCurveX = 70;  // the larger the value the smoother the curve
+
+
+        //clear all paths. since it is not done offten it is fine to do it in a not optimized way
+        self.$.svg.innerHTML = '';
+
+        for (var i = 0; i < self._connections.length; i++) {
+
+
+          var conn = self._connections[i];
+
+          var srcEl = conn.source.element || self.querySelector('#'+conn.source.id); //TODO do this in initialization method
+          var targetEl = conn.target.element || self.querySelector('#'+conn.target.id);
+
+
+          var srcWrapper = self.shadowRoot.querySelector('#wrapper-'+srcEl.id);
+          var targetWrapper = self.shadowRoot.querySelector('#wrapper-'+targetEl.id);
+
+
+          var srcRect = srcWrapper.getBoundingClientRect();
+          var targetRect = targetWrapper.getBoundingClientRect();
+
+
+          var svgRect = self.$.svg.getBoundingClientRect();
+
+          var otherInputOffset = (conn.target.field==='input') ? 0 : 16;
+
+          var startX = (srcRect.right - svgRect.left + arrowOffsetX)/self._zoom; //srcRect.left + srcRect.width + 30 - containerOffsetX;
+          var startY = (srcRect.top - svgRect.top + arrowOffsetY)/self._zoom;
+          var endX = (targetRect.left  - svgRect.left - arrowOffsetX)/self._zoom;
+          var endY = (targetRect.top  - svgRect.top + arrowOffsetY + otherInputOffset)/self._zoom;
+
+
+          self._addBezierPath(startX, startY, endX, endY , bezierCurveX, srcEl.id + '-' + targetEl.id, conn.highlighted);
+          
+        }        
+
+      },
+
+      scaffold: function() {
+
+        var structure = this.structure;
+        if(typeof this.structure==='string' && this.structure.length>0) {
+          structure = JSON.parse(this.structure);
+        }
+
+        if(structure.elements) {
+          this.scaffoldFromData(structure.elements, structure.connections, structure.outputComponents);
+        }
+      },
+
+
+
+      /**
+       * returns final result component to create viewer
+       * @return {Object} e.g {componentName: 'lens-v-z-g-bar-chart-0', componentState: (all state data including input)}
+       */
+      getFinalResult: function() {
+        if(this._outputComponents.length>0) {
+          //TODO: multiple outputComponents
+          var component = _.clone(this.findElById(this._outputComponents[0]));
+          
+          //for viz components save input, for the rest save output
+          if(component.name.indexOf('-viz-')> 0) {
+            component.input = component.element.input;
+          }
+          else {
+            component.output = component.element.output;
+          }
+          var componentName = component.name;
+          var componentState = JSON.stringify(component, this.removeDomObjects);
+          return {
+            componentName: componentName,
+            componentState: componentState
+          }
+        }
+      },
+
+
+      /**
+       * Sacffold a new th-connector from state data. Usage: 
+       *  var newConnector = document.createElement('th-connector');
+       *  newConnector.scaffoldFromData(elements, connections)
+       *  where elements and connections are parsed json files coming form dumpData
+       * @param  {Object} elements    elements state data
+       * @param  {Object} connections connections
+       * @return {None}             
+       */
+      
+      scaffoldFromData: function(elements, connections, outputComponents) {
+
+        this._elements = elements;
+
+        this._outputComponents = outputComponents;
+
+         elements.forEach(function(el) {
+            var alreadyExist = this.querySelector('#'+el.id);
+            if(!alreadyExist) {
+
+              var domEl =  document.createElement(el.name);
+
+              this.$.component_list.checkAndImport(domEl, function() {
+
+                domEl.style.width = '100%';
+                domEl.style.height = '100%';
+
+                domEl.id = el.id;
+                
+                if(el.name==='th-table-data') {
+                  domEl.output = el.output;
+                }
+                else {
+                  Object.keys(domEl.publish).forEach(function(attr) {
+
+
+                    if(attr!=='input' && attr!=='output' && el[attr]) {
+                      domEl[attr] = el[attr]; 
+                    }
+
+                               
+
+
+                  });
+                }
+
+                el.element = domEl;
+                this.appendChild(domEl);
+
+             }.bind(this));
+
+            }
+
+          }.bind(this));
+
+         //delay to make sure position of elements are final
+         setTimeout(function() {
+
+          this.setConnections(connections);         
+
+         }.bind(this),1000);
+
+
+        //newConnector._drawConnections()
+
+      },
+
+      setConnections: function(connections) {
+        this._connections = connections;
+
+
+        this._connections.forEach(function(connection) {
+          if(!connection.source.element) {
+            connection.source.element = this.querySelector('#'+connection.source.id);
+          }
+          if(!connection.target.element) {
+            connection.target.element = this.querySelector('#'+connection.target.id);
+          }
+          this._connectAttributes(connection.source, 'output', connection.target, connection.target.field || 'input');
+        }.bind(this));
+
+        this._drawConnections();
+      },      
+
+ 
+
+      dumpData: function() {
+        var self = this;
+
+        var toDumpEls = _.map(this._elements, function(el) {
+          var domObject = el.element;
+          var cloned = _.clone(el);  
+          Object.keys(domObject.publish).forEach(function(attr) {
+
+            //ignore input attribute and output (except where the component is th-table-data)
+            if(attr==='chartData' || attr.indexOf('input')===0 || (attr==='output' && el.name!=='lens-input-paste')) {
+              return;
+            }
+           
+            cloned[attr] = domObject[attr];
+
+
+          });
+          return cloned;
+
+        });
+
+        var retObj = {elements: toDumpEls, connections: this._connections, outputComponents: this._outputComponents};
+
+        var ret = JSON.stringify(retObj, this.removeDomObjects);
+
+        //var connectionsJSON = JSON.stringify(this._connections , this.removeDomObjects);
+
+         
+
+        return ret;
+
+      },
+
+      _saveLens: function() {
+        var btn = document.getElementById('saveLensBtn');
+        if (typeof (btn) !== 'undefined') {
+          btn.click();
+          console.log('btn!');
+        } else {
+          console.log('no button')
+        }
+      },
+
+      removeDomObjects: function(key, value) {
+
+
+          if(value instanceof HTMLElement) 
+            return undefined;
+          else
+            return value;
+
+      },              
+
+
+      findElById: function(id){
+
+        var self = this;
+        element = self._elements.filter(function(el){
+          return el.id === id;
+        })[0];
+
+        return element;
+      },
+
+
+
+      /**
+       * Checks if a componenet has input attributes (any attribute which is named input*)
+       * @param  {Object} published Object containing all published attributes
+       * @return {Object}           list of attributes that are input.
+       */
+      _checkForInputAttr: function(published){
+        if(!published) {
+          return false;
+        }
+        var attrs = Object.keys(published).filter(function(item) {
+          return item.indexOf("input") > -1;
+
+        })
+        return attrs;
+      },
+     
+      /**
+       * Checks if a componenet has output attributes.
+       * @param  {Object} published Object containing all published attributes
+       * @return {boolean}       True if component has output attribute (only one)
+       */
+      _checkForOutputAttr: function(published){
+        if(!published) {
+          return false;
+        }
+
+        return Object.keys(published).indexOf("output") > -1 ? true : false;
+      },
+
+      /**
+       * Generates unique ids for components
+       * @param  {String} elName Component name
+       * @return {[type]}        Unique component id
+       */
+      _generateUniqueId: function(elName){
+          var self = this;
+          var num = 0;
+          var tagsWithSameName = self._elements.filter(function(elem){return elem.name == elName});
+          
+          if(tagsWithSameName){
+            num+= tagsWithSameName.length;
+          } 
+          
+          var uniqueId = elName + '-' + num;
+          
+          return uniqueId;
+      }, 
+
+
+      _createBezierPath: function(startX, startY, endX, endY, handleOffsetX) {
+
+          // make handleOffsetX larger when source element is on the right side of target
+          if(startX > endX) {
+            handleOffsetX *= 2;
+          }
+          var distance = Math.sqrt(Math.pow(endX-startX, 2) + Math.pow(endY-startY,2));
+          // decrease handleOffsetX when too close...
+          if(distance<100) {
+             handleOffsetX /= 2;
+          }
+          if(distance<50) {
+             handleOffsetX /= 4;
+          }
+          var path = "M"+parseInt(startX)+","+parseInt(startY)+
+                     " C"+parseInt(startX + handleOffsetX)+","+parseInt(startY)+
+                     " "+parseInt(endX - handleOffsetX)+","+parseInt(endY)+
+                     " "+parseInt(endX)+","+parseInt(endY);
+          return path;
+      },
+
+      _addBezierPath: function(startX, startY, endX, endY, handleOffsetX, id, highlighted) {
+
+          var aLine = document.createElementNS('http://www.w3.org/2000/svg', 'path'); 
+          var path = this._createBezierPath(startX, startY, endX, endY, handleOffsetX);
+
+          aLine.setAttribute('d',path);
+          aLine.setAttribute('stroke', '#555');// conn.source.color);
+          aLine.setAttributeNS(null, 'stroke-width', '5');
+          aLine.setAttribute('fill', 'none');
+          if(id) {
+            aLine.setAttribute('id', id);
+          }
+
+          // add class "cnxn"
+          aLine.setAttribute('class', 'cnxn');
+
+          if(highlighted) {
+            aLine.classList.add('highlighted');
+          }
+          
+
+          this.$.svg.appendChild(aLine);
+
+      },
+
+      // zoom either to a specified amount, or add this._zoomStep
+      zoomIn: function(amt) {
+        if (typeof(amt) === 'number') {
+          this._zoom = amt <= this._zoomMax ? amt : this._zoomMax;
+          return;
+        }
+
+        if (this._zoom + this._zoomStep <= this._zoomMax) {
+          this._zoom += this._zoomStep;
+        } else { throw 'already zoomed max'; }
+
+      },
+
+      // zoom either to a specified amount, or subtract this._zoomStep
+      zoomOut: function(amt) {
+        if (typeof(amt) === 'number') {
+          this._zoom = amt >= this._zoomMin ? amt : this._zoomMin;
+          return;
+        }
+
+        if (this._zoom - this._zoomStep >= this._zoomMin) {
+         this._zoom -= this._zoomStep;
+
+        } else { throw 'already zoomed min'; }
+
+      },
+
+      _zoomChanged: function() {
+        this.$.container.style.transform = "scale(" + this._zoom +", " + this._zoom+")";
+      },
+
+      // delete modal
+      _noDelete: function() {
+        this.$.deleteDialog.close();
+      },
+      _yesDelete: function() {
+        this.$.deleteDialog.close();
+        this._deleteCallback();
+        this._deleteCallback = null;
+      }
+
+    });
+
+  </script>
+</polymer-element>

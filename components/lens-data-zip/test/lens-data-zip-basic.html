@@ -1,0 +1,124 @@
+<!doctype html>
+<html>
+<head>
+  <title>lens-data-zip</title>
+
+  <script src="../../webcomponentsjs/webcomponents.js"></script>
+  <script src="../../web-component-tester/browser.js"></script>
+
+  <!-- Step 1: import the element to test -->
+  <link rel="import" href="../lens-data-zip.html">
+
+</head>
+<body>
+
+  <lens-data-zip id="component"></lens-data-zip>
+
+  <script>
+    var should = chai.should();
+    var component = document.querySelector("#component");
+
+    // input data
+    var input1 = new Object([{"name":"Marshawn Lynch, RB", "data": "1M", "value": "1"},{"name":"Dez Bryant, WR", "data": "2M"},{"name":"Jamaal Charles, RB", "data": "3M", "value": "4"},{"name":"Eddie Lacy, RB", "data": "8M"},{"name":"Rob Gronkowski, TE", "data": "10M"}]);
+
+    var input2 = new Object([{"label":"Marshawn Lynch, RB", "value": "1"},{"label":"Dez Bryant, WR", "value": "2"},{"label":"Jamaal Charles, RB", "value": "3"},{"label":"Eddie Lacy, RB", "value": "8"},{"label":"Antonio Gates, TE", "value": "9"}]);
+
+    suite("<lens-data-zip>", function() {
+
+      test("component can be created as an object", function(done) {
+        should.exist(component);
+        done();
+      });
+
+      test("set input", function(done) {
+
+        component.input = input1;
+
+        flush(function() {
+          component.input.should.eql(input1);
+          done();
+        });
+      });
+
+      test("set aux input", function(done) {
+
+        component.input_aux = input2;
+
+        flush(function() {
+          component.input.should.eql(input1);
+          component.input_aux.should.eql(input2);
+          done();
+        });
+      });
+
+      test("set zipColKey0", function(done) {
+
+        component.zipColKey0 = 'name';
+
+        flush(function() {
+          component.zipColKey0.should.eql('name');
+          done();
+        });
+      });
+
+      test("output should not be triggered yet", function() {
+        should.not.exist(component.output);
+      });
+
+      test("set zipColKey1, trigger output", function(done) {
+
+        component.zipColKey1 = 'label';
+
+        flush(function() {
+          component.zipColKey1.should.eql('label');
+          should.exist(component.output);
+          done();
+        });
+      });
+
+      test("output length should be 4 and each item should have 4 keys", function() {
+        component.output.length.should.eql(4);
+
+        for (var i = 0; i < component.output.length; i++) {
+          var expectedKeys = ['name', 'data', 'value', 'label'];
+          var componentKeys = Object.keys(component.output[i]);
+          componentKeys.length.should.eql(4);
+
+          for (var j in componentKeys) {
+            var key = componentKeys[j];
+            var index = expectedKeys.indexOf(key);
+            expectedKeys.splice(index, 1);
+          }
+
+          expectedKeys.length.should.eql(0);
+        }
+      });
+
+      test("set removeDuplicates from false to true, removes duplicates", function(done) {
+        component.removeDuplicates.should.eql(false);
+        component.removeDuplicates = true;
+
+        flush(function() {
+          for (var i = 0; i < component.output.length; i++) {
+            var keys = Object.keys(component.output[i]);
+            keys.length.should.eql(3);
+          }
+          done();
+        });
+      });
+
+      test("change joinType from inner to outer", function(done) {
+        component.joinType.should.eql('inner');
+        component.joinType = 'outer';
+
+        flush(function() {
+          component.output.length.should.eql(6);
+          done();
+        });
+      });
+
+    });
+  </script>
+
+</body>
+</html>

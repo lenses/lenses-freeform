@@ -1,0 +1,14 @@
+<x-meta id="lens-viz-g-map" label="Wrapper for Google Maps" group="Lenses map">			<template>			<lens-viz-g-map animateOnInit="true"/></template>
+			<template id="imports">			<link rel="import" href="lens-viz-g-map.html"/></template>
+			<property name="width" kind="number"/>
+			<property name="height" kind="number"/>
+			<property name="latitude" kind="number"/>
+			<property name="longitude" kind="number"/>
+			<property name="zoom" kind="number"/>
+			<property name="useTheme" kind="boolean"/>
+			<property name="showCenterMarker" kind="boolean"/>
+			<property name="fitToMarkers" kind="boolean"/>
+			<property name="zoomable" kind="boolean"/>
+			<property name="mapType" kind="select" options="roadmap,satellite,hybrid,terrain"/>
+			<property name="markers" kind="json"/>
+</x-meta>

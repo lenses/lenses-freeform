@@ -1,0 +1,240 @@
+<link rel="import" href="../polymer/polymer.html"> 
+<link rel="import" href="../core-input/core-input.html"> 
+
+
+<!--
+Simple API component to make API calls. If the API returns JSON with a header followed by an array of results, it will return the first array. Flattens the results to be one level deep, and sends the reuslts to <code>output</code>
+
+##### Example
+
+    <lens-input-simple-api url="http://api.openweathermap.org/data/2.5/weather?q=New+York&units=imperial"></lens-input-simple-api>
+
+@element lens-input-simple-api
+@blurb Simple API component to make API calls.
+@status alpha
+@homepage http://lenses.github.io/lens-input-simple-api
+-->
+
+<polymer-element name="lens-input-simple-api" attributes="url output outputRaw minRows">
+  <template>
+    <link rel="stylesheet" href="lens-input-simple-api.css">
+    <div class="lens-container">
+      <div><label class="label">API URL: </label><input is="core-input" value="{{url}}"></div>
+      <div><label class="label">Expect at least <input class="count" is="core-input" value="{{minRows}}"> datapoints.</label></div>
+
+      <div><label class="label">Num Records: </label><div class="data">{{output.length}}</div></div>
+    </div>
+    
+  </template>
+  <script>
+    Polymer({
+
+      /**
+       * Output data
+       *
+       * @property output
+       * @type object
+       * @default undefined
+       */
+      
+      /**
+       * Output data before flatening.
+       *
+       * @property outputRaw
+       * @type object
+       * @default undefined
+       */
+      
+
+      /**
+       *  URL for the API call
+       *  
+       *  @property url
+       *  @type string
+       *  @default null
+       */
+      url: null,//'https://api.enigma.io/v2/data/iTX3qf5cwspm7ryII3ii5zqeHqUuoO4MctfLJFf2xU8eletxHvcI4/us.gov.atf.federal-firearms-licenses.complete-listing',
+
+      /**
+       * Minimum number of rows to expect in the result data, otherwise ignores it
+       * @type {Number}
+       */
+      minRows: 1,
+
+      observe: {
+        minRows: "queryData"
+      },
+
+      domReady: function() {
+
+          var self = this;
+
+          if(this.url) {
+            self.queryData();
+          }
+
+      }, 
+
+      /**
+       *  Query the API, flatten results, and set <code>output</code>.
+       *  
+       *  @method queryData
+       */
+      queryData: function() {
+
+
+          var self = this;
+          var url = self.url;
+          
+          self._makeCORSCall(url);
+
+      },
+
+      urlChanged: function() {
+        this.queryData();
+      },
+
+      _makeCORSCall: function(url) {
+
+            var self = this;
+            var method = 'GET';
+            var xhr = new XMLHttpRequest();
+            if ("withCredentials" in xhr) {
+              xhr.open(method, url, true);
+            } else if (typeof XDomainRequest != "undefined") {
+              xhr = new XDomainRequest();
+              xhr.open(method, url);
+            } else {
+              // CORS not supported.
+              xhr = null;
+            }
+
+            if (!xhr) {
+              alert('CORS not supported');
+              return;
+            }
+
+            // Response handlers.
+            xhr.onload = function() {
+
+              // parse data
+              var data = JSON.parse(xhr.response);
+
+              self.outputRaw = data;
+
+              var firstArray = self._findFirstArray(data, self.minRows);
+
+              // if there is no first array, flatten the entire response
+              if (!firstArray) {
+                self.output = [self._flattenJSON(data)];
+              }
+              // otherwise, flatten the first array
+              else {
+                self.output = self._flattenJSONArray(firstArray);
+              }
+
+              //self.output = self._flattenFirstArrayInJSON(firstArray, 1);
+            };
+
+            xhr.onerror = function() {
+              alert('Woops, there was an error making the request.');
+            };
+
+            xhr.send();
+      },
+
+      /**
+       *  Recursively looks for the first Array with the size 
+       *  equal greater than minArraySize
+       *
+       *  [@method] _findFirstArray
+       *  [@param]  {JSON} data         Input data, A deep JSON file including an array containing desired data
+       *  [@param]  {Number} minArraySize Minimum size of the array. If function finds an array smaller than this ignores it and goes deeper to find an array with at least that minimum size
+       *  [@return] {Array}              Found array
+       *  @private
+       **/
+      _findFirstArray: function(data, minArraySize) {
+
+        var result = {};
+        var firstArray = null; 
+        function recurse (cur, prop) {
+            if(firstArray)
+              return;
+
+            if (Object(cur) !== cur) {
+                return;
+            }
+            if (Array.isArray(cur) && cur.length>=minArraySize) {
+                if(!firstArray) {
+                  firstArray = cur;
+                }
+                
+            } else {
+                var isEmpty = true;
+                for (var p in cur) {
+                    isEmpty = false;
+                    recurse(cur[p], prop ? prop+"."+p : p);
+                }
+                // if (isEmpty && prop)
+                //     result[prop] = {};
+            }
+        }
+        recurse(data, "");
+        return firstArray;
+
+
+      },
+      /**
+       * Flattens the Objects in the array. If objects within array are already flat (one level deep) doesn't do anything.
+       *
+       * [@method] _flattenJSONArray
+       * [@param]  Array array Input array
+       * [@return] Array       Flattened array
+       * @private
+       */
+      _flattenJSONArray: function(array) {
+        var flatArray = array.map(function(item,index) {
+          return this._flattenJSON(item);
+        }.bind(this));
+        return flatArray;
+      },
+      /**
+       * Recursively iterates over every element of the JSON object and creates a flat (one level deep) Object
+       * 
+       * [@method] _flattenJSON
+       * [@param]  {JSON} data input
+       * [@return] {JSON}      flattened output
+       * @private
+       */
+      _flattenJSON: function(data) {
+        var result = {};
+        function recurse (cur, prop) {
+            if (Object(cur) !== cur) {
+                result[prop] = cur;
+            } else if (Array.isArray(cur)) {
+                 for(var i=0, l=cur.length; i<l; i++)
+                     recurse(cur[i], prop + "[" + i + "]");
+                if (l == 0)
+                    result[prop] = [];
+            } else {
+                var isEmpty = true;
+                for (var p in cur) {
+                    isEmpty = false;
+                    recurse(cur[p], prop ? prop+"."+p : p);
+                }
+                if (isEmpty && prop)
+                    result[prop] = {};
+            }
+        }
+        recurse(data, "");
+        return result;
+      },
+
+      // fire th-output-changed when output is changed. Useful for tests.
+      outputChanged: function(){
+        this.fire("th-output-changed");
+      }
+      
+    });
+  </script>
+</polymer-element>

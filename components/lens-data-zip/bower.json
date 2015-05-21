@@ -1,0 +1,20 @@
+{
+  "name": "lens-data-zip",
+  "version": "0.0.0",
+  "keywords": [
+    "seed",
+    "polymer",
+    "web-components"
+  ],
+  "main": "lens-data-zip.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.5.5",
+    "lodash": "~3.5.0",
+    "core-collapse": "Polymer/core-collapse#~0.5.5",
+    "core-selector": "Polymer/core-selector#~0.5.5",
+    "core-icon-button": "Polymer/core-icon-button#~0.5.5"
+  },
+  "devDependencies": {
+    "web-component-tester": "Polymer/web-component-tester#^2.2.6"
+  }
+}

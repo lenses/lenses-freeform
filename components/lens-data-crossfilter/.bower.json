@@ -1,0 +1,26 @@
+{
+  "name": "lens-data-crossfilter",
+  "license": "MIT",
+  "keywords": "lenses, polymer, web-components, crossfilter, crossfilter.js, d3, d3.js",
+  "main": "lens-data-crossfilter.html",
+  "dependencies": {
+    "d3": "d3#>=3.4.11",
+    "polymer": "Polymer/polymer#~0.5.5",
+    "th-theme": "thelmanews/th-theme",
+    "lens-u-data-selector": "lenses/lens-u-data-selector",
+    "core-component-page": "Polymer/core-component-page#^0.5.5"
+  },
+  "devDependencies": {
+    "web-component-tester": "Polymer/web-component-tester#^2.2.6"
+  },
+  "homepage": "https://github.com/lenses/lens-data-crossfilter",
+  "_release": "0217fcd044",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "0217fcd04452c8fd8fbcf10162e48abee4112321"
+  },
+  "_source": "git://github.com/lenses/lens-data-crossfilter.git",
+  "_target": "*",
+  "_originalSource": "lenses/lens-data-crossfilter"
+}

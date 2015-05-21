@@ -1,0 +1,97 @@
+<!doctype html>
+<html>
+<head>
+  <title>lens-data-geocoder-firebase</title>
+
+  <script src="../../webcomponentsjs/webcomponents.js"></script>
+  <script src="../../web-component-tester/browser.js"></script>
+
+  <link rel="import" href="../lens-data-geocoder-firebase.html">
+
+</head>
+<body>
+
+  <lens-data-geocoder-firebase id="component"></lens-data-geocoder-firebase>
+
+  <script>
+    var should = chai.should();
+    var component = document.querySelector("#component");
+
+    // some input data
+    var input = [{'address1':'1501 Lexington Avenue, New York, NY 10029', 'address2':'Columbus Circle, New York, NY'},{'address1':'San Francisco, CA', 'address2':'Tokyo, Japan'},{'address1':'Cairo, Egypt', 'address2':'Buenos Aires, Argentina'}, {'address1':'54 West 40th Street, New York, NY 10018', 'address2':'Brooklyn Bridge Park, New York, NY'}];
+
+    var reverseInput = [{"name": "loc1", "latlng": "35.7090259, 139.73199249999993"}, {"name": "loc12", "latlng": "40.7017076, -73.99701829999998"}];
+
+
+    // testing suite
+    suite("<lens-data-geocoder-firebase>", function() {
+
+      test("component can be created as an object", function(done) {
+        should.exist(component);
+        done();
+      });
+
+      test("accepts input", function(done) {
+ 
+        // change input
+        component.input = input;
+
+        flush(function() {
+          component.input.should.eql(input);
+          done();
+        });
+      });
+
+      test("selectLabel to trigger output and fetch lat/lng from Google geocode API", function(done) {
+        component.selectedLabel = 'address1';
+
+        flush(function() {
+          setTimeout(function() {
+            component.output[0].latitude.should.eql(40.7863301);
+            component.output[0].longitude.should.eql(-73.95027060000001);
+
+            done();
+          }, 1000);
+        });
+      });
+
+      test("change input", function(done) {
+        component.input = reverseInput;
+        flush(function() {
+          component.input.should.eql(reverseInput);
+          done();
+        });
+      });
+
+      test("change selected label", function(done) {
+        component.selectedLabel = 'latlng';
+        flush(function() {
+          component.input.should.eql(reverseInput);
+          done();
+        });
+      })
+
+
+      test("set reverse geocode to true", function(done) {
+        component.reverseGeocode = true;
+        flush(function() {
+          component.reverseGeocode.should.eql(true);
+          done();
+        });
+      });
+
+      test("reverseGeocode works", function(done) {
+        flush(function() {
+          setTimeout(function() {
+            should.exist(component.output[0].label);
+            console.log(component.output[0]);
+            done();
+          }, 1000);
+        })
+      });
+
+    });
+  </script>
+
+</body>
+</html>

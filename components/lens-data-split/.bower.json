@@ -1,0 +1,25 @@
+{
+  "name": "lens-data-split",
+  "keywords": "lenses, polymer, web-components",
+  "main": "lens-data-split.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.5.5",
+    "th-theme": "thelmanews/th-theme",
+    "core-selector": "Polymer/core-selector#~0.5.5",
+    "core-input": "Polymer/core-input#~0.5.5",
+    "core-component-page": "Polymer/core-component-page#~0.5.5"
+  },
+  "devDependencies": {
+    "web-component-tester": "Polymer/web-component-tester#^1.1.0"
+  },
+  "homepage": "https://github.com/lenses/lens-data-split",
+  "_release": "9e9e48b156",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "9e9e48b1567dfd65a5c096ad39bb562bccb29325"
+  },
+  "_source": "git://github.com/lenses/lens-data-split.git",
+  "_target": "*",
+  "_originalSource": "lenses/lens-data-split"
+}

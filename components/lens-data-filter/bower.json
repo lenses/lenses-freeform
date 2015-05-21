@@ -1,0 +1,17 @@
+{
+  "name": "lens-data-filter",
+  "version": "0.0.0",
+  "keywords": "lenses, polymer, web-components",
+  "main": "lens-data-filter.html",
+  "dependencies": {
+    "th-theme": "thelmanews/th-theme",
+    "polymer": "Polymer/polymer#~0.5.5",
+    "core-input": "Polymer/core-input#~0.5.5",
+    "core-selector": "Polymer/core-selector#~0.5.5",
+    "core-component-page": "Polymer/core-component-page#~0.5.5",
+    "lodash": "~3.5.0"
+  },
+  "devDependencies": {
+    "web-component-tester": "Polymer/web-component-tester#^2.2.6"
+  }
+}

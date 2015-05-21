@@ -1,0 +1,232 @@
+<link rel="import" href="../polymer/polymer.html"> 
+<link rel="import" href="../lens-u-data-utility/lens-u-data-utility.html"> 
+<link rel="import" href="../core-selector/core-selector.html">
+
+<!--
+A data component for grouping data by attributes and applying a function to filter the results.
+
+##### Example
+
+    <lens-data-groupby></lens-data-groupby>
+
+@element lens-data-groupby
+@blurb A data component for grouping data by attributes and applying a function to filter the results.
+@status alpha
+@homepage http://lenses.github.io/lens-data-groupby
+-->
+
+<polymer-element name="lens-data-groupby" attributes="input output groupByColumn aggrFunction aggrFuncOnColumn sortValues">
+  <template>
+
+    <div class="lens-container lens-data">
+
+      <lens-u-data-utility id="data_utility"></lens-u-data-utility>
+
+      <link rel="stylesheet" href="lens-data-groupby.css">
+
+
+        <p class="info">Group same values of a column together and apply function on others</p>
+        <label class="label" for="func_selector">Group by column:</label>
+        <core-selector class="selector"  id="value_selector" selected="{{groupByColumn}}" valueattr="label">
+          <template repeat="{{attr in _dataAttributes}}">
+            <div class="col" label="{{attr}}">{{attr}}</div>
+          </template>
+        </core-selector>
+        <label class="label" for="func_selector">Apply function:</label>
+        <core-selector class="selector"  id="func_selector" id="" selected="{{aggrFunction}}" valueattr="label">
+                  <div class="col" label="frequency">Frequency</div>
+              <!--<template if="{{_whereColumnNumeric}}">-->
+                <template repeat="{{func in _numericFunctions}}">
+                  <div class="col" label="{{func.label}}">{{func.name}}</div>
+                </template>
+              <!--</template>-->
+        </core-selector>
+        <label class="label" for="func_selector">On column:</label>
+        <core-selector class="selector"  id="value_selector" selected="{{aggrFuncOnColumn}}" valueattr="label">
+          <template repeat="{{attr, attrIndex in _dataAttributes}}">
+              <template if="{{_numericColumns[attrIndex]}}">
+                <template if="{{attr!==groupByColumn}}">
+                  <div class="col" label="{{attr}}">{{attr}}</div>
+                </template>
+              </template>
+          </template>
+        </core-selector>
+        <label class="label" for="sort_selector">Sort:</label>
+        <core-selector class="selector"  id="func_selector" id="" selected="{{sortValues}}" valueattr="label">
+            <div class="col" label="none">None</div>
+            <div class="col" label="asc">Ascending</div>
+            <div class="col" label="desc">Descending</div>
+        </core-selector>
+
+      </div>
+    </template>
+
+  <script src="../lodash/lodash.js"></script>
+
+  <script>
+    Polymer({
+      _numericFunctions: [  
+              {label:'max', name: 'Max'},
+              {label:'min', name: 'Min'},
+              {label:'sum', name: 'Sum'},
+              {label:'avg', name: 'Average'},
+              /*
+              {label:'stddev', name: 'Standard Deviation'},
+              {label:'variance', name: 'Variance'}
+              */
+            ],
+
+      _numericColumns: [],
+
+      /**
+       *  Input data
+       *
+       *  @property input
+       *  @type Array
+       *  @default null
+       */
+      input: null,
+
+      /**
+       *  Output data
+       *
+       *  @property output
+       *  @type Array
+       *  @default null
+       */
+      output: null,
+
+      /**
+       *  Name of the column to group.
+       *  
+       *  @property groupByColumn
+       *  @type String
+       *  @default null
+       */
+      groupByColumn: null,
+
+      /**
+       *  Name of the function to apply on the grouped data.
+       *  Options are: 
+       *    - 'frequency' - how many times this value appeared in the column.
+       *    - 'max' - maximum value.
+       *    - 'min' - minimum value.
+       *    - 'sum' - aggregate value.
+       *    - 'avg' - average (mean).
+       *
+       *  @property aggrFunction
+       *  @type String
+       *  @default 'frequency'
+       */
+      aggrFunction: 'frequency',
+
+      /**
+       *  Name of the column on which to apply the aggregate function.
+       *  
+       *  @property aggrFuncOnColumn
+       *  @type String
+       *  @default null
+       */
+      aggrFuncOnColumn: null,
+
+      /**
+       *  Results can be sorted in ascending or descending order.
+       *  
+       *  Options are: 
+       *    - 'none' - output order is the same as input order.
+       *    - 'asc' - output results in ascending order.
+       *    - 'desc' - output results in descending order.
+       *
+       *  @property sortValues
+       *  @type String
+       *  @default 'none'
+       */
+      sortValues: 'none',
+
+      ready: function () {
+
+      },
+
+      _calculateOutput: function() {
+
+        var self = this;
+
+        if(self.groupByColumn && self.groupByColumn!=='none') {
+          if(!self.aggrFunction || self.aggrFunction==='frequency') {
+            var temp = _.countBy(self.input, self.groupByColumn);
+            var keys = Object.keys(temp);
+            self.output = _.map(keys, function(key) {
+              var ret = {};
+              ret[self.groupByColumn] = key;
+              ret['Count'] = temp[key];
+              return ret;
+            })
+          }
+          else if (self.aggrFunction && self.aggrFuncOnColumn) {
+            var temp = _.groupBy(self.input, self.groupByColumn);
+            var aggrFunction = self.$.data_utility.aggregateFunctions[self.aggrFunction];
+            self.output = _.map(temp,function(value, key) {
+              ret = {};
+              ret[self.groupByColumn] = key;
+              ret[self.aggrFunction + ' of ' + self.aggrFuncOnColumn] = aggrFunction(value, self.aggrFuncOnColumn);
+
+              return ret;
+            });
+          }
+          if(self.sortValues!=='none') {
+            self.output = _.sortBy(self.output, 'value');
+            if(self.sortValues==='desc') {
+              self.output.reverse();
+            }
+          }
+        }
+
+      },
+
+      inputChanged: function() {
+
+          var self = this;
+          var firstItem = self.input[0];
+          if(!firstItem) {
+            return;
+          }
+          var attributes = Object.keys(firstItem);
+          
+          if(JSON.stringify(self._dataAttributes) === JSON.stringify(attributes) ) {
+            //self._mapChartData();
+          }
+          else {
+            self._dataAttributes = attributes;
+          }
+
+          self._findNumericalColumns();
+
+          self._calculateOutput();
+      },
+
+      _findNumericalColumns: function() {
+        var self = this;
+        self._dataAttributes.forEach(function(key, index) {
+          var isNum = self.$.data_utility.isColumnNumeric(self.input, key);
+          //TODO fix bugs related to isColumnNumeric and put back the check.
+          self._numericColumns[index] = true;//isNum;
+        });
+      },
+ 
+      aggrFunctionChanged: function() {
+        this._calculateOutput();
+      },
+      sortValuesChanged: function() {
+        //or just sort?
+        this._calculateOutput();
+      },
+      groupByColumnChanged: function() {
+        this._calculateOutput(); 
+      },
+      aggrFuncOnColumnChanged: function() {
+        this._calculateOutput(); 
+      }
+
+    });
+  </script>
+</polymer-element>

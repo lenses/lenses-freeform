@@ -1,0 +1,295 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../th-d3-chart/th-d3-chart.html">
+<link rel="import" href="../th-animated/th-animated.html">
+<link rel="import" href="../google-chart/google-chart.html">
+<link rel="import" href="../lens-u-data-selector/lens-u-data-selector.html">
+<link rel="import" href="../lens-u-data-utility/lens-u-data-utility.html">
+<!--
+Element providing a Thelma wrapper for the Google geochart.
+
+##### Example
+
+    <lens-viz-g-pie-chart></lens-viz-g-pie-chart>
+
+@element lens-viz-g-pie-chart
+@blurb Element providing a Thelma wrapper for the Google geochart.
+@status alpha
+@homepage http://nishacodes.github.io/lens-viz-g-pie-chart
+-->
+<polymer-element name="lens-viz-g-pie-chart"  extends="th-d3-chart" attributes="input output tooltipText type chartData dataLabel backgroundColor legend showOptions selectedLabel selectedValue labelValueSelection chartTitle fontSize pieHole pieSliceText is3D textColor numberPattern">
+  <template> 
+    <core-style ref="theme"></core-style>
+    <link rel="stylesheet" href="lens-viz-g-pie-chart.css">
+    <lens-u-data-utility id="utility"></lens-u-data-utility>
+    <lens-u-data-selector id="data_selector" input="{{chartData}}" selections="{{labelValueSelection}}" selectionSettings='[
+        {"name": "label", "type": "any", "multi": false},
+        {"name": "value", "type": "numerical", "multi": false}
+      ]' style="display: {{showOptions | displayFilter}};  height: 10%;"></lens-u-data-selector>
+ 
+    <google-chart id="googleChart" on-google-chart-render="{{chartReady}}" selection="{{selection}}" style="width:100%; height: {{showOptions | heightFilter}};"
+          type='pie'
+          options= "{{options}}"
+          data="{{_data}}"
+          numberFormats="{{numberFormats}}">
+    </google-chart>
+  </template>
+
+  <script>
+
+    Polymer('lens-viz-g-pie-chart', {
+      chartData: [
+        {"label": "Germany", "value": 100},
+        {"label": "Switzerland", "value": 50},
+        {"label": "France", "value": 300, "split": 0.2},
+        {"label": "Austria", "value": 200},
+        {"label": "Netherlands", "value": 500}
+      ],
+      /**
+       * Data label for values assigned to states
+       * @type {String}
+       */
+      dataLabel: "Medicaid Coverage",
+
+      /**
+       * Type of chart. Either 'pie' or 'donut'
+       * @type {String}
+       */
+      type: 'pie',
+      /**
+       * 'backgroundColor' refers to the background color of the container
+       * @type {String}
+       */
+      backgroundColor: "",
+      /**
+       * 'legend' determines whether or not to display a legend
+       * @type {Boolean}
+       */
+      legend: false,
+      numberPattern: "",
+      /**
+       * 'tooltipText' reders to which values get shown in the tooltip
+       * @type {String}
+       * @options: 'both' - value & percent
+       *           'value' - only value
+       *           'percentage' - only percent
+       */
+      tooltipText: 'both', 
+      /**
+       * 'showOptions' is a toggle for whether chart options are displayed or not
+       * @type {Boolean}
+       */
+      showOptions: true,
+      pieHole: 0.4,
+      is3D: false,
+      pieSliceText: 'percentage',
+      observe: {
+        selection: "selectionChanged",
+        chartTitle: "updateOptions",
+        fontSize: "updateOptions",
+        tooltipText: "updateOptions",
+        pieHole: "updateOptions",
+        pieSliceText: "updateOptions",
+        is3D: "updateOptions",
+        legend: "updateOptions",
+        type: "updateOptions",
+        backgroundColor: "updateOptions",
+        textColor: "updateOptions",
+        numberPattern:  "updateData",
+        _numberPattern:  "updateOptions"
+      },    
+      ready: function() {
+        var self = this;
+        
+        // Listen for theme changes
+        document.addEventListener('th-theme-changed', function(e) {
+          this.getColors();
+          this.updateOptions();
+        }.bind(this));
+
+        self.reformatData();
+        self.$.data_selector.addEventListener('th-data-selection-changed', function() {
+          self.updateSelections();
+        }.bind(self));
+        
+        self.configureOptions();
+      },
+      /**
+       * 'reformatData' converts chartData into the correct data structure for the map
+       */
+      reformatData: function(){
+        var self = this; 
+
+        if(!self.labelValueSelection || !self.labelValueSelection[0] || !self.labelValueSelection[1]) {
+          return;
+        }
+        var firstRow = ["Data Point", self.labelValueSelection[1]];
+
+        self._data = self.input.map(function(item, index){
+          var row = [];
+          row.push(item[self.labelValueSelection[0]]);
+            if (index === 0){
+            // Extract the number format of the first row of data and apply to tooltips
+            
+            var format = self.$.utility.extractNumberFormat(item[self.labelValueSelection[1]]);
+            if (format){
+              self._numberPattern = format.pattern; // Use this pattern to apply to axis numbers 
+              self.numberFormats.push({col: 1, prefix: format.prefix, suffix: format.suffix, groupingSymbol:',', fractionDigits: format.decimalPlaces});
+            } 
+          }
+            var unformattedValue = self.$.utility.unformatString(item[self.labelValueSelection[1]]);
+            row.push(unformattedValue);
+          return row;
+        });
+
+        self._data.unshift(firstRow);
+
+        // If a specific number pattern is given, override the default pattern extracted from values
+        if (self.numberPattern){
+          self.numberFormats = [{col: 1, pattern: self.numberPattern}];
+        }
+   
+      },
+
+      /**
+       * Overrides th-d3-chart function. called by observers when input or chartData changes
+       * @return {[type]} [description]
+       */
+      updateData: function() {
+        var self = this;
+        self.reformatData();
+        this.updateOptions();
+      },
+      updateSelections: function(){
+        var self = this;
+        self.labelValueSelection = self.$.data_selector.selections;
+        self.selectedLabel = self.labelValueSelection[0];
+        self.selectedValue = self.labelValueSelection[1];
+        self.reformatData();
+      },
+      updateOptions: function(){
+        this.configureOptions();
+        this.$.googleChart.drawChart();
+      },
+      /**
+       * 'configureOptions' sets the appropriate options properties for the map, given the attribute values
+       */
+      configureOptions: function(){
+        var self = this,
+            colors =  self.getColors();
+        
+        var fgColor = self.textColor || colors.theme.foreground1 || "black";
+        var bgColor = self.backgroundColor || colors.theme.background || "none";
+        
+        self._slices = self.chartData.map(function(item, index) {
+          item.color = colors.accents[index];
+          item.offset = item.split;
+          return item;
+        });
+
+        // Define chart options 
+        self.options = {
+          title: self.chartTitle,
+          titleTextStyle: { color: fgColor, fontName: colors.theme.font, fontSize: self.fontSize*1.5},
+          fontSize: self.fontSize,
+          tooltip: { trigger: 'selection', text: self.tooltipText, textStyle: { color: "black", fontName: colors.theme.font, fontSize: '0.85em'}},
+          backgroundColor: {fill: bgColor},
+          chartArea:{width:'80%',height:'80%'},
+          is3D: self.is3D,
+          pieSliceText: self.pieSliceText,
+          pieSliceTextStyle: {color: fgColor, fontName: colors.theme.font},
+          legend: { 
+            numberFormat: self.numberPattern || self._numberPattern || "#,###.##", // numberPattern is exposed as an attribute and _numberPattern is the pattern extracted from data
+            textStyle: { 
+              color: fgColor, 
+              fontName: colors.theme.font, 
+              fontSize: '0.85em',
+              stroke: 'none',
+              strokeWidth: '0'         
+            } 
+          },
+          slices : self._slices,
+          pieHole: self.type == 'donut' ? self.pieHole : 0
+        };
+
+        if (!self.legend) { self.options.legend = 'none';}
+        
+      },
+      /**
+       * converts google chart selection to row from chartData
+       * @param  {[type]} value [description]
+       * @return {[type]}       [description]
+       */
+      selectionChanged: function() {
+
+        this.output = (this.selection[0] && this.selection[0].row) ? this.chartData[this.selection[0].row] : null;
+      },
+      /**
+       * called when resized
+       * @return {[None]} 
+       */
+      resize: function() {
+        this.$.googleChart.drawChart();
+      },
+
+      /**
+       * 'getColors' gets the color theme from the global scope
+       * @return {Object}
+       */
+      getColors: function(){
+        colors = {};
+        colors.theme = window.CoreStyle.g.theme;
+        colors.accents = [];
+
+        for (var color in colors.theme){
+          if(/^accent/.test(color)){
+            colors.accents.push(colors.theme[color]);
+          }
+        }
+
+        colors.count = colors.accents.length;
+
+        return colors;
+      },
+      selectedLabelChanged: function() {
+          //if selectedLabel changed from outside, set the internal data_selector
+          this.$.data_selector.selections[0] = this.selectedLabel;
+
+      },
+      selectedValueChanged: function() {
+          //if selectedValue changed from outside, set the internal data_selector
+          this.$.data_selector.selections[1] = this.selectedValue;
+
+      },
+      displayFilter: function(value){
+        return value ? "inline-block" : "none";
+      },
+      heightFilter: function(value){
+        return value ? "90%" : "100%";
+      },
+      getMetaData: function(){
+        return {
+          "name": "lens-viz-g-pie-chart",
+          "description": "Pie Chart by Google",
+          "category":"chart",
+          "version": "0.0.1",
+          "inputAttr": {
+            "chartTitle":{"friendly":"Title", "type":"string", "default":""},
+            "type": {"friendly":"Type", "type": "dropdown", "default": "pie", "values":["pie", "donut"]},
+            "pieHole": {"friendly":"Pie Hole Size (for donut only)", "type":"range", "default":0.4, "range":[0,1], "step":0.1},
+            "numberPattern": {"friendly":"Number Pattern", "type":"string", "default":""},
+            "fontSize":{"friendly":"Font Size", "type":"int", "default":""},
+            "textColor":{"friendly":"Text Color", "type":"color", "default":""},
+            "tooltipText": {"friendly":"Tooltip Text", "type": "dropdown", "default": "both", "values":["both", "value", "percentage"]},
+            "pieSliceText": {"friendly":"Pie Slice Text", "type": "dropdown", "default": "percentage", "values":["percentage", "value", "label", "none"]},
+            "backgroundColor":{"friendly":"Background Color", "type":"color", "default":""},
+            "legend":{"friendly":"Show Legend?", "type":"boolean", "default": false},
+            "is3D":{"friendly":"3D?", "type":"boolean", "default": false}
+          }
+        }
+      }
+    });
+
+  
+  </script>
+
+</polymer-element>

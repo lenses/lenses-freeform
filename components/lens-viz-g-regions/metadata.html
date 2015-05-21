@@ -1,0 +1,11 @@
+<x-meta id="lens-viz-g-regions" label="Lenses World Regions Map" group="Lenses chart">			<template>			<lens-viz-g-regions animateOnInit="true"/></template>
+			<template id="imports">			<link rel="import" href="lens-viz-g-regions.html"/></template>
+			<property name="resolution" kind="select" options="countries,provinces,metros"/>
+			<property name="regionCode" kind="string"/>
+			<property name="dataLabel" kind="string"/>
+			<property name="chartData" kind="json"/>
+			<property name="displayMode" kind="select" options="fill,markers,text"/>
+			<property name="color" kind="color"/>
+			<property name="backgroundColor" kind="color"/>
+			<property name="legend" kind="boolean"/>
+</x-meta>

@@ -1,0 +1,30 @@
+{
+  "name": "lenses-freeform",
+  "keywords": [
+    "seed",
+    "polymer",
+    "web-components"
+  ],
+  "main": "lenses-freeform.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.5.5",
+    "lens-data-table": "lenses/lens-data-table",
+    "lenses-component-list": "lenses/lenses-component-list",
+    "paper-input": "polymer/paper-input#~0.5.5",
+    "core-overlay": "polymer/core-overlay#~0.5.5"
+  },
+  "devDependencies": {
+    "web-component-tester": "Polymer/web-component-tester#^2.0.0"
+  },
+  "homepage": "https://github.com/lenses/lenses-freeform",
+  "_release": "e9ac5de020",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "e9ac5de020c2b11cb27d09992a0bdd856305b457"
+  },
+  "_source": "git://github.com/lenses/lenses-freeform.git",
+  "_target": "master",
+  "_originalSource": "lenses/lenses-freeform",
+  "_direct": true
+}

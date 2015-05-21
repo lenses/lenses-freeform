@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="../webcomponentsjs/webcomponents.js"></script>
+    <link rel="import" href="../polymer/polymer.html">
+    <link rel="import" href="../core-component-page/core-component-page.html">
+    <style>
+      html, body {width: 100%;}
+      body {
+        font-family: 'open-sans', arial, helvetica;
+      }
+
+      h1, h2 {
+        text-align: center;
+      }
+
+      h1 {
+        background: url(https://avatars3.githubusercontent.com/u/8629151?v=3&s=200) 50% 0 no-repeat;
+        height: 125px;
+        line-height: 7em;
+        margin: 0.5em;
+      }
+      h2 {
+        color: #0377FF;
+        font-size: 1.2em;
+        margin: 0;
+
+      }
+
+      a, a:hover, a:visited {
+        color: #333;
+      }
+
+      .lens-example {
+        width: 1000px;
+        height: 700px;
+        border: 1px solid black;
+        transform: scale(0.76) translate(0,0) translate(-160px, -100px);
+      }
+      .container {
+        width: 800px;
+        margin: 0 auto;
+      }
+      .examples {
+        width: 800px;
+        padding: 0;
+        margin: 0 auto;
+        list-style: none;
+      }
+      .examples h3 {
+        margin-bottom: .4em;
+      }
+      .examples .info {
+        font-size: 0.8em;
+        margin-top: 2px;
+      }
+      h3.explore {
+        text-align: center;
+      }
+      .create, .create:visited, .create:hover {
+        padding: 10px;
+        background-color: #0377FF;
+        color: #FFF;
+        text-decoration: none;
+        margin: 30px auto;
+        width: 170px;
+        display: block;
+        font-size: 1.2em;
+
+      }
+      .notice {
+        font-size: 0.8em;
+        text-align: center;
+        
+
+      }
+      .open-demo, .open-demo:hover, .open-demo:visited {
+        color: #333;
+        text-decoration: underline;
+        font-size: 0.9em;
+      }
+
+      ul {
+        padding: 0;
+        list-style: none;
+      }
+      .developed {
+        margin-top: -30px;
+      }
+      .developed a {
+        text-decoration: none;
+        color: #333;
+      }
+
+      @media (max-width: 750px) {
+        .container {
+          width: 90%;
+        }
+        .lens-example {
+          width: 1000px;
+          height: 700px;
+          border: 1px solid black;
+          transform: scale(0.4) translate(0,0) translate(-750px, -500px);
+        }
+
+
+      }
+
+    </style>
+  </head>
+  <body unresolved>
+    <div class="container">
+      <h1>LENSES</h1>
+      <h2>An open data transformation/visualization ecosystem</h2>
+
+      <p>
+        A framework of open-source data visualization and transformation <a href="https://www.polymer-project.org">Polymer</a> web components
+        for fetching, manipulating and visualing data.
+      </p>
+      <a href="demo.html" class="create" target="_blank">Create a new Lens</a>
+
+      <h3 class="explore">Or explore the <b>interactive</b> examples below:</h3>
+      <div class="notice">* Please note Lenses created here could not be saved!</div>
+      <div class="notice">* The examples below are scaled down interactive iframes.</div>
+      <ul class="examples">
+        <li>
+          <h3>Iris dataset visualization</h3>
+          <a href="demo-iris.html" class="open-demo" target="_blank">Open demo in a new tab</a>
+          <iframe src="demo-iris.html" class="lens-example"></iframe>
+        </li>
+        <li>
+          <h3>Car displacement vs MPG and HP</h3>
+          <a href="demo-cars.html" class="open-demo" target="_blank">Open demo in a new tab</a>
+          <div class="info">Data source: <a href="http://bl.ocks.org/mbostock/7586334" target="_blank">http://bl.ocks.org/mbostock/7586334</a></div>
+          <iframe src="demo-cars.html" class="lens-example"></iframe>
+        </li>
+      </ul>
+      <div class="developed">
+        <h4>Developed by:<h4>
+        <ul>
+          <li><a href="http://github.com/sepans">Sepand Ansari</a>
+          <li><a href="http://github.com/nishacodes">Nisha Batra</a>
+          <li><a href="http://github.com/therewasaguy">Jason Sigal</a>
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>

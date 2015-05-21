@@ -1,0 +1,26 @@
+:host {
+  display: inline-block;
+  color: black;
+  width: 500px;
+  height: 500px;
+}
+.columnNames {
+  margin: 0px auto;
+  text-align: center;
+  padding: 10px;
+  font-size: 0.85em;
+}
+
+.columnName {
+  margin: 10px;
+  padding: 3px 5px;
+  border: 2px solid #ccc;
+  color: #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.selected, .selectedValue, .selectedLabel {
+  background-color: #ccc;
+  color: white;
+}

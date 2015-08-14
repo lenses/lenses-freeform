@@ -1,6 +1,6 @@
 <link rel="import" href="../polymer/polymer.html">
 <!-- <link rel="import" href="../lens-data-table/lens-data-table.html"> -->
-<!-- <link rel="import" href="../lenses-component-list/lenses-component-list.html"> -->
+<link rel="import" href="../lenses-component-list/lenses-component-list.html">
 <link rel="import" href="../paper-input/paper-input.html">
 <link rel="import" href="../iron-selector/iron-selector.html">
 <link rel="import" href="../paper-icon-button/paper-icon-button.html">
@@ -85,7 +85,7 @@
 
         </template> 
         <iron-selector class="output-selector" selected="{{_outputComponents}}" valueattr="label" multi="true">
-          <template is="dom-repeat" items="{{_elements}}" as="el" index-as="index">
+          <template is="dom-repeat" class="render-after-el" items="{{_elements}}" as="el" index-as="index">
             <div class="col" label="{{el.id}}">{{el.id}}</div>
 
           </template> 
@@ -110,7 +110,7 @@
       <!-- Components and connector dots --> 
       <!--<template if="{{_positioned}}">-->
 
-        <template is="dom-repeat" items="{{_elements}}" as="el" index-as="index">
+        <template is="dom-repeat" class="render-after-el" items="{{_elements}}" as="el" index-as="index">
           <div id="{{computeWrapperId(el)}}" component-id="{{el.id}}" on-click="wrapperClicked" on-dragstart="dragStartWrapper" on-drag="dragWrapper" on-dragend="dragEndWrapper" draggable="true" class="wrapper {{el.name}}" style$="{{computeStyle(el)}}"><!-- on-mouseover="{{dragOverWrapper}}" on-drop="{{droppedOnInArrow}}" needed? -->
 
           
@@ -280,7 +280,7 @@
       structure: {
         value: null,
         notify: true,
-        observer: 'scaffold'
+       /* observer: 'scaffold'*/
       }
     },
     ready: function () {
@@ -299,8 +299,12 @@
       this.$.component_list.checkAndImport(newEl, function () {
         newEl.style.width = '100%';
         newEl.style.height = '100%';
-        this.appendChild(newEl);
+        Polymer.dom(this.root).appendChild(newEl);
         this._processNewElement(newEl, top / this._zoom, left / this._zoom);
+        var toRender = Polymer.dom(this.root).querySelectorAll('.render-after-el');
+        [].forEach.call(toRender, function(item) {
+          item.render();
+        });
       }.bind(this));
     },
     _processNewElement: function (newEl, top, left) {
@@ -421,7 +425,7 @@
       }
     },
     clickedOnConnection: function (e) {
-      var bezier = this.shadowRoot.querySelector('#' + e.toElement.id);
+      var bezier = Polymer.dom(this.root).querySelector('#' + e.toElement.id);
       console.log(bezier);
       if (String(bezier.classList).indexOf('highlight') > -1) {
         // console.log('delete');
@@ -624,7 +628,7 @@
       // find any elements that intersect with the drag area, sort out which are _selElement and _selWrappers
       for (var i in this._elements) {
         var el = this._elements[i];
-        var wrapperEl = this.shadowRoot.querySelector('#wrapper-' + el.id);  // get element dimensions
+        var wrapperEl = Polymer.dom(this.root).querySelector('#wrapper-' + el.id);  // get element dimensions
         // get element dimensions
         var elRect = wrapperEl.getBoundingClientRect();  // compare and if there is overlap, add class
         // compare and if there is overlap, add class
@@ -728,7 +732,7 @@
     },
     //this._addBezierPath( event.x0 , event.y0 , event.x0 , event.y0 , 70, 'temp_path');
     dragOutArrow: function (e, details, selection) {
-      var tempPath = this.shadowRoot.querySelector('#temp_path');  // the last dragMove call passes e.x=0 and e.y=0 which causes neg x,y values. this if avoids that
+      var tempPath = Polymer.dom(this.root).querySelector('#temp_path');  // the last dragMove call passes e.x=0 and e.y=0 which causes neg x,y values. this if avoids that
       // the last dragMove call passes e.x=0 and e.y=0 which causes neg x,y values. this if avoids that
       if (e.x !== 0 || e.y !== 0) {
         var newPath = this._createBezierPath(this.startPointX, this.startPointY, e.x / this._zoom - this.svgLeft, e.y / this._zoom - this.svgTop, 70);
@@ -736,7 +740,7 @@
       }
     },
     dragOutArrowEnd: function (e, details, selection) {
-      var tempPath = this.shadowRoot.querySelector('#temp_path');
+      var tempPath = Polymer.dom(this.root).querySelector('#temp_path');
       if (tempPath) {
         tempPath.parentNode.removeChild(tempPath);
       }
@@ -778,7 +782,7 @@
       if (connection.length > 0) {
         var marker = e.path[0];
         var bezierCssPath = '#container #svg #' + connection[0].source.id + '-' + connection[0].target.id;
-        var bezier = this.shadowRoot.querySelector(bezierCssPath);
+        var bezier = Polymer.dom(this.root).querySelector(bezierCssPath);
         if (connection[0].highlighted) {
           connection[0].highlighted = false;
           marker.classList.remove('highlighted');
@@ -905,7 +909,7 @@
     showDataBtn: function () {
       this._showDataTable = !this._showDataTable;
       this.$.showDataBtn.classList.toggle('active');
-      [].forEach.call(this.shadowRoot.querySelectorAll('.data-preview'), function (el) {
+      [].forEach.call(Polymer.dom(this.root).querySelectorAll('.data-preview'), function (el) {
         el.style.maxHeight = el.style.maxHeight == '0px' ? '100px' : '0px';
       });
     },
@@ -981,8 +985,8 @@
         var srcEl = conn.source.element || self.querySelector('#' + conn.source.id);  //TODO do this in initialization method
         //TODO do this in initialization method
         var targetEl = conn.target.element || self.querySelector('#' + conn.target.id);
-        var srcWrapper = self.shadowRoot.querySelector('#wrapper-' + srcEl.id);
-        var targetWrapper = self.shadowRoot.querySelector('#wrapper-' + targetEl.id);
+        var srcWrapper = Polymer.dom(self).querySelector('#wrapper-' + srcEl.id);
+        var targetWrapper = Polymer.dom(self).querySelector('#wrapper-' + targetEl.id);
         var srcRect = srcWrapper.getBoundingClientRect();
         var targetRect = targetWrapper.getBoundingClientRect();
         var svgRect = self.$.svg.getBoundingClientRect();
@@ -1056,7 +1060,7 @@
               });
             }
             el.element = domEl;
-            this.appendChild(domEl);
+            Polymer.dom(this.root).appendChild(domEl);
           }.bind(this));
         }
       }.bind(this));  //delay to make sure position of elements are final
@@ -1198,7 +1202,7 @@
       if (highlighted) {
         aLine.classList.add('highlighted');
       }
-      this.$.svg.appendChild(aLine);
+      Polymer.dom(this.$.svg).appendChild(aLine);
     },
     // zoom either to a specified amount, or add this._zoomStep
     zoomIn: function (amt) {

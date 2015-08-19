@@ -108,15 +108,16 @@
 
 
       <!-- Components and connector dots --> 
-      <!--<template if="{{_positioned}}">-->
 
-        <template is="dom-repeat" class="render-after-el" items="{{_elements}}" as="el" index-as="index">
-        <div id$="{{computeWrapperId(el)}}" component-id="{{el.id}}" on-click="wrapperClicked" on-dragstart="dragStartWrapper" on-drag="dragWrapper" on-dragend="dragEndWrapper" draggable="true" class$="{{concatClassNames()}}" style$="{{computeStyle(el)}}"><!-- on-mouseover="{{dragOverWrapper}}" on-drop="{{droppedOnInArrow}}" needed? -->
+      <template is="dom-repeat" class="render-after-el" items="{{_elements}}" as="{{el}}"  index-as="index">
+      <!-- el is not working ?!?! -->
 
-          
-            <label>{{el.id}}</label>
-            <div class="deleteEl" component_id="{{el.element.id}}" on-click="_deleteElementEvent">X</div>
-             
+        <div id="{{computeWrapperId(index)}}" component-id="{{computeElementId(index)}}" on-click="wrapperClicked" on-dragstart="dragStartWrapper" on-drag="dragWrapper" on-dragend="dragEndWrapper" draggable="true" class$="{{concatClassNames()}}" style$="{{computeWrapperStyles(index)}}">
+
+          <label>{{computeElementId(index)}}</label>
+          <div class="deleteEl" component_id="{{computeElementId(index)}}" on-click="_deleteElementEvent">X</div>
+
+            
             <div class="connectors-in">
               <!-- Input -->
               
@@ -156,15 +157,16 @@
               <div class="resize" draggable="true" on-dragstart="dragStartResize" on-drag="dragResize" on-dragend="dragEndResize"></div>
             </template>
           
-          </div>
+        </div>
 
-           <template is="dom-if" if="{{computeIf(el)}}">
-              <iron-collapse class="settings-collapse" id="{{computeCollapseId(el)}}" opened="{{el.settingOpen}}" style$="{{computeStyle(el)}}">
-                <content select="{{computeSelect(el)}}"></content>
-              </iron-collapse>
-           </template>
-
+        <template is="dom-if" if="{{computeIf(el)}}">
+          <iron-collapse class="settings-collapse" id="{{computeCollapseId(el)}}" opened="{{el.settingOpen}}" style$="{{computeStyle(el)}}">
+            <content select="{{computeSelect(el)}}"></content>
+          </iron-collapse>
         </template>
+          
+
+      </template>
     </div> 
 
     <!-- commenting out for now -->
@@ -1250,21 +1252,29 @@
       //console.log('compute eq 0' , _elements, this._elements);
       return !this._elements || this._elements.length === 0;
     },
+
+    computeElementId: function(index) {
+      return this._elements[index].id;
+    },
+
     computeLengthEqualsZero: function(item) {
       return item.length === 0;
     },
-    computeWrapperId: function (el) {
-      return 'wrapper-' + el.id;
+    computeWrapperId: function (index) {
+      //console.log('id', el, el.id);
+      return 'wrapper-' + this._elements[index].id;
     },
+
+    computeWrapperStyles: function (index) {
+      return 'top: ' + this._elements[index].top + 'px; left: ' + this._elements[index].left + 'px; transform: ' + this._elements[index].transform + '; width: ' + this._elements[index].width + 'px; height: ' + this._elements[index].height + 'px';
+    },
+
     computeWrapperClass: function (el) {
       return 'wrapper ' + el.name;
     },
 
     computeCollapseId: function (el) {
       return 'collapse-' + el.id;
-    },
-    computeStyle: function (el) {
-      return 'top: ' + el.top + 'px; left: ' + el.left + 'px; transform: ' + el.transform + '; width: ' + el.width + 'px; height: ' + el.height + 'px';
     },
 
 

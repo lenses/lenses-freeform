@@ -80,7 +80,7 @@
 
         <label class="label">Select output component:</label>
 
-        <template is="dom-if" if="computeElementsLengthEqualsZero" restamp="true">
+        <template is="dom-if" if="{{computeElementsEmpty()}}" restamp="true">
           <div>No component in canvas!</div>
 
         </template> 
@@ -111,7 +111,7 @@
       <!--<template if="{{_positioned}}">-->
 
         <template is="dom-repeat" class="render-after-el" items="{{_elements}}" as="el" index-as="index">
-          <div id="{{computeWrapperId(el)}}" component-id="{{el.id}}" on-click="wrapperClicked" on-dragstart="dragStartWrapper" on-drag="dragWrapper" on-dragend="dragEndWrapper" draggable="true" class="wrapper {{el.name}}" style$="{{computeStyle(el)}}"><!-- on-mouseover="{{dragOverWrapper}}" on-drop="{{droppedOnInArrow}}" needed? -->
+        <div id$="{{computeWrapperId(el)}}" component-id="{{el.id}}" on-click="wrapperClicked" on-dragstart="dragStartWrapper" on-drag="dragWrapper" on-dragend="dragEndWrapper" draggable="true" class$="{{concatClassNames()}}" style$="{{computeStyle(el)}}"><!-- on-mouseover="{{dragOverWrapper}}" on-drop="{{droppedOnInArrow}}" needed? -->
 
           
             <label>{{el.id}}</label>
@@ -1246,8 +1246,9 @@
       mouseout: 'mouseoutHandler'
     },
     // compute
-    computeElementsLengthEqualsZero: function() {
-      return _elements.length === 0;
+    computeElementsEmpty: function() {
+      //console.log('compute eq 0' , _elements, this._elements);
+      return !this._elements || this._elements.length === 0;
     },
     computeLengthEqualsZero: function(item) {
       return item.length === 0;
@@ -1321,6 +1322,10 @@
     computeSelect: function (el) {
       return '#' + el.id;
     },
+    concatClassNames: function() {
+      return 'wrapper';//arguments.join(' ');
+    }
+
 
   });
 </script>

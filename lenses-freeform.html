@@ -122,7 +122,7 @@
               <!-- Input -->
               
               <ul>
-                <template is="dom-repeat" items="{{_checkForInputAttr(el.element.publish)}}" as="ins">
+                <template is="dom-repeat" items="{{_checkForInputAttr(index)}}" as="ins">
                      
                     <li on-dragover="dragOverInArrow" on-drop="droppedOnInArrow" on-dragenter="dragEnterInArrow" on-dragleave="dragLeaveInArrow" on-click="arrowClicked" class$="{{computeClass(el, ins)}}">
                       <div class="inputMarker">
@@ -146,7 +146,7 @@
                 <content select="{{computeSelect(el)}}"></content>
             </template>
             <div class="connectors-out">
-              <template is="dom-if" if="{{_checkForOutputAttr(el.element.publish)}}">
+              <template is="dom-if" if="{{_checkForOutputAttr(index)}}">
                 <div id="{{index}}" on-drag="dragOutArrow" on-dragstart="dragOutArrowStart" on-dragend="dragOutArrowEnd" on-click="arrowClicked" draggable="true" class$="{{computeClass(el)}}">
                   <div class="outputMarker"></div>
                 </div>
@@ -1055,7 +1055,7 @@
             if (el.name === 'lens-input-paste') {
               domEl.output = el.output;
             } else {
-              Object.keys(domEl.publish).forEach(function (attr) {
+              Object.keys(domEl.properties).forEach(function (attr) {
                 if (attr !== 'input' && attr !== 'output' && el[attr]) {
                   domEl[attr] = el[attr];
                 }
@@ -1090,7 +1090,7 @@
       var toDumpEls = _.map(this._elements, function (el) {
         var domObject = el.element;
         var cloned = _.clone(el);
-        Object.keys(domObject.publish).forEach(function (attr) {
+        Object.keys(domObject.properties).forEach(function (attr) {
           //ignore input attribute and output (except where the component is th-table-data)
           if (attr === 'chartData' || attr.indexOf('input') === 0 || attr === 'output' && el.name !== 'lens-input-paste') {
             return;
@@ -1135,7 +1135,8 @@
      * @param  {Object} published Object containing all published attributes
      * @return {Object}           list of attributes that are input.
      */
-    _checkForInputAttr: function (published) {
+    _checkForInputAttr: function (index) {
+      var published = this._elements[index].element.properties;
       if (!published) {
         return false;
       }
@@ -1149,7 +1150,8 @@
      * @param  {Object} published Object containing all published attributes
      * @return {boolean}       True if component has output attribute (only one)
      */
-    _checkForOutputAttr: function (published) {
+    _checkForOutputAttr: function (index) {
+      var published = this._elements[index].element.properties;
       if (!published) {
         return false;
       }

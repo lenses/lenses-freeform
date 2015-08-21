@@ -85,7 +85,7 @@
 
         </template> 
         <iron-selector class="output-selector" selected="{{_outputComponents}}" valueattr="label" multi="true">
-          <template is="dom-repeat" class="render-after-el" items="{{_elements}}" as="el" index-as="index">
+          <template is="dom-repeat"  items="{{_elements}}" as="el" index-as="index">
             <div class="col" label="{{el.id}}">{{el.id}}</div>
 
           </template> 
@@ -303,11 +303,17 @@
         newEl.style.height = '100%';
         Polymer.dom(this.root).appendChild(newEl);
         this._processNewElement(newEl, top / this._zoom, left / this._zoom);
-        var toRender = Polymer.dom(this.root).querySelectorAll('.render-after-el');
-        [].forEach.call(toRender, function(item) {
+        this._renderContainerTemplate();
+      }.bind(this));
+    },
+    _renderContainerTemplate: function() {
+        if(!this._containerTemplates)
+        this._containerTemplates = Polymer.dom(this.root).querySelectorAll('.render-after-el');
+        [].forEach.call(this._containerTemplates, function(item) {
+          console.log('rendering', item);
           item.render();
         });
-      }.bind(this));
+
     },
     _processNewElement: function (newEl, top, left) {
       newEl.id = this._generateUniqueId(newEl.tagName.toLowerCase());
@@ -365,7 +371,7 @@
     // if option key was pressed, clone the element when drag is done
     _cloneElement: function (e, detail, selection) {
       // figure out the name of the element...
-      var componentId = selection.getAttribute('component-id');
+      var componentId = selection.componentId;
       var idSplit = componentId.split('-');
       var elNameArray = [];
       var elName = '';
@@ -475,7 +481,7 @@
                                                                                   // wrapper.style.height = h +'px';
       // wrapper.style.width = w +'px';
       // wrapper.style.height = h +'px';
-      var elementInsideId = wrapper.getAttribute('component-id');  //wrapper.id.replace('wrapper-','');
+      var elementInsideId = wrapper.componentId;  //wrapper.id.replace('wrapper-','');
       //wrapper.id.replace('wrapper-','');
       var elementInside = this.querySelector('#' + elementInsideId);
       var element = this.findElById(elementInsideId);
@@ -558,7 +564,7 @@
       // translate the element. 
       // last dragMove call passes e.x=0 and e.y=0 which causes neg x,y values. this if avoids that
       if (e.x !== 0 || e.y !== 0) {
-        var componentId = target.getAttribute('component-id');
+        var componentId = target.componentId;
         this.findElById(componentId).transform = 'translate(' + sx + 'px, ' + sy + 'px)';  // update the posiion attributes
         // update the posiion attributes
         target.setAttribute('data-x', sx);
@@ -566,6 +572,7 @@
         target.setAttribute('start-x', e.x);
         target.setAttribute('start-y', e.y);
       }
+      this._renderContainerTemplate();
     },
     dragEndWrapper: function (e, details, selection) {
       // console.log('done dragging!');
@@ -580,14 +587,11 @@
       target.setAttribute('residue-y', 0);
     },
     wrapperClicked: function (e, detail, selection) {
-      var wrapperEl = selection;
+      var wrapperEl = e.currentTarget;
       var elementId = wrapperEl.id;
       elementId = elementId.substring(8, elementId.length);
       var el = this.findElById(elementId).element;
       if (this._selElement != el) {
-        console.log('change');
-        console.log(this._selElement);
-        console.log(el);  // unhighlight other selected element if this was not one of them
         // unhighlight other selected element if this was not one of them
         if (wrapperEl.classList.contains('selected-element')) {
           console.log('already selected');
@@ -774,7 +778,7 @@
         }
       }
       var sourceTarget = e.path[0].classList.contains('inputMarker') ? 'target' : 'source';
-      var elementInsideId = wrapper.getAttribute('component-id');  //var elementInside = this.findElById(elementInsideId);
+      var elementInsideId = wrapper.componentId;  //var elementInside = this.findElById(elementInsideId);
       //var elementInside = this.findElById(elementInsideId);
       var connection = this._connections.filter(function (conn) {
         if (conn[sourceTarget].id === elementInsideId) {
@@ -819,7 +823,7 @@
               wrapper = e.path[i];
             }
           }
-          elementInsideId = wrapper.getAttribute('component-id');
+          elementInsideId = wrapper.componentId;
         }
         if (!e) {
           e = undefined;
@@ -857,7 +861,7 @@
       this._drawConnections();
     },
     toggleSetting: function (e, detail, selection) {
-      var button = e.path[0], componentId = button.getAttribute('component-id'), elementInfo = this.findElById(componentId);
+      var button = e.path[0], componentId = button.componentId, elementInfo = this.findElById(componentId);
       elementInfo.settingOpen = !elementInfo.settingOpen;
     },
     keydownHandler: function (e) {
@@ -877,7 +881,7 @@
           self._deleteBezier(e, self._highlightedConnection);
         } else if (self._selWrappers.length > 0) {
           for (var i = 0; i < self._selWrappers.length; i++) {
-            var _id = self._selWrappers[i].getAttribute('component-id');
+            var _id = self._selWrappers[i].componentId;
             self._deleteElementById(_id);
           }
         }
@@ -1268,6 +1272,7 @@
     },
 
     computeWrapperStyles: function (index) {
+      console.log('computing styles');
       return 'top: ' + this._elements[index].top + 'px; left: ' + this._elements[index].left + 'px; transform: ' + this._elements[index].transform + '; width: ' + this._elements[index].width + 'px; height: ' + this._elements[index].height + 'px';
     },
 

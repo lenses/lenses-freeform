@@ -85,9 +85,8 @@
 
         </template> 
         <iron-selector class="output-selector" selected="{{_outputComponents}}" valueattr="label" multi="true">
-          <template is="dom-repeat"  items="{{_elements}}" as="el" index-as="index">
+          <template is="dom-repeat"  items="{{_elements}}" as="el" index-as="index" observe="id">
             <div class="col" label="{{el.id}}">{{el.id}}</div>
-
           </template> 
         </iron-selector>
 
@@ -115,7 +114,7 @@
         <div id="{{computeWrapperId(index)}}" component-id="{{computeElementId(index)}}" on-click="wrapperClicked" on-dragstart="dragStartWrapper" on-drag="dragWrapper" on-dragend="dragEndWrapper" draggable="true" class$="{{concatClassNames()}}" style$="{{computeWrapperStyles(index)}}">
 
           <label>{{computeElementId(index)}}</label>
-          <div class="deleteEl" component_id="{{computeElementId(index)}}" on-click="_deleteElementEvent">X</div>
+          <div class="deleteEl" component_id="[[computeElementId(index)]]" on-click="_deleteElementEvent">X</div>
 
             
             <div class="connectors-in">
@@ -210,6 +209,8 @@
       _dragArea: { value: null },
       _elements: {
         type: Array,
+        observer: '_elementsChanged',
+        notify: true,
         value: function () {
           return [];
         }
@@ -287,15 +288,17 @@
     },
     ready: function () {
       this.focus();
-      this.tabIndex = 0;  // for testing:
-                          // window.ff = this;
+      this.tabIndex = 0;
+
+      // for testing:
+      window.ff = this;
+
       this.addEventListener('core-resize', function () {
         this._drawConnections();
       });
       this.$.zoomRange.value = this._zoom;
     },
-    // for testing:
-    // window.ff = this;
+
     addNewElToLens: function (newElName, left, top) {
       var newEl = document.createElement(newElName);
       this.$.component_list.checkAndImport(newEl, function () {
@@ -316,7 +319,9 @@
 
     },
     _processNewElement: function (newEl, top, left) {
-      newEl.id = this._generateUniqueId(newEl.tagName.toLowerCase());
+      var id = this._generateUniqueId(newEl.tagName.toLowerCase());
+      newEl.setAttribute('id', id);
+
       var elItem = {
         element: newEl,
         id: newEl.id,
@@ -332,33 +337,43 @@
         elItem.width = 250;
         elItem.height = 200;
       }
-      this._elements.push(elItem);
+
+      var newElements = this._elements.slice();
+      newElements.push(elItem);
+      this.set('_elements', newElements);
     },
     // when delete button is clicked
     _deleteElementEvent: function (e) {
       var self = this;
-      var compId = e.target.getAttribute('component_id');
+      var compId = e.target.component_id;
       self._deleteElementById(compId);
     },
     _deleteElementById: function (compId) {
       var self = this;
       var compId = compId;
-      self.$.deleteDialog.toggle();  // set the delete callback
-      // set the delete callback
-      self._deleteCallback = function () {
-        var ebmededEl = self.querySelector('#' + compId);
+
+      ////// temporarily removing the deleteDialog and deleteToggle
+      // self.$.deleteDialog.toggle();  // set the delete callback
+
+      // // set the delete callback
+      // self._deleteCallback = function () {
+        var embeddedEl = self.querySelector('#' + compId);
+
         var elInArray = self.findElById(compId);  //remove all connections
         //remove all connections
-        self.removeAllConnectionsFromElement(compId)  // remove element from elements array (which removes it from the shadowDOM)
-;
+        self.removeAllConnectionsFromElement(compId);  // remove element from elements array (which removes it from the shadowDOM)
+
         // remove element from elements array (which removes it from the shadowDOM)
         var filteredEls = self._elements.filter(function (el) {
-          return el.element.id !== compId;
+          return typeof(el.element) !== 'undefined' && el.element.id !== compId;
         });
-        self._elements = filteredEls;  // remove elements from lens-connector 
+
+        self.set('_elements', filteredEls);
+
         // remove elements from lens-connector 
-        self.removeChild(embeddedEl);
-      };
+        var child = self.removeChild(embeddedEl);
+        console.log(child);
+      // };
     },
     removeAllConnectionsFromElement: function (elId) {
       var goodConnections = this._connections.filter(function (conn, index) {
@@ -420,6 +435,7 @@
       }
     },
     clickInContainer: function (e) {
+      console.log(e);
       var className = e.toElement.className;
       if (className.baseVal && className.baseVal.indexOf('cnxn') > -1) {
         console.log('clicked on connection');
@@ -587,6 +603,7 @@
       target.setAttribute('residue-y', 0);
     },
     wrapperClicked: function (e, detail, selection) {
+      return;
       var wrapperEl = e.currentTarget;
       var elementId = wrapperEl.id;
       elementId = elementId.substring(8, elementId.length);
@@ -608,6 +625,7 @@
     },
     // SVG drag events, also called on mousedown
     dragStartSVG: function (e, details, selection) {
+      console.log(e);
       console.log('hi');  // clear this._selWrappers [TO DO: unless Shift is clicked]
       // clear this._selWrappers [TO DO: unless Shift is clicked]
       this._selWrappers = [];
@@ -1341,6 +1359,9 @@
     },
     concatClassNames: function() {
       return 'wrapper';//arguments.join(' ');
+    },
+    _elementsChanged: function() {
+      console.log('elements changed!');
     }
 
 

@@ -582,9 +582,8 @@
       // translate the element. 
       // last dragMove call passes e.x=0 and e.y=0 which causes neg x,y values. this if avoids that
       if (e.x !== 0 || e.y !== 0) {
-        var componentId = target.componentId;
-        this.findElById(componentId).transform = 'translate(' + sx + 'px, ' + sy + 'px)';  // update the posiion attributes
-        // update the posiion attributes
+        // update the position attributes, and transform to actually move the element
+        target.style.transform = 'translate(' + sx + 'px, ' + sy + 'px)';
         target.setAttribute('data-x', sx);
         target.setAttribute('data-y', sy);
         target.setAttribute('start-x', e.x);

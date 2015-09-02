@@ -32,9 +32,9 @@
       <span class="slideout-handle">settings</span>
       <div class="slideout-inner">
 
-        <iron-icon-button id="showDataBtn" class="active" icon="view-module" on-click="showDataBtn" alt="show component data">
+        <paper-icon-button id="showDataBtn" class="active" icon="view-module" on-click="showDataBtn" alt="show component data">
           <span>show component input/output</span>
-        </iron-icon-button>
+        </paper-icon-button>
   
        <!--
         <core-icon-button id="saveBtn" icon="save" on-click="{{showSaveDialog}}" alt="save">
@@ -108,13 +108,13 @@
 
       <!-- Components and connector dots --> 
 
-      <template is="dom-repeat" class="render-after-el" items="{{_elements}}" as="{{el}}"  index-as="index">
+      <template is="dom-repeat" class="render-after-el" items="{{_elements}}" as="el" index-as="index">
       <!-- el is not working ?!?! -->
 
-        <div id="{{computeWrapperId(index)}}" component-id="{{computeElementId(index)}}" on-click="wrapperClicked" on-dragstart="dragStartWrapper" on-drag="dragWrapper" on-dragend="dragEndWrapper" draggable="true" class$="{{concatClassNames()}}" style$="{{computeWrapperStyles(index)}}">
+        <div id="{{computeWrapperId(el)}}" component-id="{{el.id}}" on-click="wrapperClicked" on-dragstart="dragStartWrapper" on-drag="dragWrapper" on-dragend="dragEndWrapper" draggable="true" class$="{{concatClassNames()}}" style$="{{computeWrapperStyles(el)}}">
 
-          <label>{{computeElementId(index)}}</label>
-          <div class="deleteEl" component_id="[[computeElementId(index)]]" on-click="_deleteElementEvent">X</div>
+          <label>{{el.id}}</label>
+          <div class="deleteEl" component_id="{{el.id}}" on-click="_deleteElementEvent">X</div>
 
             
             <div class="connectors-in">
@@ -159,7 +159,7 @@
         </div>
 
         <template is="dom-if" if="{{computeIf(el)}}">
-          <iron-collapse class="settings-collapse" id="{{computeCollapseId(el)}}" opened="{{el.settingOpen}}" style$="{{computeStyle(el)}}">
+          <iron-collapse class="settings-collapse" id="{{computeCollapseId(el)}}" opened="{{el.settingOpen}}" style$="{{computeCollapseStyle(el)}}">
             <content select="{{computeSelect(el)}}"></content>
           </iron-collapse>
         </template>
@@ -310,13 +310,12 @@
       }.bind(this));
     },
     _renderContainerTemplate: function() {
-        if(!this._containerTemplates)
-        this._containerTemplates = Polymer.dom(this.root).querySelectorAll('.render-after-el');
-        [].forEach.call(this._containerTemplates, function(item) {
-          console.log('rendering', item);
-          item.render();
-        });
-
+      if(!this._containerTemplates)
+      this._containerTemplates = Polymer.dom(this.root).querySelectorAll('.render-after-el');
+      [].forEach.call(this._containerTemplates, function(item) {
+        // console.log('rendering', item);
+        item.render();
+      });
     },
     _processNewElement: function (newEl, top, left) {
       var id = this._generateUniqueId(newEl.tagName.toLowerCase());
@@ -351,7 +350,7 @@
     _deleteElementById: function (compId) {
       var self = this;
       var compId = compId;
-
+      console.log(compId);
       ////// temporarily removing the deleteDialog and deleteToggle
       // self.$.deleteDialog.toggle();  // set the delete callback
 
@@ -365,7 +364,7 @@
 
         // remove element from elements array (which removes it from the shadowDOM)
         var filteredEls = self._elements.filter(function (el) {
-          return typeof(el.element) !== 'undefined' && el.element.id !== compId;
+          return typeof(el.element) != 'undefined' && el.element.id !== compId;
         });
 
         self.set('_elements', filteredEls);
@@ -570,7 +569,6 @@
       this._drawConnections();
     },
     _updateWrapperLocation: function (e, target, dx, dy) {
-      console.log(dx, dy);
       // keep the dragged position in the data-x/data-y attributes, add snap residue from previous drag
       var x = (parseFloat(target.getAttribute('data-x')) || 0) + dx + (parseFloat(target.getAttribute('residue-x')) || 0);
       var y = (parseFloat(target.getAttribute('data-y')) || 0) + dy + (parseFloat(target.getAttribute('residue-y')) || 0);
@@ -582,6 +580,11 @@
       // translate the element. 
       // last dragMove call passes e.x=0 and e.y=0 which causes neg x,y values. this if avoids that
       if (e.x !== 0 || e.y !== 0) {
+
+        // store transform for the udpateStyle method
+        var componentId = e.target.componentId; //('component-id');
+        this.findElById(componentId).transform = 'translate(' + sx + 'px, ' + sy + 'px)';
+
         // update the position attributes, and transform to actually move the element
         target.style.transform = 'translate(' + sx + 'px, ' + sy + 'px)';
         target.setAttribute('data-x', sx);
@@ -1276,14 +1279,14 @@
     computeLengthEqualsZero: function(item) {
       return item.length === 0;
     },
-    computeWrapperId: function (index) {
+    computeWrapperId: function (el) {
       //console.log('id', el, el.id);
-      return 'wrapper-' + this._elements[index].id;
+      return 'wrapper-' + el.id;
     },
 
-    computeWrapperStyles: function (index) {
+    computeWrapperStyles: function (el) {
       console.log('computing styles');
-      return 'top: ' + this._elements[index].top + 'px; left: ' + this._elements[index].left + 'px; transform: ' + this._elements[index].transform + '; width: ' + this._elements[index].width + 'px; height: ' + this._elements[index].height + 'px';
+      return 'top: ' + el.top + 'px; left: ' + el.left + 'px; transform: ' + el.transform + '; width: ' + el.width + 'px; height: ' + el.height + 'px';
     },
 
     computeWrapperClass: function (el) {
@@ -1313,12 +1316,7 @@
     computeIf: function (_selElement, _showDataTable) {
       return _showDataTable && _selElement.output && _selElement.output.length > 0;
     },
-    // computeId: function (el) {
-    //   return 'wrapper-' + el.id;
-    // },
-    // computeStyle: function (el) {
-    //   return 'top: ' + el.top + 'px; left: ' + el.left + 'px; transform: ' + el.transform + '; width: ' + el.width + 'px; height: ' + el.height + 'px';
-    // },
+
     computeIf: function (el) {
       return !el.resizable;
     },
@@ -1343,11 +1341,8 @@
     // computeId: function (el) {
     //   return 'collapse-' + el.id;
     // },
-    // computeStyle: function (el) {
-    //   return 'top: ' + el.top + 35 + 'px; left: ' + el.left + 'px; transform: ' + el.transform + '; width: ' + el.width + 'px; height: ' + el.height + 'px';
-    // },
-    computeSelect: function (el) {
-      return '#' + el.id;
+    computeCollapseStyle: function (el) {
+      return 'top: ' + el.top + 35 + 'px; left: ' + el.left + 'px; transform: ' + el.transform + '; width: ' + el.width + 'px; height: ' + el.height + 'px';
     },
     concatClassNames: function() {
       return 'wrapper';//arguments.join(' ');
@@ -1355,7 +1350,6 @@
     _elementsChanged: function() {
       console.log('elements changed!');
     }
-
 
   });
 </script>

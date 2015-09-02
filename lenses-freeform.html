@@ -371,8 +371,7 @@
         self.set('_elements', filteredEls);
 
         // remove elements from lens-connector 
-        var child = self.removeChild(embeddedEl);
-        console.log(child);
+        self.removeChild(embeddedEl);
       // };
     },
     removeAllConnectionsFromElement: function (elId) {
@@ -419,8 +418,11 @@
       e.preventDefault();
     },
     droppedInContainer: function (e, detail, selection) {
-      var self = this;  //dont know why this method is being called instead of resizedragend?!
+      var self = this;
       //dont know why this method is being called instead of resizedragend?!
+
+      e.preventDefault();
+
       if (e.path && e.path.length > 0 && e.path[0].classList.contains('resize') > 0) {
         self.dragResizeEnd(e, detail, selection);
       }
@@ -435,7 +437,6 @@
       }
     },
     clickInContainer: function (e) {
-      console.log(e);
       var className = e.toElement.className;
       if (className.baseVal && className.baseVal.indexOf('cnxn') > -1) {
         console.log('clicked on connection');
@@ -569,6 +570,7 @@
       this._drawConnections();
     },
     _updateWrapperLocation: function (e, target, dx, dy) {
+      console.log(dx, dy);
       // keep the dragged position in the data-x/data-y attributes, add snap residue from previous drag
       var x = (parseFloat(target.getAttribute('data-x')) || 0) + dx + (parseFloat(target.getAttribute('residue-x')) || 0);
       var y = (parseFloat(target.getAttribute('data-y')) || 0) + dy + (parseFloat(target.getAttribute('residue-y')) || 0);
@@ -603,7 +605,6 @@
       target.setAttribute('residue-y', 0);
     },
     wrapperClicked: function (e, detail, selection) {
-      return;
       var wrapperEl = e.currentTarget;
       var elementId = wrapperEl.id;
       elementId = elementId.substring(8, elementId.length);
@@ -625,8 +626,6 @@
     },
     // SVG drag events, also called on mousedown
     dragStartSVG: function (e, details, selection) {
-      console.log(e);
-      console.log('hi');  // clear this._selWrappers [TO DO: unless Shift is clicked]
       // clear this._selWrappers [TO DO: unless Shift is clicked]
       this._selWrappers = [];
       this._makeDragArea = true;
@@ -686,19 +685,13 @@
     },
     // handle selecting elements by their wrapper during drag
     dragOverWrapper: function (e, details, selection) {
-    }  // if (this._makeDragArea) {
-       //   if (!this._selectingElByDrag) {
-       //     this._selectingElByDrag = true;
-       //   }
-       //   console.log('drag over: ' + e.target.id);
-       // }
-,
     // if (this._makeDragArea) {
     //   if (!this._selectingElByDrag) {
     //     this._selectingElByDrag = true;
     //   }
     //   console.log('drag over: ' + e.target.id);
     // }
+    },
     // create a rectangle to show drag area
     _createDragArea: function (e) {
       var x = e.x / this._zoom, y = e.y / this._zoom;

@@ -135,9 +135,9 @@
               <!-- Output -->
             </div>
             <!-- for components with settings (all non-resizables?) -->
-            <template is="dom-if" if="{{computeIf(el)}}">
+            <template is="dom-if" if="{{!el.resizable}}">
 
-              <iron-icon icon="settings" collapse-id="{{computeCollapseId(el)}}" component-id="{{el.id}}" on-click="toggleSetting" class$="{{computeClass(el)}}"></iron-icon>
+              <iron-icon icon="settings" collapse-id="{{computeCollapseId(el)}}" component-id="{{el.id}}" on-click="toggleSetting" class="setting-btn"></iron-icon>
 
             </template>
             <!-- for resizable components-->
@@ -874,7 +874,8 @@
       this._drawConnections();
     },
     toggleSetting: function (e, detail, selection) {
-      var button = e.path[0], componentId = button.componentId, elementInfo = this.findElById(componentId);
+      var button = e.target, componentId = button.componentId, elementInfo = this.findElById(componentId);
+      button.toggleClass('open');
       elementInfo.settingOpen = !elementInfo.settingOpen;
     },
     keydownHandler: function (e) {
@@ -1326,9 +1327,7 @@
     computeClass: function (el, ins) {
       return el.element.id + '-' + ins + ' arrow in-arrow';
     },
-    computeClass: function (el) {
-      return 'setting-btn ' + this.tokenList({ open: el.settingOpen });
-    },
+
     computeCollapseId: function (el) {
       return 'collapse-' + el.id;
     },
@@ -1338,11 +1337,10 @@
     computeClass: function (el) {
       return el.element.id + ' arrow out-arrow';
     },
-    // computeId: function (el) {
-    //   return 'collapse-' + el.id;
-    // },
+
+    // to do: update style values
     computeCollapseStyle: function (el) {
-      return 'top: ' + el.top + 35 + 'px; left: ' + el.left + 'px; transform: ' + el.transform + '; width: ' + el.width + 'px; height: ' + el.height + 'px';
+      return 'top: ' + (el.top + 35) + 'px; left: ' + el.left + 'px; transform: ' + el.transform + '; width: ' + el.width + 'px; height: ' + el.height + 'px';
     },
     concatClassNames: function() {
       return 'wrapper';//arguments.join(' ');

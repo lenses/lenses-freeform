@@ -123,7 +123,7 @@
               <ul>
                 <template is="dom-repeat" items="{{_checkForInputAttr(index)}}" as="ins">
                      
-                    <li on-dragover="dragOverInArrow" on-drop="droppedOnInArrow" on-dragenter="dragEnterInArrow" on-dragleave="dragLeaveInArrow" on-click="arrowClicked" class$="{{computeClass(el, ins)}}">
+                    <li on-dragover="dragOverInArrow" on-drop="droppedOnInArrow" on-dragenter="dragEnterInArrow" on-dragleave="dragLeaveInArrow" on-click="arrowClicked" class$="{{computeClassInArrow(el, ins)}}">
                       <div class="inputMarker">
                         <div class="delete" on-click="deleteConnection">x</div>
                         <span class="drop-zone">{{ins}}</span>
@@ -145,7 +145,7 @@
             </template>
             <div class="connectors-out">
               <template is="dom-if" if="{{_checkForOutputAttr(index)}}">
-                <div id="{{index}}" on-drag="dragOutArrow" on-dragstart="dragOutArrowStart" on-dragend="dragOutArrowEnd" on-click="arrowClicked" draggable="true" class$="{{computeClass(el)}}">
+                <div id="{{index}}" on-drag="dragOutArrow" on-dragstart="dragOutArrowStart" on-dragend="dragOutArrowEnd" on-click="arrowClicked" draggable="true" class$="{{computeClassOutArrow(el)}}">
                   <div class="outputMarker"></div>
                 </div>
               </template>
@@ -756,7 +756,7 @@
     },
     //this.$.svg.innerHTML = '';
     dragOutArrowStart: function (e, details, selection) {
-      this.draggedEl = selection;  //to stop wrapper drag to be called
+      this.draggedEl = e.target;  //to stop wrapper drag to be called
       //to stop wrapper drag to be called
       e.stopPropagation();
       if (!this.svgTop || !this.svgLeft) {
@@ -818,11 +818,17 @@
       e.target.classList.remove('drag-over');
     },
     droppedOnInArrow: function (e, details, selection) {
-      var self = this;
+      
+      //TODO: depending on classnames is not a safe solution. add componentId or something similar and universal
+      
       e.target.classList.remove('drag-over');
-      var className = selection.classList[0], targetElementId = className.substring(0, className.lastIndexOf('-')), targetField = className.substring(className.lastIndexOf('-') + 1, className.length), source = self.findElById(self.draggedEl.classList[0]), target = self.findElById(targetElementId);
+      var className = e.target.parentNode.classList[0]; //selection.classList[0],
+      var targetElementId = className.substring(0, className.lastIndexOf('-'));
+      var targetField = className.substring(className.lastIndexOf('-') + 1, className.length);
+      var source = this.findElById(this.draggedEl.classList[0]); 
+      var target = this.findElById(targetElementId);
       this._connectAttributes(source, 'output', target, targetField);
-      self._drawConnections();
+      this._drawConnections();
       e.stopPropagation();
     },
     arrowClicked: function (e, details, selection) {
@@ -1015,10 +1021,16 @@
       } else {
         // make the connection in the elements array
         //target.inputConnectedTo = source;  // not needed
+        
+        /*
+        
+          //TODO: not working. possible solution: http://stackoverflow.com/questions/30615549/data-binding-in-a-dynamically-inserted-polymer-element
+         
         var observer = new PathObserver(source.element, sourceField);
         observer.open(function (newValue, oldValue) {
           target.element[targetField] = newValue;
         });
+        */
         var srcClone = {
           id: source.id,
           name: source.name,
@@ -1052,11 +1064,11 @@
       self.$.svg.innerHTML = '';
       for (var i = 0; i < self._connections.length; i++) {
         var conn = self._connections[i];
-        var srcEl = conn.source.element || self.querySelector('#' + conn.source.id);  //TODO do this in initialization method
+        var srcEl = conn.source.element || Polymer.dom(self.root).querySelector('#' + conn.source.id);  //TODO do this in initialization method
         //TODO do this in initialization method
-        var targetEl = conn.target.element || self.querySelector('#' + conn.target.id);
-        var srcWrapper = Polymer.dom(self).querySelector('#wrapper-' + srcEl.id);
-        var targetWrapper = Polymer.dom(self).querySelector('#wrapper-' + targetEl.id);
+        var targetEl = conn.target.element || Polymer.dom(self.root).querySelector('#' + conn.target.id);
+        var srcWrapper = Polymer.dom(self.root).querySelector('#wrapper-' + srcEl.id);
+        var targetWrapper = Polymer.dom(self.root).querySelector('#wrapper-' + targetEl.id);
         var srcRect = srcWrapper.getBoundingClientRect();
         var targetRect = targetWrapper.getBoundingClientRect();
         var svgRect = self.$.svg.getBoundingClientRect();
@@ -1358,9 +1370,6 @@
       return 'data-preview ' + this.tokenList({ visible: _showDataTable && _selElement.input && _selElement.input.length > 0 });
     },
 
-    computeClass: function (_selElement, _showDataTable) {
-      return 'data-preview ' + this.tokenList({ visible: _showDataTable && _selElement.output && _selElement.output.length > 0 });
-    },
     computeIfInput: function (_selElement, _showDataTable) {
       return _showDataTable && _selElement.input && _selElement.input.length > 0;
     },
@@ -1372,14 +1381,14 @@
     computeIfResizable: function (el) {
       return !el.resizable;
     },
-    computeClass: function (el, ins) {
+    computeClassInArrow: function (el, ins) {
       return el.element.id + '-' + ins + ' arrow in-arrow';
     },
 
     computeSelect: function (el) {
       return '#' + el.id;
     },
-    computeClass: function (el) {
+    computeClassOutArrow: function (el) {
       return el.element.id + ' arrow out-arrow';
     },
 

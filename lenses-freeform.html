@@ -767,7 +767,16 @@
       this.startPointX = e.x / this._zoom - this.svgLeft;
       this.startPointY = e.y / this._zoom - this.svgTop;  // create temp bezier
       // create temp bezier
-      this._addBezierPath(this.startPointX, this.startPointY, this.startPointX, this.startPointY, 70, 'temp_path');  //this._addBezierPath( event.x0 , event.y0 , event.x0 , event.y0 , 70, 'temp_path');
+      var tempPath = Polymer.dom(this.root).querySelector('#temp_path');
+      
+      if (!tempPath) {
+
+        this._addBezierPath(this.startPointX, this.startPointY, this.startPointX, this.startPointY, 70, 'temp_path');  
+      }
+      else {
+          tempPath.style.display = 'block';
+
+      }
     },
     //this._addBezierPath( event.x0 , event.y0 , event.x0 , event.y0 , 70, 'temp_path');
     dragOutArrow: function (e, details, selection) {
@@ -779,18 +788,22 @@
       }
     },
     dragOutArrowEnd: function (e, details, selection) {
-      /*
+      
         // remove method is not working for tempPath when using Polumer.dom...querySelector useing document.querySelector instead
        
-      var tempPath = Polymer.dom(this.root).querySelectorAll('#temp_path');
+      var tempPath = Polymer.dom(this.root).querySelector('#temp_path');
       if (tempPath) {
-        tempPath.remove();
+        tempPath.style.display = 'none';
+        //tempPath.remove();
       }
-      */
+      
+     /*
       var tempPath = document.querySelector('#temp_path');
       if (tempPath) {
-        tempPath.remove();
+        tempPath.style.display = 'none';
+        //tempPath.remove();
       }
+      */
 
 
     },

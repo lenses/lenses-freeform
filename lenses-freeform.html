@@ -137,12 +137,11 @@
             <!-- for components with settings (all non-resizables?) -->
             <template is="dom-if" if="{{!el.resizable}}">
 
-              <iron-icon icon="settings" collapse-id="{{computeCollapseId(el)}}" component-id="{{el.id}}" on-click="toggleSetting" class="setting-btn"></iron-icon>
+              <iron-icon icon="settings" component-id$="{{el.id}}" on-click="toggleSetting" class="setting-btn"></iron-icon>
 
             </template>
             <!-- for resizable components-->
             <template is="dom-if" if="{{el.resizable}}">
-                <content select="{{computeSelect(el)}}"></content>
             </template>
             <div class="connectors-out">
               <template is="dom-if" if="{{_checkForOutputAttr(index)}}">
@@ -157,12 +156,15 @@
             </template>
           
         </div>
-
-        <template is="dom-if" if="{{computeIf(el)}}">
-          <iron-collapse class="settings-collapse" id="{{computeCollapseId(el)}}" opened="{{el.settingOpen}}" style$="{{computeCollapseStyle(el)}}">
-            <content select="{{computeSelect(el)}}"></content>
+ 
+         <!--
+         not working. instead move actual element alongside container.
+        <template is="dom-if" if="{{computeIfResizable(el)}}">
+          <iron-collapse class="settings-collapse" id="{{computeCollapseId(el)}}" opened="true" style$="{{computeCollapseStyle(el)}}">
+             <content select="{{computeSelect(el)}}"></content>
           </iron-collapse>
         </template>
+        -->
           
 
       </template>
@@ -302,8 +304,18 @@
     addNewElToLens: function (newElName, left, top) {
       var newEl = document.createElement(newElName);
       this.$.component_list.checkAndImport(newEl, function () {
-        newEl.style.width = '100%';
-        newEl.style.height = '100%';
+        //newEl.style.width = '100%';
+        //newEl.style.height = '100%';
+        newEl.style.top = (top+45)+'px';
+        newEl.style.left = left+'px';
+        newEl.style.opacity = 0;
+        //newEl.style.top = '0px';
+        //newEl.style.left = '0px';
+        //newEl.style.transform = 'translate('+left+'px, '+(top+45)+'px)';
+        newEl.style.position = 'absolute';
+
+        newEl.classList.add('lens-component');
+
         Polymer.dom(this.root).appendChild(newEl);
         this._processNewElement(newEl, top / this._zoom, left / this._zoom);
         this._renderContainerTemplate();
@@ -583,10 +595,18 @@
 
         // store transform for the udpateStyle method
         var componentId = e.target.componentId; //('component-id');
-        this.findElById(componentId).transform = 'translate(' + sx + 'px, ' + sy + 'px)';
+        var componentInfo = this.findElById(componentId);
+        componentInfo.transform = 'translate(' + sx + 'px, ' + sy + 'px)';
 
         // update the position attributes, and transform to actually move the element
         target.style.transform = 'translate(' + sx + 'px, ' + sy + 'px)';
+
+        //update component as well since <content> is not working.
+        //var componentId = target.componentId;
+        //var componentDom = Polymer.dom(this).querySelector('#'+componentId);
+        componentInfo.element.style.transform = 'translate('+sx+'px, '+(sy)+'px)';
+
+
         target.setAttribute('data-x', sx);
         target.setAttribute('data-y', sy);
         target.setAttribute('start-x', e.x);
@@ -874,9 +894,16 @@
       this._drawConnections();
     },
     toggleSetting: function (e, detail, selection) {
-      var button = e.target, componentId = button.componentId, elementInfo = this.findElById(componentId);
+      var button = e.target, componentId = button['component-id'], elementInfo = this.findElById(componentId);
       button.toggleClass('open');
-      elementInfo.settingOpen = !elementInfo.settingOpen;
+      elementInfo.settingOpen = elementInfo.settingOpen ? false : true;
+      if(elementInfo.settingOpen) {
+        elementInfo.element.style.opacity = 1;
+      }
+      else {
+        elementInfo.element.style.opacity = 0;
+
+      }
     },
     keydownHandler: function (e) {
       var self = this;
@@ -1308,29 +1335,24 @@
       return 'data-preview ' + this.tokenList({ visible: _showDataTable && _selElement.input && _selElement.input.length > 0 });
     },
 
-    computeIf: function (_selElement, _showDataTable) {
-      return _showDataTable && _selElement.input && _selElement.input.length > 0;
-    },
     computeClass: function (_selElement, _showDataTable) {
       return 'data-preview ' + this.tokenList({ visible: _showDataTable && _selElement.output && _selElement.output.length > 0 });
     },
-    computeIf: function (_selElement, _showDataTable) {
+    computeIfInput: function (_selElement, _showDataTable) {
+      return _showDataTable && _selElement.input && _selElement.input.length > 0;
+    },
+
+    computeIfOutput: function (_selElement, _showDataTable) {
       return _showDataTable && _selElement.output && _selElement.output.length > 0;
     },
 
-    computeIf: function (el) {
-      return !el.resizable;
-    },
-    computeIf: function (el) {
+    computeIfResizable: function (el) {
       return !el.resizable;
     },
     computeClass: function (el, ins) {
       return el.element.id + '-' + ins + ' arrow in-arrow';
     },
 
-    computeCollapseId: function (el) {
-      return 'collapse-' + el.id;
-    },
     computeSelect: function (el) {
       return '#' + el.id;
     },
@@ -1340,7 +1362,12 @@
 
     // to do: update style values
     computeCollapseStyle: function (el) {
-      return 'top: ' + (el.top + 35) + 'px; left: ' + el.left + 'px; transform: ' + el.transform + '; width: ' + el.width + 'px; height: ' + el.height + 'px';
+      return 'top: ' + (el.top + 35) + 'px; left: ' + el.left + 'px; width: 200px; height: 100px';
+
+      //return 'top: ' + (el.top + 35) + 'px; left: ' + el.left + 'px;';//+ ' transform: ' + el.transform + '; width: ' + el.width + 'px; height: ' + el.height + 'px';
+    },
+    computeIsOpen: function(el) {
+      return el.settingOpen===true ? true : false;
     },
     concatClassNames: function() {
       return 'wrapper';//arguments.join(' ');

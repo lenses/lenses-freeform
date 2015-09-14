@@ -201,7 +201,7 @@
       padding: 2px;
     }
 
-    .output-selector .core-selected {
+    .output-selector .iron-selected {
       background-color: #EEE;
     } 
 
@@ -215,7 +215,7 @@
 
     }	
 
-    #component_list /deep/ core-menu {
+    #component_list /deep/ iron-menu {
       background-color: rgba(255,255,255,0.8);
     }
 
@@ -303,7 +303,7 @@
       display: block;
     }
 
-    core-icon-button.active, #showDataBtn.active {
+    iron-icon-button.active, #showDataBtn.active {
       background-color: #EEE;
       border: 1px solid #888;
 
@@ -390,6 +390,17 @@
       cursor: se-resize;
      
     }  
+
+    .lens-component {
+        border: 1px solid #e5e5e5;
+        background-color: rgba(255,255,255,0.6);
+        padding: 4px;
+        margin-top: -6px;
+        transition: opacity 0.3s ease-in;
+        width: 170px;
+        max-height: 200px;
+        overflow-y: scroll;
+    }
 
     .selected-element {
       border: 1px solid #888;
@@ -511,24 +522,24 @@
         
     }
 
-    core-overlay.dialog {
+    iron-overlay.dialog {
       padding: 5px;
       background-color: white;
       border: 1px solid black;
     }
 
-    core-overlay.dialog core-icon-button {
+    iron-overlay.dialog iron-icon-button {
       padding: 0px;
       float: right;
     }
 
-    core-overlay.dialog core-icon-button[affirmative]:hover {
+    iron-overlay.dialog iron-icon-button[affirmative]:hover {
       color: green;
 
     }
 
 
-    core-overlay.dialog core-icon-button[dismissive]:hover {
+    iron-overlay.dialog iron-icon-button[dismissive]:hover {
       color: red;
 
     }
@@ -592,12 +603,12 @@
       border: 1px solid #EEE;
     }
 
-    .setting-btn /deep/ core-icon {
+    .setting-btn /deep/ iron-icon {
       width: 20px;
       height: 20px;
     }
 
-    core-icon-button.open {
+    iron-icon.open {
       background-color: #D5D5D5;
       border: 1px solid #AAA;
     }
@@ -641,7 +652,7 @@
       padding: 1px;
       border: 1px solid #EEE;
     }
-    *::shadow .th-container .selector .core-selected {
+    *::shadow .th-container .selector .iron-selected {
       background-color: #ccc;
 
     }
@@ -655,7 +666,7 @@
       padding: 3px;
       width: 5em; 
     }
-    *::shadow .th-container core-icon-button {
+    *::shadow .th-container iron-icon-button {
       margin: 0;
 
     }

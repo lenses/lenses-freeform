@@ -779,10 +779,20 @@
       }
     },
     dragOutArrowEnd: function (e, details, selection) {
-      var tempPath = Polymer.dom(this.root).querySelector('#temp_path');
+      /*
+        // remove method is not working for tempPath when using Polumer.dom...querySelector useing document.querySelector instead
+       
+      var tempPath = Polymer.dom(this.root).querySelectorAll('#temp_path');
       if (tempPath) {
-        tempPath.parentNode.removeChild(tempPath);
+        tempPath.remove();
       }
+      */
+      var tempPath = document.querySelector('#temp_path');
+      if (tempPath) {
+        tempPath.remove();
+      }
+
+
     },
     dragOverInArrow: function (e, details, selection) {
       //important! needed to allow drop

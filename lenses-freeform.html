@@ -132,17 +132,8 @@
                 </template>
               </ul>
 
-              <!-- Output -->
             </div>
-            <!-- for components with settings (all non-resizables?) -->
-            <template is="dom-if" if="{{!el.resizable}}">
-
-              <iron-icon icon="settings" component-id$="{{el.id}}" on-click="toggleSetting" class="setting-btn"></iron-icon>
-
-            </template>
-            <!-- for resizable components-->
-            <template is="dom-if" if="{{el.resizable}}">
-            </template>
+            <!-- Output -->
             <div class="connectors-out">
               <template is="dom-if" if="{{_checkForOutputAttr(index)}}">
                 <div id="{{index}}" on-drag="dragOutArrow" on-dragstart="dragOutArrowStart" on-dragend="dragOutArrowEnd" on-click="arrowClicked" draggable="true" class$="{{computeClassOutArrow(el)}}">
@@ -151,6 +142,14 @@
               </template>
               
             </div>
+
+            <!-- for components with settings (all non-resizables?) -->
+            <template is="dom-if" if="{{!el.resizable}}">
+
+              <iron-icon icon="settings" component-id$="{{el.id}}" on-click="toggleSetting" class="setting-btn"></iron-icon>
+
+            </template>
+
             <template is="dom-if" if="{{el.resizable}}">
               <div class="resize" draggable="true" on-dragstart="dragStartResize" on-drag="dragResize" on-dragend="dragEndResize"></div>
             </template>
@@ -304,11 +303,20 @@
     addNewElToLens: function (newElName, left, top) {
       var newEl = document.createElement(newElName);
       this.$.component_list.checkAndImport(newEl, function () {
-        //newEl.style.width = '100%';
-        //newEl.style.height = '100%';
-        newEl.style.top = (top+45)+'px';
+  
+        //TODO redundant code (_processNewElement)
+        var info = this.$.component_list.getComponentInfo(newEl.tagName.toLowerCase());
+        var resizable = info.resizable || info.category === 'visualize';
+
+        if(resizable) {
+          newEl.style.width = '250px';
+          newEl.style.height = '200px';
+
+        }
+        newEl.style.top = (resizable? top+5 : top+45)+'px';
+
         newEl.style.left = left+'px';
-        newEl.style.opacity = 0;
+        newEl.style.opacity = resizable ? 1 : 0;
         //newEl.style.top = '0px';
         //newEl.style.left = '0px';
         //newEl.style.transform = 'translate('+left+'px, '+(top+45)+'px)';
@@ -1379,7 +1387,7 @@
 
     computeWrapperStyles: function (el) {
       console.log('computing styles');
-      return 'top: ' + el.top + 'px; left: ' + el.left + 'px; transform: ' + el.transform + '; width: ' + el.width + 'px; height: ' + el.height + 'px';
+      return 'top: ' + el.top + 'px; left: ' + el.left + 'px; transform: ' + el.transform + '; width: ' + (el.resizable ? 0 : el.width) + 'px; height: ' + (el.resizable ? 0 : el.height) + 'px';
     },
 
     computeWrapperClass: function (el) {

@@ -151,7 +151,7 @@
             </template>
 
             <template is="dom-if" if="{{el.resizable}}">
-              <div class="resize" draggable="true" on-dragstart="dragStartResize" on-drag="dragResize" on-dragend="dragEndResize"></div>
+              <div class="resize" draggable="true" style$="{{computeResizeStyle(el)}}" on-dragstart="dragStartResize" on-drag="dragResize" on-dragend="dragEndResize"></div>
             </template>
           
         </div>
@@ -1396,6 +1396,10 @@
 
     computeCollapseId: function (el) {
       return 'collapse-' + el.id;
+    },
+
+    computeResizeStyle: function(el) {
+      return 'top: ' + (el.height + 10) + 'px; left: ' + (el.width + 10) + 'px'; 
     },
 
 

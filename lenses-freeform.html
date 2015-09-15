@@ -767,33 +767,40 @@
       this.startPointX = e.x / this._zoom - this.svgLeft;
       this.startPointY = e.y / this._zoom - this.svgTop;  // create temp bezier
       // create temp bezier
-      var tempPath = Polymer.dom(this.root).querySelector('#temp_path');
       
-      if (!tempPath) {
+      //TODO cache
+      //var tempPath = Polymer.dom(this.root).querySelector('#temp_path');
+      
+      console.log('points', this.startPointX, this.startPointY, this.tempPath);
+      
+      if (!this.tempPath) {
 
         this._addBezierPath(this.startPointX, this.startPointY, this.startPointX, this.startPointY, 70, 'temp_path');  
+        this.tempPath = Polymer.dom(this.root).querySelector('#temp_path');
       }
       else {
-          tempPath.style.display = 'block';
+          this.tempPath.style.display = 'block';
 
       }
     },
     //this._addBezierPath( event.x0 , event.y0 , event.x0 , event.y0 , 70, 'temp_path');
     dragOutArrow: function (e, details, selection) {
-      var tempPath = Polymer.dom(this.root).querySelector('#temp_path');  // the last dragMove call passes e.x=0 and e.y=0 which causes neg x,y values. this if avoids that
+
+      //TODO cache
+      //var tempPath = Polymer.dom(this.root).querySelector('#temp_path');  // the last dragMove call passes e.x=0 and e.y=0 which causes neg x,y values. this if avoids that
       // the last dragMove call passes e.x=0 and e.y=0 which causes neg x,y values. this if avoids that
       if (e.x !== 0 || e.y !== 0) {
-        var newPath = this._createBezierPath(this.startPointX, this.startPointY, e.x / this._zoom - this.svgLeft, e.y / this._zoom - this.svgTop, 70);
-        tempPath.setAttribute('d', newPath);
+        var newPath = this._calculateBezierPath(this.startPointX, this.startPointY, e.x / this._zoom - this.svgLeft, e.y / this._zoom - this.svgTop, 70);
+        this.tempPath.setAttribute('d', newPath);
       }
     },
     dragOutArrowEnd: function (e, details, selection) {
       
         // remove method is not working for tempPath when using Polumer.dom...querySelector useing document.querySelector instead
        
-      var tempPath = Polymer.dom(this.root).querySelector('#temp_path');
-      if (tempPath) {
-        tempPath.style.display = 'none';
+      //var tempPath = Polymer.dom(this.root).querySelector('#temp_path');
+      if (this.tempPath) {
+        this.tempPath.style.display = 'none';
         //tempPath.remove();
       }
       
@@ -1059,9 +1066,13 @@
       var arrowOffsetX = 7;
       var bezierCurveX = 70;  // the larger the value the smoother the curve
                               //clear all paths. since it is not done offten it is fine to do it in a not optimized way
+      //TODO. dont recreate. below line is WRONG. performance problem when drgging wrapper!
       // the larger the value the smoother the curve
       //clear all paths. since it is not done offten it is fine to do it in a not optimized way
       self.$.svg.innerHTML = '';
+      //make tempPath null since it is deleted above by innerHTML=''. TODO fix above and remove this line
+      self.tempPath = null;
+
       for (var i = 0; i < self._connections.length; i++) {
         var conn = self._connections[i];
         var srcEl = conn.source.element || Polymer.dom(self.root).querySelector('#' + conn.source.id);  //TODO do this in initialization method
@@ -1273,7 +1284,7 @@
       var uniqueId = elName + '-' + num;
       return uniqueId;
     },
-    _createBezierPath: function (startX, startY, endX, endY, handleOffsetX) {
+    _calculateBezierPath: function (startX, startY, endX, endY, handleOffsetX) {
       // make handleOffsetX larger when source element is on the right side of target
       if (startX > endX) {
         handleOffsetX *= 2;
@@ -1291,7 +1302,7 @@
     },
     _addBezierPath: function (startX, startY, endX, endY, handleOffsetX, id, highlighted) {
       var aLine = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      var path = this._createBezierPath(startX, startY, endX, endY, handleOffsetX);
+      var path = this._calculateBezierPath(startX, startY, endX, endY, handleOffsetX);
       aLine.setAttribute('d', path);
       aLine.setAttribute('stroke', '#555');  // conn.source.color);
       // conn.source.color);

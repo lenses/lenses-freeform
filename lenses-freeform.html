@@ -1067,8 +1067,19 @@
         var srcEl = conn.source.element || Polymer.dom(self.root).querySelector('#' + conn.source.id);  //TODO do this in initialization method
         //TODO do this in initialization method
         var targetEl = conn.target.element || Polymer.dom(self.root).querySelector('#' + conn.target.id);
-        var srcWrapper = Polymer.dom(self.root).querySelector('#wrapper-' + srcEl.id);
-        var targetWrapper = Polymer.dom(self.root).querySelector('#wrapper-' + targetEl.id);
+        //TODO save if querying for next time.
+        
+        //TODO move to a better place to set them in the begining
+        if (!conn.source.wrapper) {
+          console.log('querying wrapper');
+          conn.source.wrapper = Polymer.dom(self.root).querySelector('#wrapper-' + srcEl.id);
+        }
+        if (!conn.target.wrapper) {
+          conn.target.wrapper = Polymer.dom(self.root).querySelector('#wrapper-' + targetEl.id);
+        }
+
+        var srcWrapper = conn.source.wrapper; //Polymer.dom(self.root).querySelector('#wrapper-' + srcEl.id);
+        var targetWrapper = conn.target.wrapper; //Polymer.dom(self.root).querySelector('#wrapper-' + targetEl.id);
         var srcRect = srcWrapper.getBoundingClientRect();
         var targetRect = targetWrapper.getBoundingClientRect();
         var svgRect = self.$.svg.getBoundingClientRect();
@@ -1156,11 +1167,19 @@
       this._connections = connections;
       this._connections.forEach(function (connection) {
         if (!connection.source.element) {
-          connection.source.element = this.querySelector('#' + connection.source.id);
+          connection.source.element = Polymer.dom(self.root).querySelector('#' + connection.source.id);
         }
         if (!connection.target.element) {
-          connection.target.element = this.querySelector('#' + connection.target.id);
+          connection.target.wrapper = Polymer.dom(self.root).querySelector('#' + connection.target.id);
         }
+
+        if (!connection.source.wrapper) {
+          connection.source.wrapper = Polymer.dom(self.root).querySelector('#wrapper-' + connection.source.id);
+        }
+        if (!connection.target.wrapper) {
+          connection.target.wrapper = Polymer.dom(self.root).querySelector('#wrapper-' + connection.target.id);
+        }
+
         this._connectAttributes(connection.source, 'output', connection.target, connection.target.field || 'input');
       }.bind(this));
       this._drawConnections();

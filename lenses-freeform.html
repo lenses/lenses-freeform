@@ -111,7 +111,7 @@
       <template is="dom-repeat" class="render-after-el" items="{{_elements}}" as="el" index-as="index">
       <!-- el is not working ?!?! -->
 
-        <div id="{{computeWrapperId(el)}}" component-id="{{el.id}}" on-click="wrapperClicked" on-dragstart="dragStartWrapper" on-drag="dragWrapper" on-dragend="dragEndWrapper" draggable="false" class$="{{concatClassNames()}}" style$="{{computeWrapperStyles(el)}}">
+        <div id="{{computeWrapperId(el)}}" component-id="{{el.id}}" on-click="wrapperClicked" on-dragstart="dragStartWrapper" on-drag="dragWrapper" on-dragend="dragEndWrapper" draggable="true" class$="{{concatClassNames()}}" style$="{{computeWrapperStyles(el)}}">
 
           <label>{{el.id}}</label>
           <div class="deleteEl" component_id="{{el.id}}" on-click="_deleteElementEvent">X</div>
@@ -530,28 +530,21 @@
         // var newH = Math.round(h / self._snapY) * self._snapY;
       element.element.style.width = (w) + 'px';
       element.element.style.height = (h) + 'px';
-      // also move the drag handle
-      // e.target.style.transform
-      // var transX = e.x 
 
-      // e.target.style.transform.translateX
-      // var oldTrans = e.target.style.transform.match(/\d/g);
-      // var oldTransX = oldTrans[0];
-      // var oldTransY = oldTrans[1]; 
-      // var newTransX = (e.x - wrapperLeft) - parseInt(e.target.style.left);
-      // var newTransY = (e.y - wrapperTop) - parseInt(e.target.style.top);
+      // also resize the wrapper element
+      wrapper.style.width = w + 'px';
+      wrapper.style.height = h + 'px';
+
+      // also move the drag handle
       var newTransX = w - parseInt(e.target.style.left);
       var newTransY = h - parseInt(e.target.style.top);
       var newTrans = 'transform: translate(' + newTransX +'px, ' + newTransY + 'px);';
       var keepTop = e.target.style.top;
       var keepLeft = e.target.style.left;
-
       e.target.setAttribute('style', 'top: ' + keepTop +'; left: ' + keepLeft + '; ' + newTrans);
-      // e.target.style.transform = newTrans;
       e.target.style.left = (e.x - wrapperLeft);
       e.target.style.top = (e.y - wrapperTop)
 
-      console.log(e.target);
       self._drawConnections();
       e.stopPropagation();
       e.preventDefault();

@@ -111,7 +111,7 @@
       <template is="dom-repeat" class="render-after-el" items="{{_elements}}" as="el" index-as="index">
       <!-- el is not working ?!?! -->
 
-        <div id="{{computeWrapperId(el)}}" component-id="{{el.id}}" on-click="wrapperClicked" on-dragstart="dragStartWrapper" on-drag="dragWrapper" on-dragend="dragEndWrapper" draggable="true" class$="{{concatClassNames()}}" style$="{{computeWrapperStyles(el)}}">
+        <div id="{{computeWrapperId(el)}}" component-id="{{el.id}}" on-click="wrapperClicked" on-dragstart="dragStartWrapper" on-drag="dragWrapper" on-dragend="dragEndWrapper" draggable="false" class$="{{concatClassNames()}}" style$="{{computeWrapperStyles(el)}}">
 
           <label>{{el.id}}</label>
           <div class="deleteEl" component_id="{{el.id}}" on-click="_deleteElementEvent">X</div>
@@ -294,6 +294,7 @@
       // for testing:
       window.ff = this;
 
+      // not sure if this event is every being triggered? 9/16
       this.addEventListener('iron-resize', function () {
         console.log('iron resize occured');
         this._drawConnections();
@@ -505,8 +506,8 @@
     },
     dragResize: function (e) {
       var self = this;
-      var selection = e.target;
-      var wrapper = selection.parentNode;  //var styles = window.getComputedStyle(wrapper);
+      var wrapper = self._findWrapperInPath(e);
+      // var wrapper = selection.parentNode;  //var styles = window.getComputedStyle(wrapper);
                                            // var wrapperTop = parseInt(styles.top.replace('px',''));
                                            // var wrapperLeft = parseInt(styles.left.replace('px',''));
                                            // var w =  e.x - wrapperLeft - 65,
@@ -517,16 +518,40 @@
       // var w =  e.x - wrapperLeft - 65,
       //     h = e.y - wrapperTop - 172;
       var wrapperTop = parseInt(wrapper.getBoundingClientRect().top), wrapperLeft = parseInt(wrapper.getBoundingClientRect().left);
-      var w = e.x / this._zoom - wrapperLeft, h = e.y / this._zoom - wrapperTop;  // wrapper.style.width = w +'px';
-                                                                                  // wrapper.style.height = h +'px';
-      // wrapper.style.width = w +'px';
-      // wrapper.style.height = h +'px';
-      var elementInsideId = wrapper.componentId;  //wrapper.id.replace('wrapper-','');
-      //wrapper.id.replace('wrapper-','');
+      var w = e.x / this._zoom - wrapperLeft, h = e.y / this._zoom - wrapperTop;
+
+      var elementInsideId = wrapper.componentId;
       var elementInside = this.querySelector('#' + elementInsideId);
       var element = this.findElById(elementInsideId);
-      element.width = w;
-      element.height = h;
+
+      // resize the actual element:
+        // should resize snap?
+        // var newW = Math.round(w / self._snapX) * self._snapX;
+        // var newH = Math.round(h / self._snapY) * self._snapY;
+      element.element.style.width = (w) + 'px';
+      element.element.style.height = (h) + 'px';
+      // also move the drag handle
+      // e.target.style.transform
+      // var transX = e.x 
+
+      // e.target.style.transform.translateX
+      // var oldTrans = e.target.style.transform.match(/\d/g);
+      // var oldTransX = oldTrans[0];
+      // var oldTransY = oldTrans[1]; 
+      // var newTransX = (e.x - wrapperLeft) - parseInt(e.target.style.left);
+      // var newTransY = (e.y - wrapperTop) - parseInt(e.target.style.top);
+      var newTransX = w - parseInt(e.target.style.left);
+      var newTransY = h - parseInt(e.target.style.top);
+      var newTrans = 'transform: translate(' + newTransX +'px, ' + newTransY + 'px);';
+      var keepTop = e.target.style.top;
+      var keepLeft = e.target.style.left;
+
+      e.target.setAttribute('style', 'top: ' + keepTop +'; left: ' + keepLeft + '; ' + newTrans);
+      // e.target.style.transform = newTrans;
+      e.target.style.left = (e.x - wrapperLeft);
+      e.target.style.top = (e.y - wrapperTop)
+
+      console.log(e.target);
       self._drawConnections();
       e.stopPropagation();
       e.preventDefault();
@@ -1400,7 +1425,6 @@
     },
 
     computeWrapperStyles: function (el) {
-      console.log('computing styles');
       return 'top: ' + el.top + 'px; left: ' + el.left + 'px; transform: ' + el.transform + '; width: ' + (el.resizable ? 0 : el.width) + 'px; height: ' + (el.resizable ? 0 : el.height) + 'px';
     },
 
@@ -1413,7 +1437,7 @@
     },
 
     computeResizeStyle: function(el) {
-      return 'top: ' + (el.height + 10) + 'px; left: ' + (el.width + 10) + 'px'; 
+      return 'top: ' + (el.height + 10) + 'px; left: ' + (el.width + 10) + 'px; transform: translate(0px, 0px);';
     },
 
 

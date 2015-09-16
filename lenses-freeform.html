@@ -151,7 +151,7 @@
             </template>
 
             <template is="dom-if" if="{{el.resizable}}">
-              <div class="resize" draggable="true" style$="{{computeResizeStyle(el)}}" on-dragstart="dragStartResize" on-drag="dragResize" on-dragend="dragEndResize"></div>
+              <div class="resize" draggable="true" style$="{{computeResizeStyle(el)}}" on-dragstart="dragStartResize" on-drag="dragResize" on-dragend="dragResizeEnd"></div>
             </template>
           
         </div>
@@ -295,6 +295,7 @@
       window.ff = this;
 
       this.addEventListener('iron-resize', function () {
+        console.log('iron resize occured');
         this._drawConnections();
       });
       this.$.zoomRange.value = this._zoom;
@@ -402,7 +403,9 @@
       this._drawConnections();
     },
     // if option key was pressed, clone the element when drag is done
-    _cloneElement: function (e, detail, selection) {
+    _cloneElement: function (e) {
+      var selection = this._findWrapperInPath(e);
+
       // figure out the name of the element...
       var componentId = selection.componentId;
       var idSplit = componentId.split('-');
@@ -436,14 +439,14 @@
       // Needed to enable droppedInContainer
       e.preventDefault();
     },
-    droppedInContainer: function (e, detail, selection) {
+    droppedInContainer: function (e) {
       var self = this;
       //dont know why this method is being called instead of resizedragend?!
 
       e.preventDefault();
 
       if (e.path && e.path.length > 0 && e.path[0].classList.contains('resize') > 0) {
-        self.dragResizeEnd(e, detail, selection);
+        self.dragResizeEnd(e);
       }
       var dataTransfer = e.dataTransfer.getData('text/plain');  //data added by lenses-component-list //TODO make better
       //data added by lenses-component-list //TODO make better
@@ -497,11 +500,12 @@
       this._selWrappers = [];
       this._selElement = null;
     },
-    dragStartResize: function (e, details, selection) {
+    dragStartResize: function (e) {
       e.stopPropagation();
     },
-    dragResize: function (e, details, selection) {
+    dragResize: function (e) {
       var self = this;
+      var selection = e.target;
       var wrapper = selection.parentNode;  //var styles = window.getComputedStyle(wrapper);
                                            // var wrapperTop = parseInt(styles.top.replace('px',''));
                                            // var wrapperLeft = parseInt(styles.left.replace('px',''));
@@ -527,7 +531,7 @@
       e.stopPropagation();
       e.preventDefault();
     },
-    dragResizeEnd: function (e, details, selection) {
+    dragResizeEnd: function (e) {
       var wrapper = null;
       if (e.path && e.path.length > 0 && e.path[0].classList.contains('resize') > 0) {
         wrapper = e.path[0].parentNode;
@@ -542,10 +546,10 @@
     //   // TO Do
     //   console.log(e.target);
     // },
-    dragStartWrapper: function (e, details, selection) {
+    dragStartWrapper: function (e) {
       var target = e.target;  // make this the _selElement and _selWrapper
       // make this the _selElement and _selWrapper
-      this.wrapperClicked(e, details, selection);  // set start-x and start-y for all _selWrappers
+      this.wrapperClicked(e);  // set start-x and start-y for all _selWrappers
       // set start-x and start-y for all _selWrappers
       for (var i = 0; i < this._selWrappers.length; i++) {
         var wrapper = this._selWrappers[i];
@@ -572,7 +576,7 @@
       target.setAttribute('start-x', x);
       target.setAttribute('start-y', y);
     },
-    dragWrapper: function (e, details, selection) {
+    dragWrapper: function (e) {
       if (this._hotKeys['18']) {
         // dragging a clone
         return;
@@ -622,11 +626,11 @@
       }
       this._renderContainerTemplate();
     },
-    dragEndWrapper: function (e, details, selection) {
+    dragEndWrapper: function (e) {
       // console.log('done dragging!');
       if (this._draggingClone) {
         this._draggingClone = false;
-        this._cloneElement(e, details, selection);
+        this._cloneElement(e);
         return;
       }  //if resize is being dragged don't do anything (stopPropagation is not doing anything)
       //if resize is being dragged don't do anything (stopPropagation is not doing anything)
@@ -634,7 +638,7 @@
       target.setAttribute('residue-x', 0);
       target.setAttribute('residue-y', 0);
     },
-    wrapperClicked: function (e, detail, selection) {
+    wrapperClicked: function (e) {
       var wrapperEl = e.currentTarget;
       var elementId = wrapperEl.id;
       elementId = elementId.substring(8, elementId.length);
@@ -655,22 +659,22 @@
       }
     },
     // SVG drag events, also called on mousedown
-    dragStartSVG: function (e, details, selection) {
+    dragStartSVG: function (e) {
       // clear this._selWrappers [TO DO: unless Shift is clicked]
       this._selWrappers = [];
       this._makeDragArea = true;
       this._selectingElByDrag = false;
-      this._dragArea = this._createDragArea(e, details, selection);
+      this._dragArea = this._createDragArea(e);
       this.$.svg.insertBefore(this._dragArea, this.$.svg.firstChild);
     },
     // called when makeDragArea is true
-    dragSVG: function (e, details, selection) {
+    dragSVG: function (e) {
       if (this._makeDragArea) {
         this._updateDragArea(e, this._dragArea);
       }
     },
     // also called on mouseup
-    dragEndSVG: function (e, details, selection) {
+    dragEndSVG: function (e) {
       if (!this._dragArea) {
         return;
       }  // remember the old sel el
@@ -714,7 +718,7 @@
       return overlap;
     },
     // handle selecting elements by their wrapper during drag
-    dragOverWrapper: function (e, details, selection) {
+    dragOverWrapper: function (e) {
     // if (this._makeDragArea) {
     //   if (!this._selectingElByDrag) {
     //     this._selectingElByDrag = true;
@@ -763,7 +767,7 @@
       this._dragArea = null;  //this.$.svg.innerHTML = '';
     },
     //this.$.svg.innerHTML = '';
-    dragOutArrowStart: function (e, details, selection) {
+    dragOutArrowStart: function (e) {
       this.draggedEl = e.target;  //to stop wrapper drag to be called
       //to stop wrapper drag to be called
       e.stopPropagation();
@@ -792,7 +796,7 @@
       }
     },
     //this._addBezierPath( event.x0 , event.y0 , event.x0 , event.y0 , 70, 'temp_path');
-    dragOutArrow: function (e, details, selection) {
+    dragOutArrow: function (e) {
 
       //TODO cache
       //var tempPath = Polymer.dom(this.root).querySelector('#temp_path');  // the last dragMove call passes e.x=0 and e.y=0 which causes neg x,y values. this if avoids that
@@ -802,7 +806,7 @@
         this.tempPath.setAttribute('d', newPath);
       }
     },
-    dragOutArrowEnd: function (e, details, selection) {
+    dragOutArrowEnd: function (e) {
       
         // remove method is not working for tempPath when using Polumer.dom...querySelector useing document.querySelector instead
        
@@ -822,17 +826,17 @@
 
 
     },
-    dragOverInArrow: function (e, details, selection) {
+    dragOverInArrow: function (e) {
       //important! needed to allow drop
       e.preventDefault();
     },
-    dragEnterInArrow: function (e, details, selection) {
+    dragEnterInArrow: function (e) {
       e.target.classList.add('drag-over');
     },
-    dragLeaveInArrow: function (e, details, selection) {
+    dragLeaveInArrow: function (e) {
       e.target.classList.remove('drag-over');
     },
-    droppedOnInArrow: function (e, details, selection) {
+    droppedOnInArrow: function (e) {
       
       //TODO: depending on classnames is not a safe solution. add componentId or something similar and universal
       
@@ -846,7 +850,7 @@
       this._drawConnections();
       e.stopPropagation();
     },
-    arrowClicked: function (e, details, selection) {
+    arrowClicked: function (e) {
       //e.stopPropagation();
       var wrapper = null;
       for (var i = 0; i < e.path.length && !wrapper; i++) {
@@ -877,7 +881,7 @@
         }
       }
     },
-    deleteConnection: function (e, details, selection) {
+    deleteConnection: function (e) {
       var self = this;
       self.$.deleteDialog.toggle();  // set the delete callback
       // set the delete callback
@@ -937,7 +941,7 @@
       }
       this._drawConnections();
     },
-    toggleSetting: function (e, detail, selection) {
+    toggleSetting: function (e) {
       var button = e.target, componentId = button['component-id'], elementInfo = this.findElById(componentId);
       button.toggleClass('open');
       elementInfo.settingOpen = elementInfo.settingOpen ? false : true;
@@ -1457,6 +1461,25 @@
     },
     _elementsChanged: function() {
       console.log('elements changed!');
+    },
+    /**
+     *  Helper function that takes an event, loops through the
+     *  event path until it finds the item with 'wrapper' in its
+     *  id, and returns that item.
+     *  
+     *  @param   {Event} event JavaScript Event fired from an event listener
+     *  @return  {HTMLElement}      HTMLElement with 'wrapper' in its id
+     *  @private
+     */
+    _findWrapperInPath: function(e) {
+      var path = e.path;
+      for (var i = 0; i < path.length; i++) {
+        var elem = path[i];
+        var id = elem.id;
+        if (id && id.indexOf('wrapper') > -1) {
+          return elem;
+        }
+      }
     }
 
   });

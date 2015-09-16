@@ -294,7 +294,7 @@
       // for testing:
       window.ff = this;
 
-      this.addEventListener('core-resize', function () {
+      this.addEventListener('iron-resize', function () {
         this._drawConnections();
       });
       this.$.zoomRange.value = this._zoom;
@@ -1241,6 +1241,16 @@
       else
         return value;
     },
+
+    /**
+     *  Find and return a Lens component by ID,
+     *  for example ``lens-input-csv-0``. Searches
+     *  the _elements array for an object with the ID.
+     *  
+     *  @method findElById
+     *  @param  {String} id ID of the component
+     *  @return {Object}    Lens component
+     */
     findElById: function (id) {
       var self = this;
       element = self._elements.filter(function (el) {
@@ -1437,7 +1447,6 @@
     // to do: update style values
     computeCollapseStyle: function (el) {
       return 'top: ' + (el.top + 35) + 'px; left: ' + el.left + 'px; width: 200px; height: 100px';
-
       //return 'top: ' + (el.top + 35) + 'px; left: ' + el.left + 'px;';//+ ' transform: ' + el.transform + '; width: ' + el.width + 'px; height: ' + el.height + 'px';
     },
     computeIsOpen: function(el) {

@@ -398,8 +398,14 @@
         margin-top: -6px;
         transition: opacity 0.3s ease-in;
         width: 170px;
-        max-height: 200px;
         overflow-y: scroll;
+        max-height: 200px;
+    }
+
+    .lens-component-resizable {
+
+        max-height: none;
+
     }
 
     .selected-element {

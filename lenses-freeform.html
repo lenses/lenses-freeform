@@ -1059,6 +1059,9 @@
     _connectAttributes: function (source, sourceField, target, targetField) {
       var self = this;  //find the index of connection which has the same target
       //find the index of connection which has the same target
+      
+      var listener = null;
+
       var connWithSameTargetIndex = self._connections.reduce(function (value, conn, index) {
         if (conn.target.id === target.id && conn.target.field === targetField) {
           return index;
@@ -1075,6 +1078,20 @@
       } else {
         // make the connection in the elements array
         //target.inputConnectedTo = source;  // not needed
+        
+        /*
+          using lens-output-change works for output-input connection. might have better performance than observation
+          but not a universal solution. lets try:
+         */
+        
+        if(sourceField==='input' && targetField==='output') {
+          listener = function(e) {
+            console.log(e);
+            target.element[targetField] = e.detail;
+          }
+          source.element.addEventListener('lens-ouput-changed', listener);
+        }
+        
         
         /*
         
@@ -1095,14 +1112,18 @@
           name: target.name,
           element: target.element
         };
+
+        //set data for the first time.
         target.element[targetField] = source.element[sourceField];
+
         targetClone.field = targetField;  //self.updateConnections();
                                           //push the connections anyways because it will be deleted above.
         //self.updateConnections();
         //push the connections anyways because it will be deleted above.
         self._connections.push({
           source: srcClone,
-          target: targetClone
+          target: targetClone,
+          listener: listener // reference to listener function
         });
         return true;
       }

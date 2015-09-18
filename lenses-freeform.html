@@ -519,8 +519,15 @@
       // var wrapperLeft = parseInt(styles.left.replace('px',''));
       // var w =  e.x - wrapperLeft - 65,
       //     h = e.y - wrapperTop - 172;
+      
+      // on last call e.x and e.y are zero.     
+      if(e.x === 0 && e.y === 0) {
+        return;
+      }
+
       var wrapperTop = parseInt(wrapper.getBoundingClientRect().top), wrapperLeft = parseInt(wrapper.getBoundingClientRect().left);
       var w = e.x / this._zoom - wrapperLeft, h = e.y / this._zoom - wrapperTop;
+
 
       var elementInsideId = wrapper.componentId;
       var elementInside = this.querySelector('#' + elementInsideId);
@@ -538,8 +545,8 @@
       wrapper.style.height = h + 'px';
 
       // also move the drag handle
-      var newTransX = w - parseInt(e.target.style.left);
-      var newTransY = h - parseInt(e.target.style.top);
+      var newTransX = w - parseInt(e.target.style.left) + 5;
+      var newTransY = h - parseInt(e.target.style.top) + 5;
       var newTrans = 'transform: translate(' + newTransX +'px, ' + newTransY + 'px);';
       var keepTop = e.target.style.top;
       var keepLeft = e.target.style.left;

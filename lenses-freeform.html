@@ -994,36 +994,25 @@
       // prevent backspace acting as browser back button
       // via http://stackoverflow.com/a/2768256/2994108
       var doPrevent = false;
-      if (e.keyCode === 8) {
-          var d = event.srcElement || event.target;
-          if (d.tagName.toUpperCase() === 'TEXTAREA'
-            ||
-            (d.tagName.toUpperCase() === 'INPUT' && 
-              (
-                d.type.toUpperCase() === 'TEXT' ||
-                d.type.toUpperCase() === 'PASSWORD' || 
-                d.type.toUpperCase() === 'FILE' || 
-                d.type.toUpperCase() === 'SEARCH' || 
-                d.type.toUpperCase() === 'EMAIL' || 
-                d.type.toUpperCase() === 'NUMBER' || 
-                d.type.toUpperCase() === 'DATE'
-              )
-            )
-          )
-          {
-            doPrevent = d.readOnly || d.disabled;
-          }
-          else {
-              doPrevent = true;
-          }
+      if (e.keyCode == 8) {
+        var rx = /INPUT|SELECT|TEXTAREA/i;
+
+        var d = e.srcElement || e.target;
+        if (rx.test(d.tagName.toUpperCase() )) {
+          doPrevent = d.readOnly || d.disabled;
+        } else {
+          doPrevent = true;
+        }
       }
       if (doPrevent) {
-          e.preventDefault();
+        e.preventDefault();
       }
 
       switch (e.keyCode) {
       // if deleteKey:
       case 8:
+        if (!doPrevent) return;
+
         // if bezier was selected, delete that. Otherwise, delete element
         if (self._highlightedConnection) {
           self._deleteBezier(e, self._highlightedConnection);

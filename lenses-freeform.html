@@ -406,7 +406,7 @@
     },
     // if option key was pressed, clone the element when drag is done
     _cloneElement: function (e) {
-      var selection = this._findWrapperInPath(e);
+      var selection = e.target;
 
       // figure out the name of the element...
       var componentId = selection.componentId;
@@ -507,7 +507,7 @@
     },
     dragResize: function (e) {
       var self = this;
-      var wrapper = self._findWrapperInPath(e);
+      var wrapper = e.target.parentNode;
       // var wrapper = selection.parentNode;  //var styles = window.getComputedStyle(wrapper);
                                            // var wrapperTop = parseInt(styles.top.replace('px',''));
                                            // var wrapperLeft = parseInt(styles.left.replace('px',''));
@@ -1479,25 +1479,6 @@
     },
     _elementsChanged: function() {
       console.log('elements changed!');
-    },
-    /**
-     *  Helper function that takes an event, loops through the
-     *  event path until it finds the item with 'wrapper' in its
-     *  id, and returns that item.
-     *  
-     *  @param   {Event} event JavaScript Event fired from an event listener
-     *  @return  {HTMLElement}      HTMLElement with 'wrapper' in its id
-     *  @private
-     */
-    _findWrapperInPath: function(e) {
-      var path = e.path;
-      for (var i = 0; i < path.length; i++) {
-        var elem = path[i];
-        var id = elem.id;
-        if (id && id.indexOf('wrapper') > -1) {
-          return elem;
-        }
-      }
     }
 
   });

@@ -1095,10 +1095,14 @@
           using lens-output-change works for output-input connection. might have better performance than observation
           but not a universal solution. lets try:
          */
-        
-        if(sourceField==='input' && targetField==='output') {
+
+        if(sourceField.indexOf('output') == 0 && targetField.indexOf('input') == 0) {
           listener = function(e) {
             console.log(e);
+
+            // find the actual output?
+            // var output = target.element.output;
+
             target.element[targetField] = e.detail;
           }
           source.element.addEventListener('lens-ouput-changed', listener);

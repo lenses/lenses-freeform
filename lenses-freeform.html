@@ -447,6 +447,7 @@
 
       e.preventDefault();
 
+      //TODO make a standard uniform way of finding elements. path[0] is ugly 
       if (e.path && e.path.length > 0 && e.path[0].classList.contains('resize') > 0) {
         self.dragResizeEnd(e);
       }
@@ -518,8 +519,15 @@
       // var wrapperLeft = parseInt(styles.left.replace('px',''));
       // var w =  e.x - wrapperLeft - 65,
       //     h = e.y - wrapperTop - 172;
+      
+      // on last call e.x and e.y are zero.     
+      if(e.x === 0 && e.y === 0) {
+        return;
+      }
+
       var wrapperTop = parseInt(wrapper.getBoundingClientRect().top), wrapperLeft = parseInt(wrapper.getBoundingClientRect().left);
       var w = e.x / this._zoom - wrapperLeft, h = e.y / this._zoom - wrapperTop;
+
 
       var elementInsideId = wrapper.componentId;
       var elementInside = this.querySelector('#' + elementInsideId);
@@ -537,8 +545,8 @@
       wrapper.style.height = h + 'px';
 
       // also move the drag handle
-      var newTransX = w - parseInt(e.target.style.left);
-      var newTransY = h - parseInt(e.target.style.top);
+      var newTransX = w - parseInt(e.target.style.left) + 5;
+      var newTransY = h - parseInt(e.target.style.top) + 5;
       var newTrans = 'transform: translate(' + newTransX +'px, ' + newTransY + 'px);';
       var keepTop = e.target.style.top;
       var keepLeft = e.target.style.left;
@@ -552,6 +560,8 @@
     },
     dragResizeEnd: function (e) {
       var wrapper = null;
+
+      //TODO make a standard uniform way of finding elements. path[0] is ugly 
       if (e.path && e.path.length > 0 && e.path[0].classList.contains('resize') > 0) {
         wrapper = e.path[0].parentNode;
       }
@@ -600,6 +610,8 @@
         // dragging a clone
         return;
       }
+
+      //TODO make a standard uniform way of finding elements. path[0] is ugly 
       if (e.path[0].classList && e.path[0].classList.length > 0 && (e.path[0].classList.contains('resize') || e.path[0].classList.contains('arrow'))) {
         return false;
       }
@@ -872,6 +884,8 @@
     arrowClicked: function (e) {
       //e.stopPropagation();
       var wrapper = null;
+
+      //TODO make a standard uniform way of finding elements. path[0] is ugly 
       for (var i = 0; i < e.path.length && !wrapper; i++) {
         if (e.path[i].classList.contains('wrapper')) {
           wrapper = e.path[i];
@@ -918,6 +932,8 @@
           elementInsideId = splitID[3] + '-' + splitID[4] + '-' + splitID[5];
         } else {
           var wrapper = null;
+    
+          //TODO make a standard uniform way of finding elements. path[0] is ugly 
           for (var i = 0; i < e.path.length && !wrapper; i++) {
             if (e.path[i].classList.contains('wrapper')) {
               wrapper = e.path[i];
@@ -1043,6 +1059,9 @@
     _connectAttributes: function (source, sourceField, target, targetField) {
       var self = this;  //find the index of connection which has the same target
       //find the index of connection which has the same target
+      
+      var listener = null;
+
       var connWithSameTargetIndex = self._connections.reduce(function (value, conn, index) {
         if (conn.target.id === target.id && conn.target.field === targetField) {
           return index;
@@ -1059,6 +1078,20 @@
       } else {
         // make the connection in the elements array
         //target.inputConnectedTo = source;  // not needed
+        
+        /*
+          using lens-output-change works for output-input connection. might have better performance than observation
+          but not a universal solution. lets try:
+         */
+        
+        if(sourceField==='input' && targetField==='output') {
+          listener = function(e) {
+            console.log(e);
+            target.element[targetField] = e.detail;
+          }
+          source.element.addEventListener('lens-ouput-changed', listener);
+        }
+        
         
         /*
         
@@ -1079,14 +1112,18 @@
           name: target.name,
           element: target.element
         };
+
+        //set data for the first time.
         target.element[targetField] = source.element[sourceField];
+
         targetClone.field = targetField;  //self.updateConnections();
                                           //push the connections anyways because it will be deleted above.
         //self.updateConnections();
         //push the connections anyways because it will be deleted above.
         self._connections.push({
           source: srcClone,
-          target: targetClone
+          target: targetClone,
+          listener: listener // reference to listener function
         });
         return true;
       }

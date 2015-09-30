@@ -530,7 +530,7 @@
       }
 
       var wrapperTop = parseInt(wrapper.getBoundingClientRect().top), wrapperLeft = parseInt(wrapper.getBoundingClientRect().left);
-      var w = e.x / this._zoom - wrapperLeft, h = e.y / this._zoom - wrapperTop;
+      var w = e.x / this._zoom - wrapperLeft / this._zoom, h = e.y / this._zoom - wrapperTop / this._zoom;
 
 
       var elementInsideId = wrapper.componentId;
@@ -1103,11 +1103,9 @@
         if(sourceField.indexOf('output') == 0 && targetField.indexOf('input') == 0) {
           listener = function(e) {
             console.log(e);
-
-            // find the actual output?
-            // var output = target.element.output;
-
-            target.element[targetField] = e.detail;
+            // find the actual output:
+            var newOutput = e.detail;
+            target.element[targetField] = newOutput;
           }
           source.element.addEventListener('lens-output-changed', listener);
         }

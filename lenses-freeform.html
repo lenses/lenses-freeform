@@ -302,7 +302,9 @@
       this.$.zoomRange.value = this._zoom;
     },
 
-    addNewElToLens: function (newElName, left, top) {
+    addNewElToLens: function (newElName, _left, _top) {
+      var top = _top / this._zoom;
+      var left = _left / this._zoom;
       var newEl = document.createElement(newElName);
       this.$.component_list.checkAndImport(newEl, function () {
   
@@ -327,8 +329,10 @@
 
         newEl.classList.add('lens-component');
 
-        Polymer.dom(this.root).appendChild(newEl);
-        this._processNewElement(newEl, top / this._zoom, left / this._zoom);
+        // Polymer.dom(this.root).appendChild(newEl);
+        Polymer.dom(this.$.container).appendChild(newEl);
+
+        this._processNewElement(newEl, top, left);
         this._renderContainerTemplate();
       }.bind(this));
     },

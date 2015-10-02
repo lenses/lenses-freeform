@@ -6,7 +6,7 @@
 <link rel="import" href="../paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../iron-collapse/iron-collapse.html">
 
-<link rel="import" href="../lens-ui-dialog/lens-ui-dialog.html">
+<link rel="import" href="../lenses-ui-dialog/lenses-ui-dialog.html">
 
   <link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
 <dom-module id="lenses-freeform">
@@ -177,21 +177,21 @@
       </template>
     </div>        -->
 
-    <lens-ui-dialog autoclosedisabled="" id="deleteDialog" class="dialog size-position" opened="true">
+    <lenses-ui-dialog autoclosedisabled="" id="deleteDialog" class="dialog size-position" opened="true">
       <p>Are you sure you want to remove the selected item?</p>
       <div horizontal="" end-justified="" layout="">
         <paper-icon-button icon="clear" dismissive="" on-click="_noDelete"></paper-icon-button>
         <paper-icon-button icon="check" affirmative="" on-click="_yesDelete"></paper-icon-button>
       </paper-icon-button></div>
-    </lens-ui-dialog>
+    </lenses-ui-dialog>
 
     <!-- Title and Author fields + save action in dialog-->
-    <lens-ui-dialog class="dialog" id="savedetails">
+    <lenses-ui-dialog class="dialog" id="savedetails">
       <h1><paper-input label="Title of Lens" value="{{lensTitle}}"></paper-input></h1>
       <h3><paper-input label="Your Name" value="{{lensAuthor}}"></paper-input></h3>
       <paper-icon-button class="save" affirmative="" icon="check" ng-click="saveLens()" on-click="_saveLens">
       <paper-icon-button class="" dismissive="" icon="clear"></paper-icon-button> 
-    </paper-icon-button></lens-ui-dialog>
+    </paper-icon-button></lenses-ui-dialog>
 
 
   </template>
@@ -302,7 +302,9 @@
       this.$.zoomRange.value = this._zoom;
     },
 
-    addNewElToLens: function (newElName, left, top) {
+    addNewElToLens: function (newElName, _left, _top) {
+      var top = _top / this._zoom;
+      var left = _left / this._zoom;
       var newEl = document.createElement(newElName);
       this.$.component_list.checkAndImport(newEl, function () {
   
@@ -327,8 +329,10 @@
 
         newEl.classList.add('lens-component');
 
-        Polymer.dom(this.root).appendChild(newEl);
-        this._processNewElement(newEl, top / this._zoom, left / this._zoom);
+        // Polymer.dom(this.root).appendChild(newEl);
+        Polymer.dom(this.$.container).appendChild(newEl);
+
+        this._processNewElement(newEl, top, left);
         this._renderContainerTemplate();
       }.bind(this));
     },
@@ -526,7 +530,7 @@
       }
 
       var wrapperTop = parseInt(wrapper.getBoundingClientRect().top), wrapperLeft = parseInt(wrapper.getBoundingClientRect().left);
-      var w = e.x / this._zoom - wrapperLeft, h = e.y / this._zoom - wrapperTop;
+      var w = e.x / this._zoom - wrapperLeft / this._zoom, h = e.y / this._zoom - wrapperTop / this._zoom;
 
 
       var elementInsideId = wrapper.componentId;
@@ -1099,11 +1103,9 @@
         if(sourceField.indexOf('output') == 0 && targetField.indexOf('input') == 0) {
           listener = function(e) {
             console.log(e);
-
-            // find the actual output?
-            // var output = target.element.output;
-
-            target.element[targetField] = e.detail;
+            // find the actual output:
+            var newOutput = e.detail;
+            target.element[targetField] = newOutput;
           }
           source.element.addEventListener('lens-output-changed', listener);
         }

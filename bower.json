@@ -16,5 +16,10 @@
   },
   "devDependencies": {
     "web-component-tester": "Polymer/web-component-tester#^2.0.0"
+  },
+  "resolutions": {
+    "polymer": ">=0.5.1 <1.0.0",
+    "core-component-page": "^0.5.5",
+    "webcomponentsjs": "^0.6.0"
   }
 }

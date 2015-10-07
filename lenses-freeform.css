@@ -420,7 +420,7 @@
 
     .selected-element {
       border: 1px solid #888;
-      z-index: 200;
+     /* z-index: 200; */
     }          
 
     .connectors-in {

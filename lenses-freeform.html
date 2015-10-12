@@ -94,12 +94,16 @@
     </div>
 
     <!-- Lens Data Table - commenting this out for now 8/10/15 -->
-<!--     <div id="input_preview" class$="{{computeClass(_selElement, _showDataTable)}}">
-      <template is="dom-if" if="{{computeIf(_selElement, _showDataTable)}}">
+    
+    <div id="input_preview"  class$="{{computePreviewClass('input')}}">
+      <template is="dom-if" if="{{true}}">
         <label>INPUT</label>
+        <!--  
         <lens-data-table id="input_table" input="{{_selElement.input}}" class="table" minimal="true"></lens-data-table>
+        -->
+        <div>{{_displayData(_selElement.input)}}</div>
       </template>
-    </div> -->
+    </div>
 
     <div id="container" on-mousedown="clickInContainer" on-drop="droppedInContainer" on-dragover="draggedOverContainer" on-mouseup="dragEndSVG" on-mousemove="dragSVG">
 <!--       <svg id="svg" style="z-index:1000;"></svg>
@@ -170,12 +174,13 @@
     </div> 
 
     <!-- commenting out for now -->
-<!--     <div id="output_preview" class$="{{computeClass(_selElement, _showDataTable)}}">
-      <template is="dom-if" if="{{computeIf(_selElement, _showDataTable)}}">
-        <label>OUTPUT</label>
+     <div id="output_preview" class$="{{computePreviewClass('output')}}"> 
+      <label>OUTPUT</label>
+        <!--
         <lens-data-table id="output_table" input="{{_selElement.output}}" class="table" minimal="true"></lens-data-table>
-      </template>
-    </div>        -->
+        -->  
+        <div>{{_displayData(_selElement.output)}}</div>
+    </div>        
 
     <lenses-ui-dialog autoclosedisabled="" id="deleteDialog" class="dialog size-position" opened="true">
       <p>Are you sure you want to remove the selected item?</p>
@@ -1494,11 +1499,11 @@
       return item.length > 0;
     },
 
-
+   /*
     computeClass: function (_selElement, _showDataTable) {
       return 'data-preview ' + this.tokenList({ visible: _showDataTable && _selElement.input && _selElement.input.length > 0 });
     },
-
+   */
     computeIfInput: function (_selElement, _showDataTable) {
       return _showDataTable && _selElement.input && _selElement.input.length > 0;
     },
@@ -1528,6 +1533,15 @@
     },
     computeIsOpen: function(el) {
       return el.settingOpen===true ? true : false;
+    },
+    computePreviewClass: function(io) {
+     if(!this._selElement) 
+      return 'data-preview visible';   
+     var previewData = io==='input' ? this._selElement.input : this._selElement.ouptut; 
+     return 'data-preview ' + (previewData && previewData.lenght && this._showDataTable) ? 'visible' : ''; 
+    },
+    _displayData: function(data) {
+      return JSON.stringify(data, null, 2);
     },
     concatClassNames: function() {
       return 'wrapper';//arguments.join(' ');

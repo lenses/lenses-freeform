@@ -2,7 +2,9 @@
 
 The freeform MAX/MSP-like UI for Lenses: a framework of open-source data visualization and transformation Polymer web components for fetching, manipulating and visualizing data.
 
-See the [demo page](http://lenses.github.io/lenses-freeform) for more information.
+![lenses data visualization](preview.png)
+
+**See the [demo page](http://lenses.github.io/lenses-freeform)**
 
 ## Getting Started
 

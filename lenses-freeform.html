@@ -6,6 +6,9 @@
 <link rel="import" href="../paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../iron-collapse/iron-collapse.html">
 
+
+<link rel="import" href="../hot-table/hot-table.html">
+
 <link rel="import" href="../lenses-ui-dialog/lenses-ui-dialog.html">
 
   <link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
@@ -95,15 +98,15 @@
 
     <!-- Lens Data Table - commenting this out for now 8/10/15 -->
     
-    <div id="input_preview"  class$="{{computePreviewClass('input')}}">
-      <template is="dom-if" if="{{true}}">
-        <label>INPUT</label>
-        <!--  
-        <lens-data-table id="input_table" input="{{_selElement.input}}" class="table" minimal="true"></lens-data-table>
-        -->
-        <div>{{_displayData(_selElement.input)}}</div>
-      </template>
-    </div>
+    <!-- output preview -->
+   <div id="input_preview" class="data-preview"> 
+    <label>OUTPUT</label>
+
+        <!-- binding everything manually in _setupIODataPreviews function -->
+        <hot-table id="hot_input" read-only="true" ></hot-table>
+
+   </div>        
+
 
     <div id="container" on-mousedown="clickInContainer" on-drop="droppedInContainer" on-dragover="draggedOverContainer" on-mouseup="dragEndSVG" on-mousemove="dragSVG">
 <!--       <svg id="svg" style="z-index:1000;"></svg>
@@ -173,14 +176,14 @@
       </template>
     </div> 
 
-    <!-- commenting out for now -->
-     <div id="output_preview" class$="{{computePreviewClass('output')}}"> 
-      <label>OUTPUT</label>
-        <!--
-        <lens-data-table id="output_table" input="{{_selElement.output}}" class="table" minimal="true"></lens-data-table>
-        -->  
-        <div>{{_displayData(_selElement.output)}}</div>
-    </div>        
+    <!-- output preview -->
+   <div id="output_preview" class="data-preview"> 
+    <label>OUTPUT</label>
+
+        <!-- binding everything manually in _setupIODataPreviews function -->
+        <hot-table id="hot_output" read-only="true" ></hot-table>
+
+   </div>        
 
     <lenses-ui-dialog autoclosedisabled="" id="deleteDialog" class="dialog size-position" opened="true">
       <p>Are you sure you want to remove the selected item?</p>
@@ -510,7 +513,14 @@
         }
       }
       this._selWrappers = [];
+      if(this._selElement) {
+        this._selElement.removeEventListener('lens-output-changed', this._setupIODataPreviews);
+
+      }
+
       this._selElement = null;
+      this._setupIODataPreviews();
+
     },
     dragStartResize: function (e) {
       e.stopPropagation();
@@ -692,6 +702,10 @@
           console.log('not already selected');
         }
         this._selElement = el;
+
+        this._setupIODataPreviews();
+        this._selElement.addEventListener('lens-output-changed', this._setupIODataPreviews.bind(this));
+
       }
       if (this._selWrappers.indexOf(wrapperEl) === -1) {
         wrapperEl.classList.add('selected-element');
@@ -739,6 +753,11 @@
           // remember selected element if it overlaps
           if (el.element === oldSelElement) {
             this._selElement = el.element;
+
+            this.oldSelElement.removeEventListener('lens-output-changed', this._setupIODataPreviews);
+            this._setupIODataPreviews();
+            this._selElement.addEventListener('lens-output-changed', this._setupIODataPreviews.bind(this));
+
           }
         } else {
           // otherwise remove selection
@@ -746,7 +765,13 @@
             wrapperEl.classList.remove('selected-element');
           }
           if (this._selElement === el.element) {
+
+            this._selElement.removeEventListener('lens-output-changed', this._setupIODataPreviews.bind(this));
+
             this._selElement = null;
+
+            this._setupIODataPreviews();
+
           }
         }
       }
@@ -1113,6 +1138,8 @@
             target.element[targetField] = newOutput;
           }
           source.element.addEventListener('lens-output-changed', listener);
+
+          //TODO: remove listener.
         }
         
         
@@ -1455,6 +1482,44 @@
       this._deleteCallback();
       this._deleteCallback = null;
     },
+
+    _setupIODataPreviews: function() {
+
+      console.log('_setupIODataPreviews', this._selElement);
+
+      if(this._selElement && this._selElement.output) {
+        this.$.output_preview.classList.add('visible');
+        console.log(this.$);
+        this.$.hot_output.datarows = this._selElement.output;
+        this.$.hot_output.colHeaders = this._computeIODataHeader('output');
+
+      }
+      else {
+        this.$.output_preview.classList.remove('visible');
+      }
+      
+      if(this._selElement && this._selElement.input) {
+        this.$.input_preview.classList.add('visible');
+        this.$.hot_input.datarows = this._selElement.input;
+        this.$.hot_input.colHeaders = this._computeIODataHeader('input');
+
+      }
+      else {
+        this.$.input_preview.classList.remove('visible');
+      }
+
+
+    },
+     _computeIODataHeader: function(io) {
+       if(!this._selElement) 
+        return [];   
+        
+       var previewData = io==='input' ? this._selElement.input : this._selElement.output; 
+       return previewData && previewData[0] ? Object.keys(previewData[0]) : [];
+     
+      }, 
+
+    
     listeners: {
       keydown: 'keydownHandler',
       keyup: 'keyupHandler',
@@ -1536,10 +1601,11 @@
     },
     computePreviewClass: function(io) {
      if(!this._selElement) 
-      return 'data-preview visible';   
-     var previewData = io==='input' ? this._selElement.input : this._selElement.ouptut; 
+      return 'data-preview';   
+     var previewData = io==='input' ? this._selElement.input : this._selElement.output; 
+     //TODO doesn't work!!!!!!!
      return 'data-preview ' + (previewData && previewData.lenght && this._showDataTable) ? 'visible' : ''; 
-    },
+   },
     _displayData: function(data) {
       return JSON.stringify(data, null, 2);
     },

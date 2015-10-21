@@ -405,7 +405,7 @@
         self.set('_elements', filteredEls);
 
         // remove elements from lens-connector 
-        self.removeChild(embeddedEl);
+        Polymer.dom(self.$.container).removeChild(embeddedEl);
       };
     },
     removeAllConnectionsFromElement: function (elId) {

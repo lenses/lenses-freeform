@@ -1,0 +1,9 @@
+{
+  "name": "lenses-freeform",
+  "version": "0.0.5",
+  "devDependencies": {
+    "grunt": "~0.4.5",
+    "grunt-fb-flo": "^0.2.1",
+    "minimatch": "^3.0.0"
+  }
+}

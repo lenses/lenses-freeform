@@ -100,7 +100,7 @@
     
     <!-- output preview -->
    <div id="input_preview" class="data-preview"> 
-    <label>OUTPUT</label>
+    <label>INPUT</label>
 
         <!-- binding everything manually in _setupIODataPreviews function -->
         <hot-table id="hot_input" read-only="true" ></hot-table>
@@ -1487,25 +1487,37 @@
 
       console.log('_setupIODataPreviews', this._selElement);
 
-      if(this._selElement && this._selElement.output) {
-        this.$.output_preview.classList.add('visible');
-        console.log(this.$);
-        this.$.hot_output.datarows = this._selElement.output;
-        this.$.hot_output.colHeaders = this._computeIODataHeader('output');
-
-      }
-      else {
-        this.$.output_preview.classList.remove('visible');
-      }
-      
       if(this._selElement && this._selElement.input) {
         this.$.input_preview.classList.add('visible');
-        this.$.hot_input.datarows = this._selElement.input;
         this.$.hot_input.colHeaders = this._computeIODataHeader('input');
+        this.$.hot_input.datarows = this._selElement.input;
+
+        //hot-table needs this to render tbody ?!?!
+        setTimeout(function() {
+            this.$.hot_input.render();
+
+        }.bind(this),200);
+
 
       }
       else {
         this.$.input_preview.classList.remove('visible');
+      }
+
+      if(this._selElement && this._selElement.output) {
+        this.$.output_preview.classList.add('visible');
+        this.$.hot_output.colHeaders = this._computeIODataHeader('output');
+        this.$.hot_output.datarows = this._selElement.output;
+        
+        //hot-table needs this to render tbody ?!?!
+        setTimeout(function() {
+            this.$.hot_output.render();
+
+        }.bind(this),200);
+
+      }
+      else {
+        this.$.output_preview.classList.remove('visible');
       }
 
 
@@ -1519,7 +1531,7 @@
      
       }, 
 
-    
+
     listeners: {
       keydown: 'keydownHandler',
       keyup: 'keyupHandler',

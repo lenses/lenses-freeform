@@ -24,7 +24,7 @@ Or [download as ZIP](https://github.com/liuwenchao/aha-table/archive/master.zip)
 1. Import Web Components' polyfill:
 
     ```html
-    <script src="bower_components/platform/platform.js"></script>
+    <script src="bower_components/webcomponentsjs/webcomponents.min.js"></script>
     ```
 
 2. Import Custom Element:
@@ -46,17 +46,17 @@ Or [download as ZIP](https://github.com/liuwenchao/aha-table/archive/master.zip)
           removable
           movable
           seachable
-          pagesize="20" 
-          pagesizetitle="Page Size:" 
+          pagesize="20"
+          pagesizetitle="Page Size:"
           summarytitle="Viewing">
 
-          <aha-column name="title" 
-              type="string" 
+          <aha-column name="title"
+              type="string"
               sortable
               searchable
               required
-              placeholder="Empty Field Placeholder Text" 
-              default="" 
+              placeholder="Empty Field Placeholder Text"
+              default=""
               hint="a hint in column header">
           </aha-column>
      </aha-table>
@@ -76,24 +76,24 @@ Attribute       | Options       | Default   | Description
 `movable`       | *Boolean*     | False      | if move up/down handler is displayed
 `pagesize`      | *Number*      | 10        | record set size for each page
 `data-sizelist` | *Array*       | [5, 10, 20, 50, 100]      | list for page size dropdown
-`selecttitle`   | *String*      | undefined | title for select checkbox
-`selectalltitle`| *String*      | undefined | title for selectall checkbox
-`copytitle`     | *String*      | undefined | title for copy indicator
-`removetitle`   | *String*      | undefined | title for remove indicator
-`movedowntitle` | *String*      | undefined | title for move down indicator
-`moveuptitle`   | *String*      | undefined | title for move up indicator
-`sorttitle`     | *String*      | undefined | title for sortable column
-`edittitle`     | *String*      | undefined | title for editable data cell
-`searchtitle`   | *String*      | undefined | title for search filter row toggler
-`firsttitle`    | *String*      | undefined | title for first page clicker
-`previoustitle` | *String*      | undefined | title for previous page clicker
-`nexttitle`     | *String*      | undefined | title for next page clicker
-`lasttitle`     | *String*      | undefined | title for last page clicker
-`pagetext`      | *String*      | undefined | text before current page number
-`pageoftext`    | *String*      | undefined | text between page range and total page number
-`pagesizetext`  | *String*      | undefined | text before page size dropdown
-`summarytitle`  | *String*      | undefined | text before pagination summary
-`itemoftext`    | *String*      | undefined | text between item count range and total item number
+`selecttitle`   | *String*      | ''        | title for select checkbox
+`selectalltitle`| *String*      | ''        | title for selectall checkbox
+`copytitle`     | *String*      | ''        | title for copy indicator
+`removetitle`   | *String*      | ''        | title for remove indicator
+`movedowntitle` | *String*      | ''        | title for move down indicator
+`moveuptitle`   | *String*      | ''        | title for move up indicator
+`sorttitle`     | *String*      | ''        | title for sortable column
+`edittitle`     | *String*      | ''        | title for editable data cell
+`searchtitle`   | *String*      | ''        | title for search filter row toggler
+`firsttitle`    | *String*      | ''        | title for first page clicker
+`previoustitle` | *String*      | ''        | title for previous page clicker
+`nexttitle`     | *String*      | ''        | title for next page clicker
+`lasttitle`     | *String*      | ''        | title for last page clicker
+`pagetext`      | *String*      | ''        | text before current page number
+`pageoftext`    | *String*      | ''        | text between page range and total page number
+`pagesizetext`  | *String*      | ''        | text before page size dropdown
+`summarytitle`  | *String*      | ''        | text before pagination summary
+`itemoftext`    | *String*      | ''        | text between item count range and total item number
 
 
 ## Events
@@ -107,6 +107,10 @@ Name                    | Arguments | Description
 `after-create`          | `Event`   | call after a record is created internally
 `before-copy`           | `Event`   | call before a record is copyed from another internally
 `after-copy`            | `Event`   | call after a record is copyed from another internally
+`before-save`           | `Event`   | call before a record is saved from another internally
+`after-save`            | `Event`   | call after a record is saved from another internally
+`before-select`         | `Event`   | call before a record is selected
+`after-select`          | `Event`   | call after a record is selected
 `before-remove`         | `Event`   | call before a record is removed internally
 `after-remove`          | `Event`   | call after a record is removed internally
 `before-move-down`      | `Event`   | call before a record is moved down
@@ -123,18 +127,19 @@ Provides you a declarative way to define column meta.
 
 Attribute           | Options                   | Default               | Description
 ---                 | ---                       | ---                   | ---
-`name`              | *String*                  | undefined             | name of the column
-`label`             | *String*                  | undefined             | this text woll be displayed as the column name in table header.
-`type`              | *String*                  | undefined             | one of: string, text, choice, boolean, date, time, datetime
+`name`              | *String*                  | ''                    | name of the column
+`label`             | *String*                  | ''                    | this text woll be displayed as the column name in table header.
+`type`              | *String*                  | ''                    | one of: string, text, choice, boolean, date, time, datetime
 `sortable`          | *Boolean*                 | False                  | if this column is sortable
 `searchable`        | *Boolean*                 | False                  | if this column is searchable
 `editable`          | *Boolean*                 | False                  | if this column is editable
 `required`          | *Boolean*                 | False                  | if this column is required, Event 'after-invalid' will be invoked
-`placeholder`       | *String*                  | undefined             | this text will be displayed when this cell is empty
-`default`           | *String*                  | undefined             | default value, applied at creation
+`placeholder`       | *String*                  | ''                    | this text will be displayed when this cell is empty
+`default`           | *String*                  | ''                    | default value, applied at creation
 `data-choices`      | *Array*                   | []                    | options for select dropdown, in editing and searching.
-`hint`              | *String*                  | undefined             | this text will be displayed at the column header for instruction.
-`searchplaceholder` | *String*                  | undefined             | this text will be displayed in search filter input box.
+`hint`              | *String*                  | ''                    | this text will be displayed at the column header for instruction.
+`searchplaceholder` | *String*                  | ''                    | this text will be displayed in search filter input box.
+`renderer`          | *String*                  | undefined             | function name to format the object being displayed
 
 
 ## Browser Compatability
@@ -174,6 +179,13 @@ In order to run it locally you'll need to fetch some dependencies and a basic se
     ```sh
     $ grunt build
     $ bower register aha-table https://github.com/liuwenchao/aha-table
+    ```
+
+5. deploy
+
+    ```sh
+    $ git add * && git commit && git push
+    $ grunt deploy
     ```
 
 ## Contributing

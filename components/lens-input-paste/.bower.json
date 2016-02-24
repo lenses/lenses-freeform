@@ -13,11 +13,11 @@
     "core-icon-button": "polymer/core-icon-button#~0.5.1"
   },
   "homepage": "https://github.com/lenses/lens-input-paste",
-  "_release": "13e93960fc",
+  "_release": "6b95743f03",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "13e93960fc4485c84d63842627cbda4b320949e0"
+    "commit": "6b95743f035e5057c5978a683ec1dc002b20acda"
   },
   "_source": "git://github.com/lenses/lens-input-paste.git",
   "_target": "*",

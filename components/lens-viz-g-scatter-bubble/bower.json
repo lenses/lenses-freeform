@@ -10,7 +10,7 @@
   "dependencies": {
     "polymer": "Polymer/polymer#~0.5.1",
     "th-animated": "thelmanews/th-animated",
-    "google-chart": "lenses/google-chart#master",
+    "google-chart": "lenses/google-chart#0.2.1",
     "lens-u-data-selector": "lenses/lens-u-data-selector",
     "lens-u-data-utility": "lenses/lens-u-data-utility"
   }

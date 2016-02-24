@@ -41,7 +41,7 @@ Data can be provided in one of three ways:
 @status alpha
 @homepage http://googlewebcomponents.github.io/google-chart
 -->
-<polymer-element name="google-chart" attributes="type options cols rows data selection numberFormats">
+<polymer-element name="google-chart" attributes="type width height options cols rows data">
 
   <template>
     <link rel="stylesheet" href="google-chart.css">
@@ -62,13 +62,6 @@ Data can be provided in one of three ways:
          * @event google-chart-render
          */
 
-        /**
-         * Fired when the user makes a selection in the chart.
-         *
-         * @event google-chart-select
-         * @param {object} detail
-         *   @param {array} detail.selection The user-defined selection.
-         */
 
         /**
          * Sets the type of the chart.
@@ -77,7 +70,7 @@ Data can be provided in one of three ways:
          * - `area`, `bar`, `bubble`, `candlestick`, `column`, `combo`, `geo`,
          *   `histogram`, `line`, `pie`, `scatter`, `stepped-area`
          *
-         * See [Google Visualization API reference (Chart Gallery)](https://google-developers.appspot.com/chart/interactive/docs/gallery) for details.
+         * See <a href="https://google-developers.appspot.com/chart/interactive/docs/gallery">Google Visualization API reference (Chart Gallery)</a> for details.
          *
          * @attribute type
          * @type string
@@ -88,14 +81,13 @@ Data can be provided in one of three ways:
          * Sets the options for the chart.
          *
          * Example:
-         *     {
-         *       title: "Chart title goes here",
-         *       hAxis: {title: "Categories"},
-         *       vAxis: {title: "Values", minValue: 0, maxValue: 2},
-         *       legend: "none"
-         *     }
-         *     
-         * See [Google Visualization API reference (Chart Gallery)](https://google-developers.appspot.com/chart/interactive/docs/gallery)
+         * <pre>{
+         *   title: "Chart title goes here",
+         *   hAxis: {title: "Categories"},
+         *   vAxis: {title: "Values", minValue: 0, maxValue: 2},
+         *   legend: "none"
+         * };</pre>
+         * See <a href="https://google-developers.appspot.com/chart/interactive/docs/gallery">Google Visualization API reference (Chart Gallery)</a>
          * for the options available to each chart type.
          *
          * @attribute options
@@ -110,9 +102,9 @@ Data can be provided in one of three ways:
          * not specify `data`.
          *
          * Example:
-         *     [{label: "Categories", type: "string"},
-         *      {label: "Value", type: "number"}]
-         * See [Google Visualization API reference (addColumn)](https://google-developers.appspot.com/chart/interactive/docs/reference#DataTable_addColumn)
+         * <pre>[{label: "Categories", type: "string"},
+         *  {label: "Value", type: "number"}]</pre>
+         * See <a href="https://google-developers.appspot.com/chart/interactive/docs/reference#DataTable_addColumn">Google Visualization API reference (addColumn)</a>
          * for column definition format.
          *
          * @attribute cols
@@ -127,9 +119,9 @@ Data can be provided in one of three ways:
          * not specify `data`.
          *
          * Example:
-         *    [["Category 1", 1.0],
-         *    ["Category 2", 1.1]]
-         * See [Google Visualization API reference (addRow)](https://google-developers.appspot.com/chart/interactive/docs/reference#addrow)
+         * <pre>[["Category 1", 1.0],
+         *  ["Category 2", 1.1]]</pre>
+         * See <a href="https://google-developers.appspot.com/chart/interactive/docs/reference#addrow">Google Visualization API reference (addRow)</a>
          * for row format.
          *
          * @attribute rows
@@ -144,60 +136,22 @@ Data can be provided in one of three ways:
          *
          * The data format can be a two-dimensional array or the DataTable format
          * expected by Google Charts.
-         * See [Google Visualization API reference (DataTable constructor)](https://google-developers.appspot.com/chart/interactive/docs/reference#DataTable)
+         * See <a href="https://google-developers.appspot.com/chart/interactive/docs/reference#DataTable">Google Visualization API reference (DataTable constructor)</a>
          * for data table format details.
          *
          * When specifying data with `data` you must not specify `cols` or `rows`.
          *
          * Example:
-         *    [["Categories", "Value"],
-         *    ["Category 1", 1.0],
-         *    ["Category 2", 1.1]]
+         * <pre>[["Categories", "Value"],
+         *  ["Category 1", 1.0],
+         *  ["Category 2", 1.1]]</pre>
          *
          * @attribute data
          * @type array, object, or string
          */
         data: null,
 
-        /**
-         * Selected datapoint(s) in the map.
-         *
-         * An array of objects, each with a numeric row and/or column property.
-         * `row` and `column` are the zero-based row or column number of an item
-         * in the data table to select.
-         *
-         * To select a whole column, set row to null;
-         * to select a whole row, set column to null.
-         *
-         * Example:
-         *     [{row:0,column:1}, {row:1, column:null}]
-         *
-         * @attribute selection
-         * @type array
-         */
-        selection: [],
-
-        /**
-         * Sets the format for numbers shown in the tooltip.
-         *
-         * An array of objects, each with:
-         *     - a required `col` property (zero-based column number to which formatting applies)
-         *     - optional NumberFormat properties (`decimalSymbol`, `fractionDigits`, `groupingSymbol`, `negativeColor`, 
-         *     `negativeParens`, `pattern`, `prefix`, `suffix`)
-         * 
-         * See [Google Visualization API reference (NumberFormat)](https://developers.google.com/chart/interactive/docs/reference#numberformatter) for details.
-         *
-         * Example:
-         *     [{col:1, pattern: '#,###%', fractionDigits: 2 }, {col: 2, prefix: '$', groupingSymbol: ','}]
-         *
-         * @attribute numberFormats
-         * @type array
-         */
-        numberFormats: null,
-
         chartTypes: null,
-
-        packages: null,
 
         chartObject: null,
 
@@ -214,14 +168,11 @@ Data can be provided in one of three ways:
           this.options = {};
           this.rows = [];
           this.dataTable = null;
-          this.numberFormats = [];
         },
 
         readyForAction: function(e, detail, sender) {
-          this.loadPackageByChartType();
-
           google.load("visualization", "1", {
-            packages: this.packages[this.type],
+            packages: ['corechart'],
             callback: function() {
               this.isReady = true;
               this.loadChartTypes();
@@ -234,12 +185,6 @@ Data can be provided in one of three ways:
           // Invalidate current chart object.
           this.chartObject = null;
           this.loadData();
-        },
-
-        selectionChanged: function() {
-          if (this.chartObject && this.setSelection) {
-            this.chartObject.setSelection(this.selection);
-          }
         },
 
         observe: {
@@ -273,20 +218,7 @@ Data can be provided in one of three ways:
                   'ready', function() {
                       this.fire('google-chart-render');
                   }.bind(this));
-
-              google.visualization.events.addListener(this.chartObject,
-                  'select', function() {
-                      this.selection = this.chartObject.getSelection();
-                      this.fire('google-chart-select',
-                          { selection: this.chartObject.getSelection() });
-                  }.bind(this));
-
-
               this.chartObject.draw(this.dataTable, this.options);
-
-              if (this.chartObject.setSelection){
-                this.chartObject.setSelection(this.selection);
-              }
             } else {
               this.$.chartdiv.innerHTML = 'Undefined chart type';
             }
@@ -307,28 +239,7 @@ Data can be provided in one of three ways:
             'line': google.visualization.LineChart,
             'pie': google.visualization.PieChart,
             'scatter': google.visualization.ScatterChart,
-            'stepped-area': google.visualization.SteppedAreaChart,
-            'table': google.visualization.Table,
-            'gauge': google.visualization.Gauge
-          };
-        },
-
-        loadPackageByChartType: function() {
-          this.packages = {
-            'area': 'corechart',
-            'bar': 'corechart',
-            'bubble': 'corechart',
-            'candlestick': 'corechart',
-            'column': 'corechart',
-            'combo': 'corechart',
-            'geo': 'corechart',
-            'histogram': 'corechart',
-            'line': 'corechart',
-            'pie': 'corechart',
-            'scatter': 'corechart',
-            'stepped-area': 'corechart',
-            'table': 'table',
-            'gauge': 'gauge'
+            'stepped-area': google.visualization.SteppedAreaChart
           };
         },
 
@@ -380,44 +291,16 @@ Data can be provided in one of three ways:
             dataTable.addRows(this.rows);
           } else {
             // Create dataTable from the passed data or the data attribute.
-            // Data can be in the form of raw DataTable data or a two
-            // dimensional array.
+            // Data can be in the form of raw DataTable data or a two dimensional
+            // array.
             if (data.rows && data.cols) {
               dataTable = new google.visualization.DataTable(data);
             } else if (data.length > 0) {
               dataTable = google.visualization.arrayToDataTable(data);
             }
-
-          }
-
-          // Apply number formats to designated columns in dataTable
-          if (this.numberFormats && this.numberFormats.length){
-            this.applyNumberFormats(dataTable);
           }
 
           return dataTable;
-        },
-
-        applyNumberFormats: function(dataTable){
-          for (var i = 0; i < this.numberFormats.length; i++) {
-            var format = this.numberFormats[i];
-            
-            // If valid column is given, create formatter object and apply to column in dataTable
-            if (format.col && format.col < dataTable.getNumberOfColumns()){
-              var formatter = new google.visualization.NumberFormat({
-                decimalSymbol: format.decimalSymbol, 
-                fractionDigits: format.fractionDigits, 
-                groupingSymbol: format.groupingSymbol, 
-                negativeColor: format.negativeColor, 
-                negativeParens: format.negativeParens, 
-                pattern: format.pattern,  
-                prefix: format.prefix, 
-                suffix: format.suffix
-              });
-
-              formatter.format(dataTable, format.col);  
-            }
-          }
         }
       });
     })();

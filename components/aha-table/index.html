@@ -14,7 +14,7 @@
 	<link rel="import" href="src/aha-table.html">
 	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css">
 	<!-- used when shadow dom is natively implemented -->
-	<link rel="stylesheet" href="demo/theme.css">
+	<link rel="import" href="demo/theme.css">
 	<!-- used when shadow dom is not implemented -->
 	<link rel="stylesheet" href="demo/theme-shim.css">
 	<style>
@@ -38,10 +38,10 @@
 		removable
 		movable
 
-		pagesize="5" 
+		pagesize="5"
 		data-sizelist="[2,5,10]"
 
-		pagesizetext="Page Size: " 
+		pagesizetext="Page Size: "
 		summarytext="Viewing: "
 		pagetext="Page:"
 		pageoftext="of"
@@ -62,8 +62,8 @@
 		nexttitle="Next"
 		lasttitle="Last"
 		>
-		<aha-column name="title" 
-			type="string" 
+		<aha-column name="title"
+			type="string"
 
 			sortable
 			searchable
@@ -71,8 +71,8 @@
 			required
 
 			searchplaceholder="Type to filter title"
-			placeholder="Evenet Title" 
-			default="" 
+			placeholder="Evenet Title"
+			default=""
 			hint="Meaningful title will help you remember"></aha-column>
 		<aha-column name="date"
 			type="date"
@@ -82,21 +82,21 @@
 			sortable
 			required
 
-			placeholder="Event Date" 
+			placeholder="Event Date"
 			hint="Dates are required"
 			default="2011-12-21"></aha-column>
 		<aha-column name="time"
 			type="time"
 			editable
 
-			placeholder="Event Time" 
+			placeholder="Event Time"
 			hint="Time are not required"
 			default="19:00"></aha-column>
 		<aha-column name="datetime"
 			type="datetime"
 			editable
 
-			placeholder="Stop Date Time" 
+			placeholder="Stop Date Time"
 			hint="Time are not required"></aha-column>
 		<aha-column name="type"
 			type="choice"
@@ -106,11 +106,11 @@
 			sortable
 			required
 
-			placeholder="Event Type" 
+			placeholder="Event Type"
 			default="private"
 			hint="Public events will be available to everyone"
 			data-choices='{"":"", "private":"Private Event", "public":"Public Event"}'></aha-column>
-		<aha-column name="enabled" 
+		<aha-column name="enabled"
 			type="boolean"
 
 			searchable
@@ -119,7 +119,7 @@
 			required
 
 			data-choices='{"1":"Yes", "0":"No"}'
-			placeholder="Yes/No" 
+			placeholder="Yes/No"
 			hint="Only enabled events will get alert"
 			default=""></aha-column>
 		<aha-column name="content"
@@ -130,8 +130,21 @@
 			required
 
 			hint="Keep it short"
-			placeholder="Event Content" 
+			placeholder="Event Content"
 			default=""></aha-column>
+        <aha-column name="html"
+            type="html"
+
+            required
+
+            placeholder=""
+            default=""></aha-column>
+        <aha-column name="title"
+            label="Renderer"
+            type="string"
+            renderer="customRenderer"
+            placeholder=""
+            default=""></aha-column>
 	</aha-table>
 	<BUTTON id="create" onclick="themed.create();">Create</BUTTON>
 
@@ -140,7 +153,7 @@
 
 	<script>
 		var events = [
-			{ title: "gym", date: new Date().toISOString().slice(0, 10), type: "private", content: "5*20 situps, 5 miles running, 5 minutes PLANKS", enabled: true },
+			{ title: "gym", date: new Date().toISOString().slice(0, 10), type: "private", content: "5*20 situps, 5 miles running, 5 minutes PLANKS", enabled: true, html: "<a href='http://www.google.com'>Search</a>" },
 			{ title: "breakfast", date: new Date().toISOString().slice(0, 10), type: "private", enabled: true },
 			{ title: "work", date: new Date().toISOString().slice(0, 10), type: "public", content: "implement aha-table plymer element", enabled: true },
 			{ title: "lunch", date: new Date().toISOString().slice(0, 10), type: "public", content: null, enabled: false },
@@ -155,10 +168,8 @@
 		];
 		var raw     = document.getElementById("raw");
 		var themed  = document.getElementById("themed");
-		window.addEventListener("polymer-ready", function(){
-			raw.data = events;
-			themed.data = JSON.parse(JSON.stringify(events));//deep copy so that they have independent data source.
-		});
+		raw.data = events;
+		themed.data = JSON.parse(JSON.stringify(events));//deep copy so that they have independent data source.
 		var table_log = function(msg) {
 			document.getElementById("console").innerHTML = msg;
 		};
@@ -176,12 +187,18 @@
 		themed.addEventListener('after-copy', function(e) {
 			table_log('copied one record!');
 		});
+		themed.addEventListener('after-save', function(e) {
+			table_log('saved one record!');
+		});
 		themed.addEventListener('after-move-down', function(e) {
 			table_log('moved one record down!');
 		});
 		themed.addEventListener('after-move-up', function(e) {
 			table_log('moved one record up!');
 		});
+        themed.customRenderer = function(datum, row, col, ahaTable) {            
+            return datum.toUpperCase();
+        }
 	</script>
 </body>
 </html>

@@ -9,14 +9,14 @@
   "dependencies": {
     "polymer": "Polymer/polymer#~0.5.1",
     "th-animated": "thelmanews/th-animated",
-    "google-chart": "GoogleWebComponents/google-chart#master"
+    "google-chart": "lenses/google-chart#0.2.1"
   },
   "homepage": "https://github.com/lenses/lens-viz-g-regions",
-  "_release": "63bfc16326",
+  "_release": "45386f56be",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "63bfc163265b86b2c96546fc096f419a7ae4e12b"
+    "commit": "45386f56be0d6efbb35876a12ac7a358b8ee7fdf"
   },
   "_source": "git://github.com/lenses/lens-viz-g-regions.git",
   "_target": "*",

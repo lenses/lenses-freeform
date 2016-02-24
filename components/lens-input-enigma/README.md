@@ -1,4 +1,6 @@
-th-editor
+lens-input-enigma
 ================
 
-See the [project page](http://thelmanews.github.io/thelma-component-demo/) for more information.
+An input component that imports data from <a href="http://enigma.io">Enigma</a>
+
+See the [project page](http://lenses.github.io/lens-input-enigma/) for more information.

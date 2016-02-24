@@ -10,12 +10,12 @@ JSON for table/list data.
     <lens-input-paste></lens-input-paste>
 
 @element lens-input-paste
-@blurb Element providing solution to no problem in particular.
+@blurb Copy any html table or list and paste it inside the text box. It returns
+JSON for table/list data.
 @status alpha
-@homepage http://sepans.github.io/lens-input-paste
+@homepage http://lenses.github.io/lens-input-paste
 -->
-<polymer-element name="lens-input-paste" extends="th-animated" attributes="output">
-
+<polymer-element name="lens-input-paste" attributes="output">
 
   <template>
 
@@ -29,11 +29,10 @@ JSON for table/list data.
         font-size: 12px;
         vertical-align: top;
         display: block;
-
       }
 
-
     </style>
+
 
     <div class="lens-container lens-input">
 
@@ -43,31 +42,41 @@ JSON for table/list data.
     </div>
 
 
-
   </template>
 
   <script>
 
     Polymer('lens-input-paste', {
-      tableData: null,
       hasData: false,
 
       ready: function() {
         var self = this;
 
-
         //self.hasData = false;
-        self.$.paste_here.addEventListener('paste', self.processInput.bind(self));
+        self.$.paste_here.addEventListener('paste', self.getPasteData.bind(self));
       },
 
-      processInput: function(e) {
+      // get data as HTML from the clipboard paste event
+      getPasteData: function(e) {
+        var self = this;
+
+        self.$.paste_here.value="Processing data...";
+        var tableData = e.clipboardData.getData('text/html');
+
+        self.processInput(tableData);
+
+        e.preventDefault();
+      },
+
+      // process HTML table data
+      processInput: function(tableData) {
 
           var self = this;
-          self.$.paste_here.value="Processing data...";
 
-          var tableData = e.clipboardData.getData('text/html');
           var tableEl = document.createElement('div');
           tableEl.innerHTML = tableData;
+
+          console.log(tableEl);
           var rows = tableEl.querySelectorAll('tr');
 
           var dataLabels = [];
@@ -115,7 +124,6 @@ JSON for table/list data.
                     extractedRow[dataLabels[j]] = content;
                   }
 
-
                 }
               });
               if(i!==0) {
@@ -137,14 +145,12 @@ JSON for table/list data.
                 if(img) {
                   content = img.getAttribute('src');
                 }
-              }else {                
+              } else {
                 var spaceChar = new RegExp(String.fromCharCode(160), "g"); // catches &nbsp symbol and replaces with a normal space;
                 content = content.replace(spaceChar,' ');
                 data.push({row: content});
               }
             });
-
-
 
           }
 
@@ -166,8 +172,6 @@ JSON for table/list data.
             self.hasData = false;
           }
 
-
-          e.preventDefault();
       },
 
       showResults: function(e) {
@@ -178,9 +182,10 @@ JSON for table/list data.
             this.$.results_collapse.toggle();
           }
       }, 
+
       outputChanged: function(){
         console.log("lens-input-paste output changed");
-        this.fire('th-output-changed', this);
+        this.fire('lens-output-changed', this);
       }
 
 

@@ -15,9 +15,10 @@ Simple API component to make API calls. If the API returns JSON with a header fo
 @homepage http://lenses.github.io/lens-input-simple-api
 -->
 
-<polymer-element name="lens-input-simple-api" attributes="url output outputRaw minRows">
+<polymer-element name="lens-input-simple-api" attributes="url input output outputRaw minRows">
   <template>
     <link rel="stylesheet" href="lens-input-simple-api.css">
+
     <div class="lens-container">
       <div><label class="label">API URL: </label><input is="core-input" value="{{url}}"></div>
       <div><label class="label">Expect at least <input class="count" is="core-input" value="{{minRows}}"> datapoints.</label></div>
@@ -62,7 +63,8 @@ Simple API component to make API calls. If the API returns JSON with a header fo
       minRows: 1,
 
       observe: {
-        minRows: "queryData"
+        minRows: "queryData",
+        input: "queryData"
       },
 
       domReady: function() {
@@ -80,13 +82,12 @@ Simple API component to make API calls. If the API returns JSON with a header fo
        *  
        *  @method queryData
        */
-      queryData: function() {
-
+      queryData: function(customCallback) {
 
           var self = this;
           var url = self.url;
           
-          self._makeCORSCall(url);
+          self._makeCORSCall(url, customCallback);
 
       },
 
@@ -94,7 +95,7 @@ Simple API component to make API calls. If the API returns JSON with a header fo
         this.queryData();
       },
 
-      _makeCORSCall: function(url) {
+      _makeCORSCall: function(url, customCallback) {
 
             var self = this;
             var method = 'GET';
@@ -133,6 +134,9 @@ Simple API component to make API calls. If the API returns JSON with a header fo
                 self.output = self._flattenJSONArray(firstArray);
               }
 
+              if (customCallback) {
+                customCallback(xhr);
+              }
               //self.output = self._flattenFirstArrayInJSON(firstArray, 1);
             };
 
@@ -145,7 +149,7 @@ Simple API component to make API calls. If the API returns JSON with a header fo
 
       /**
        *  Recursively looks for the first Array with the size 
-       *  equal greater than minArraySize
+       *  greater than or equal to minArraySize
        *
        *  [@method] _findFirstArray
        *  [@param]  {JSON} data         Input data, A deep JSON file including an array containing desired data
@@ -230,9 +234,9 @@ Simple API component to make API calls. If the API returns JSON with a header fo
         return result;
       },
 
-      // fire th-output-changed when output is changed. Useful for tests.
+      // fire lens-output-changed when output is changed. Useful for tests.
       outputChanged: function(){
-        this.fire("th-output-changed");
+        this.fire("lens-output-changed");
       }
       
     });

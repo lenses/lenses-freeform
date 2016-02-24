@@ -6,7 +6,7 @@
   "dependencies": {  
     "polymer": "Polymer/polymer#~0.5.1",
     "core-selector": "Polymer/core-selector#^0.5",
-    "lens-u-data-utility": "thelmanews/lens-u-data-utility"
+    "lens-u-data-utility": "lenses/lens-u-data-utility"
   }
 }
 

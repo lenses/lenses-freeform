@@ -7,11 +7,11 @@
     "core-style": "Polymer/core-style#~0.5.1"
   },
   "homepage": "https://github.com/thelmanews/th-theme",
-  "_release": "4234fd0813",
+  "_release": "34af33f271",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "4234fd08132dddc184bd1b082515f883daab94a0"
+    "commit": "34af33f271de20f551ddbc3a3e5fed7410b1a0a2"
   },
   "_source": "git://github.com/thelmanews/th-theme.git",
   "_target": "*",

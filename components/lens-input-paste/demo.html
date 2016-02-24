@@ -65,13 +65,12 @@
     <template id="auto-bind-demo" is="auto-binding">
 
 
-    <p>CSV Data loader component to load and parse online CSV files. If the API returns JSON with a header followed by an array of results</p>
+    <p>Copy any html table or list and paste it inside the text box. It returns JSON for table/list data.</p>
 
       <section class="component">
         <label>Component:</label>
           <lens-input-paste id="component" output="{{myoutput}}" outputRaw="{{myoutputRaw}}"></lens-input-paste>
       </section>
-
 
       <section>
         <label>Output:</label><span class="count">{{myoutput.length}} records</span>
@@ -82,9 +81,8 @@
         PolymerExpressions.prototype.json = function(object) {
           return JSON.stringify(object, undefined, 2);
         };
-        var component = document.querySelector('#component');
-        component.url = 'https://data.cityofnewyork.us/api/views/8hkx-uppz/rows.csv?accessType=DOWNLOAD';
 
+        var component = document.querySelector('#component');
 
       </script>
 

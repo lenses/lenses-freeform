@@ -1,8 +1,21 @@
 <link rel="import" href="../polymer/polymer.html">
-<link rel="import" href="../th-animated/th-animated.html">
 <link rel="import" href="../core-input/core-input.html">
 <link rel="import" href="../core-selector/core-selector.html">
 
+<!--
+An input component that imports data from <a href="http://enigma.io">Enigma</a>
+
+
+##### Example
+
+    <lens-input-enigma apiKey="YOURAPIKEY" dataSet='us.gov.whitehouse.visitor-list'></lens-input-enigma>
+
+@element lens-input-enigma
+@group Lenses input component
+@blurb An input component that imports data from Enigma.io.
+@status alpha
+@homepage http://lenses.github.io/lens-input-enigma
+-->
 
 <polymer-element name="lens-input-enigma" extends="th-animated" attributes="url output apiKey dataSet">
   <template>
@@ -42,19 +55,18 @@
       }
 
       #query_data {
-        position: absolute;
-        top: 0;
-        right: 0;
+        position: relative;
+        top: -230px;
+        left: 230px;
         background-color: #2fa3af;
         color: #EEE;
         border: 1px solid #AAA;
-        
-
       }
 
       core-input {
         border: 1px solid #eee;
         padding: 2px;
+        width:20px;
       }
 
       .selection {
@@ -97,10 +109,9 @@
         padding: 2px;
       }
 
-      
 
     </style>
-
+      <div class="lens-container lens-input">
 
         <div class="controls">
           <div class="row">
@@ -113,16 +124,6 @@
           </div>
 
 
-       
-
-      <!--
-          <paper-dropdown-menu selected="{{_selectedCols}}" multi="true">
-            <template repeat="{{colItem in _columns}}" valueattr="label">
-              <paper-item label="{{colItem.id}}">{{colItem.label}}</paper-item>
-            </template>
-
-          </paper-dropdown-menu>
-      -->
           <template if="{{_errorMsg}}">
             <div class="error_msg">{{_errorMsg}}</div>
           </template>
@@ -151,7 +152,7 @@
 
         </div> <!-- controls -->
 
-
+  </div> <!-- end container -->
  
   </template>
 
@@ -159,10 +160,25 @@
   <script>
 
       Polymer('lens-input-enigma', {
-        //url:"https://api.enigma.io/v2/stats/"+apiKey+"/"+dataSet+"?select=namefull&operation=frequency",
-        //url: "https://api.enigma.io/v2/stats/iTX3qf5cwspm7ryII3ii5zqeHqUuoO4MctfLJFf2xU8eletxHvcI4/us.gov.whitehouse.visitor-list?select=namefull&operation=frequency",
-        url: '',
+
+        /**
+         *  Register for an API Key at enigma.io
+         *
+         *  @property apiKey
+         *  @type String
+         */
         apiKey: 'iTX3qf5cwspm7ryII3ii5zqeHqUuoO4MctfLJFf2xU8eletxHvcI4',
+
+        /**
+         *  Path to the data set you wish to access through enigma.io.
+         *  Examples include:
+         *  - 'us.gov.atf.federal-firearms-licenses.complete-listing'
+         *  - 'us.gov.whitehouse.salaries.2011'
+         *  - 'us.gov.whitehouse.visitor-list'
+         *
+         *  @property dataSet
+         *  @type String
+         */
         dataSet: 'us.gov.atf.federal-firearms-licenses.complete-listing',//'us.gov.whitehouse.salaries.2011', //'us.gov.whitehouse.visitor-list',
         _ENIGMA_API_PATH: 'https://api.enigma.io/v2',
         _META_PATH: '/meta/',
@@ -170,16 +186,38 @@
         _DATA_PATH: '/data/',
 
         _columns: [],
+
+        /**
+         *  Enigma can return all columns, or just selected columns.
+         *  
+         *  @property _selectedCols
+         *  @type Array
+         *  @default [ ]
+         */
         _selectedCols: [],
+
+        /**
+         *  Enigma can apply a function on the data it returns.
+         *  
+         *  @property _selectedFunc
+         *  @type String
+         *  @default 'frequency'
+         */
         _selectedFunc: 'frequency',
         _errorMsg: null,
         hasData: false,
 
+        /**
+         *  Output data as a JSON Array.
+         *
+         *  @property output
+         *  @type Array
+         *  @default undefined
+         */
+        output: undefined,
 
-        output: null,
         domReady: function() {
 
-          
           var self = this;
 
           setTimeout(function() {
@@ -189,9 +227,11 @@
           self.queryMetaData();
 
         },
+
         dataSetChanged: function() {
           this.queryMetaData();
         },
+
         queryMetaData: function() {
 
           var self = this;
@@ -199,6 +239,7 @@
           self._makeCORSCall(url, self._displayMetaData);
 
         },
+
         queryStatData: function() {
 
 
@@ -269,6 +310,7 @@
             //console.log(self.output);
 
         },
+
         _displayMetaData: function(data) {
             var self = this;
             self._columns = data.result.columns;
@@ -317,7 +359,7 @@
 
         outputChanged: function(){
           console.log("lens-input-enigma output changed");
-          this.fire('th-output-changed', this);
+          this.fire('lens-output-changed', this);
         }
 
        

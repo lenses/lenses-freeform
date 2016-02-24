@@ -24,6 +24,8 @@
     var callback = function() {};
 
     var nycDataUrl = 'https://data.cityofnewyork.us/api/views/8hkx-uppz/rows.csv?accessType=DOWNLOAD';
+    var csvFileData = 'iata,title,city,state,country,latitude,longitude \n 00M,Thigpen,Bay Springs,MS,USA,31.95376472,-89.23450472 \n 00R,Livingston Municipal,Livingston,TX,USA,30.68586111,-95.01792778 \n 00V,Meadow Lake,Colorado Springs,CO,USA,38.94574889,-104.5698933';
+
 
     suite("<lens-input-csv>", function() {
 
@@ -55,7 +57,53 @@
       });
 
 
+      test("can upload csv File and parse output appropriately", function(done) {
 
+        // set the event listener callback
+        myEl.removeEventListener("lens-output-changed", callback);
+        callback = function(e) {
+          myEl.output.length.should.eql(3);
+
+          for (var i = 0; i < myEl.output.length; i++) {
+            var expectedKeys = ['iata', 'title', 'city', 'state', 'country', 'latitude','longitude'];
+            var componentKeys = Object.keys(myEl.output[i]);
+            componentKeys.length.should.eql(expectedKeys.length);
+
+            for (var j in componentKeys) {
+              var key = componentKeys[j];
+              var index = expectedKeys.indexOf(key);
+              expectedKeys.splice(index, 1);
+            }
+
+            expectedKeys.length.should.eql(0);
+          }
+          done();
+        };
+        myEl.addEventListener("lens-output-changed", callback);
+
+        // create a File
+        var f = new File([csvFileData], "myFile.csv", {type: "text/csv"})
+        myEl.$.uploadInput.files[0] = f;
+
+        myEl._handleFileSelect(f, myEl);
+
+      });
+
+      test("will not upload files of wrong mime type", function(done) {
+        var output = myEl.output;
+
+        // create a File
+        var f = new File([csvFileData], "myFile.m4a", {type: "audio/m4a"})
+        myEl.$.uploadInput.files[0] = f;
+
+        myEl._handleFileSelect(f, myEl);
+
+        flush(function() {
+          myEl.output.should.eql(output);
+          done();
+        });
+
+      });
 
     });
 

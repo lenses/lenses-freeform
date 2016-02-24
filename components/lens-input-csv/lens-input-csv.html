@@ -1,14 +1,16 @@
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../core-input/core-input.html">
+<link rel="import" href="../core-icons/core-icons.html">
 
 <!--
-CSV Data loader component to load and parse online CSV files. If the API returns JSON with a header followed by an array of results as <code>output</code>
+CSV Data loader component to load and parse online CSV files. If the API returns JSON with a header followed by an array of results, the results become the <code>output</code>.
 
 ##### Example
 
     <lens-input-csv url="https://data.cityofnewyork.us/api/views/8586-3zfm/rows.csv?accessType=DOWNLOAD"></lens-input-csv>
 
 @element lens-input-csv
+@group Lenses input component
 @blurb CSV Data loader component to load and parse online CSV files.
 @status alpha
 @homepage http://lenses.github.io/lens-input-csv
@@ -17,67 +19,143 @@ CSV Data loader component to load and parse online CSV files. If the API returns
 <polymer-element name="lens-input-csv" attributes="url output">
 
   <template>
-    <style>
-        #ctrl_collapse {
-          width: 250px;
-        }
-        .elTitle {
-          color: #2fa3af;
-          padding: 2px;
-        }
-        label {
-          color: #2fa3af;
-        }
-        core-input {
-          border: 1px solid #eee;
-          padding: 2px;
-        }
+  <style>
+    label {
+      color: #2fa3af;
+    }
+    core-input {
+      border: 1px solid #eee;
+      padding: 2px;
+    }
+  </style>
 
+    <div class="lens-container lens-input">
+      <label>URL</label><input is="core-input" value="{{url}}" placeHolder="CSV file URL">
 
+      <span id="upload" on-click="{{uDialog}}">
+        <core-icon icon="file-upload"></core-icon>
 
-    </style>
-      <div class="th-container">
-        <label class="label">URL</label>
-        <input is="core-input" value="{{url}}" placeHolder="CSV file URL">
+        <label>Upload a File</label><input is="core-input" id="uploadInput" type="file" hidden value="">
+      </span>
+<!--       <div><label class="label">Num Records: </label><div class="data">{{output.length}}</div></div> -->
+    </div>
+
   </template>
-  
 
   <script src="../d3/d3.min.js"></script> 
   <script>
 
       Polymer('lens-input-csv', {
+
         /**
-         * URL of CSV file
-         * @type {String}
+         *  URL path to CSV file.
+         *  If the file is hosted online,
+         *  the url should begin with <code>http://</code>, <code>https://</code> or <code>ftp://</code>.
+         *
+         *  @property url
+         *  @type String
+         *  @default ''
          */
         url: '',
-  
+
         /**
-         * Output data
+         *  Output data
          *
-         * @property output
-         * @type object
-         * @default undefined
+         *  @property output
+         *  @type Object
+         *  @default undefined
          */
-        output: null,
+        output: undefined,
 
-        _CORS_PROXY: 'http://makelenses.com:8000/',
+        _CORS_PROXY: 'http://lenses-cors.herokuapp.com/',
 
+        ready: function() {
+          var self = this;
+          console.log('de csv');
+          console.log(this.url);
+
+          // setup the upload input
+          self.$.uploadInput.onchange = function(e) {
+            self._handleFileSelect(e, self);
+          };
+
+        },
 
         urlChanged: function() {
           var self = this;
 
-          var corsurl = self.url.replace(/(ftp|http|https):\/\//, '');
-          corsurl = self._CORS_PROXY + corsurl;
+          var corsurl = self.url.replace(/(ftp|http|https):\/\//, self._CORS_PROXY);
+
           d3.csv(corsurl, function(d) {
             console.log(d);
 
-            self.output = d;
-            this.fire('lens-output-changed', this);
+            self._setOutput(d);
           }.bind(this));
-        }
+        },
 
-      
+        // FILE UPLOAD
+
+        // click on hidden <input> element to open file select dialog
+        uDialog: function(e) {
+          var self = this;
+          self.$.uploadInput.click();
+        },
+
+        // get selected file from <input id="uploadInput"> 
+        _handleFileSelect: function(e, scope) {
+          var self = scope;
+          var file = self.$.uploadInput.files[0];
+
+          // check mime type
+          var mimes = ['application/vnd.ms-excel','text/plain','text/csv','text/tsv']
+          var okMime = mimes.some(function(mime) {
+            return file.type === mime;
+          });
+          if (!okMime) {
+            alert('Unable to upload: ' + file.name + ' is not a CSV file');
+            return;
+          }
+
+
+          // create a new reader to parse the file
+          var reader = new FileReader();
+
+          reader.onload = function(e) {
+            self._stringToCSV(e, self);
+          }
+          reader.onerror = function(e) {
+            console.log('error loading file: ' + e);
+          }
+          reader.readAsText(file);
+        },
+
+        _stringToCSV: function(e, scope) {
+          var self = scope;
+          var csvString = e.target.result.trim();
+          var inputRows = csvString.split('\n');
+
+          // total number of rows = inputRows - header
+          var numRows = inputRows.length - 1;
+
+          var newOutput = [];
+
+          // parses one row at a time...
+          d3.csv.parse(csvString, function(d) {
+            newOutput.push(d);
+
+            // ...so only setOutput when it has reached full size
+            if (newOutput.length === numRows) {
+              self._setOutput(newOutput);
+            }
+          }.bind(self));
+        },
+
+        // change output and fire lens-output-changed
+        _setOutput: function(data) {
+          var self = this;
+          self.output = data;
+          self.fire('lens-output-changed', self);
+        }
     });
 
   </script>

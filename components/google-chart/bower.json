@@ -1,6 +1,6 @@
 {
   "name": "google-chart",
-  "version": "0.3.0",
+  "version": "0.2.1",
   "description": "Encapsulates Google Charts into a web component",
   "homepage": "http://googlewebcomponents.github.io/google-chart",
   "main": "google-chart.html",
@@ -26,11 +26,8 @@
     "google"
   ],
   "dependencies": {
-    "polymer": "Polymer/polymer#>=0.5.2 <1.0.0",
-    "core-ajax": "Polymer/core-ajax#>=0.5.2 <1.0.0",
-    "google-apis": "GoogleWebComponents/google-apis#~0.4.3"
-  },
-  "devDependencies": {
-    "web-component-tester": "Polymer/web-component-tester#^2.0.5"
+    "polymer": "Polymer/polymer#>=0.5.1 <1.0.0",
+    "core-ajax": "Polymer/core-ajax#>=0.5.1 <1.0.0",
+    "google-apis": "GoogleWebComponents/google-apis#~0.4.2"
   }
 }

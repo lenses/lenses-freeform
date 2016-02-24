@@ -4,14 +4,14 @@
   "main": "lens-input-simple-api.html",
   "dependencies": {
     "core-input": "Polymer/core-input",
-    "polymer": "Polymer/polymer#~0.5.1"
+    "polymer": "Polymer/polymer#~0.5.5"
   },
   "homepage": "https://github.com/lenses/lens-input-simple-api",
-  "_release": "8e12b0d070",
+  "_release": "93c2b71ca1",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "8e12b0d07068d7c234b9a93aa720c0a8881c19ea"
+    "commit": "93c2b71ca1088a68bf4c5064146138324a182b0e"
   },
   "_source": "git://github.com/lenses/lens-input-simple-api.git",
   "_target": "*",

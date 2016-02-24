@@ -9,11 +9,11 @@
     "th-theme": "https://github.com/thelmanews/th-theme.git"
   },
   "homepage": "https://github.com/thelmanews/th-d3-chart",
-  "_release": "def9e43701",
+  "_release": "ccb6bdba5d",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "def9e437018c49d288d8c47db676a422cdc9f6ed"
+    "commit": "ccb6bdba5d99ff69d60ba20e323f94678d88b346"
   },
   "_source": "git://github.com/thelmanews/th-d3-chart.git",
   "_target": "*",

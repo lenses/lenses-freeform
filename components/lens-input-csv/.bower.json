@@ -8,11 +8,11 @@
     "d3": "latest"
   },
   "homepage": "https://github.com/lenses/lens-input-csv",
-  "_release": "9b6d3e7b93",
+  "_release": "15635300ac",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "9b6d3e7b9393cac52b64bb43918ee323f20d1e56"
+    "commit": "15635300ac00d2604f4b7c8f8aa45f0a1257dd79"
   },
   "_source": "git://github.com/lenses/lens-input-csv.git",
   "_target": "*",

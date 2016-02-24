@@ -245,14 +245,35 @@
   // WSJ Themes -- start --
 
   Themes.wsjBusinessTech = {
-    friendly: 'Business & Tech',
+    friendly: 'Business & Tech (light)',
     permittedEnvs: ['wsj'], // WSJ only
     foreground1: '#323232',
-    foreground2: '#FFFFFF',
+    foreground2: '#E1E2E3',
     background: '#FFFDF8',
     accent0: '#CD3038',
     accent1: '#0097DA',  
-    accent2:'#FBD5C9',
+    accent2:'#F9BCAC',
+    accent3: '#62BB50',  
+    accent4:'#ED3942',  
+    accent5:'#BEB87F',
+    repeatColors: true,  
+    defaultFontStyle: 'serif', // used to leave 'font' as sans-serif so other components inherit that by default, but th-text inherits defaultFontStyle
+    font: "'Whitney SSm', 'Helvetica Neue', Helvetica, sans-serif",
+    serifFont: "'Chronicle Display', 'Times Roman', 'Times New Roman', Georgia, serif",
+    sansSerifFont: "'Whitney SSm', 'Helvetica Neue', Helvetica, sans-serif",
+    mapColors: ['rgb(178,24,43)','rgb(239,138,98)','rgb(253,219,199)','rgb(209,229,240)','rgb(103,169,207)','rgb(33,102,172)']
+  }
+
+
+  Themes.wsjBusinessTechDark = {
+    friendly: 'Business & Tech (dark)',
+    permittedEnvs: ['wsj'], // WSJ only
+    foreground1: '#FFFDF8',
+    foreground2: '#E1E2E3',
+    background: '#333333',
+    accent0: '#CD3038',
+    accent1: '#0097DA',  
+    accent2:'#F9BCAC',
     accent3: '#62BB50',  
     accent4:'#ED3942',  
     accent5:'#BEB87F',
@@ -265,7 +286,7 @@
   }
 
   Themes.wsjPersonal = {
-    friendly: 'Life & Personal',
+    friendly: 'Life & Personal (light)',
     permittedEnvs: ['wsj'], // WSJ only
     foreground1: '#323232',
     foreground2: '#E1E2E3',
@@ -284,8 +305,29 @@
     mapColors: ['rgb(255,255,212)','rgb(254,227,145)','rgb(254,196,79)','rgb(254,153,41)','rgb(236,112,20)','rgb(204,76,2)']
   }
 
+
+  Themes.wsjPersonalDark = {
+    friendly: 'Life & Personal (dark)',
+    permittedEnvs: ['wsj'], // WSJ only
+    foreground1: '#FFFDF8',
+    foreground2: '#E1E2E3',
+    background: '#333333',
+    accent0: '#E1921F',
+    accent1: '#52A045',  
+    accent2:'#D890B1',
+    accent3: '#F9A123',  
+    accent4:'#62BB50',  
+    accent5:'#FCC37B',
+    repeatColors: true,
+    defaultFontStyle: 'serif', // used to leave 'font' as sans-serif so other components inherit that by default, but th-text inherits defaultFontStyle
+    font: "'Whitney SSm', 'Helvetica Neue', Helvetica, sans-serif",
+    serifFont: "'Chronicle Display', 'Times Roman', 'Times New Roman', Georgia, serif",
+    sansSerifFont: "'Whitney SSm', 'Helvetica Neue', Helvetica, sans-serif",
+    mapColors: ['rgb(255,255,212)','rgb(254,227,145)','rgb(254,196,79)','rgb(254,153,41)','rgb(236,112,20)','rgb(204,76,2)']
+  }
+
   Themes.wsjRealEstate = {
-    friendly: 'Real Estate',
+    friendly: 'Real Estate (light)',
     permittedEnvs: ['wsj'], // WSJ only
     foreground1: '#323232',
     foreground2: '#E1E2E3',
@@ -304,8 +346,29 @@
     mapColors: ['rgb(240,249,232)','rgb(204,235,197)','rgb(168,221,181)','rgb(123,204,196)','rgb(78,179,211)','rgb(43,140,190)','rgb(8,88,158)']
   }
 
+  Themes.wsjRealEstateDark = {
+    friendly: 'Real Estate (dark)',
+    permittedEnvs: ['wsj'], // WSJ only
+    foreground1: '#FFFDF8',
+    foreground2: '#E1E2E3',
+    background: '#333333',
+    accent0: '#BEB87F',
+    accent1: '#0078AD',  
+    accent2:'#52A045',
+    accent3: '#FCC37B',  
+    accent4:'#DDD9B8',  
+    accent5:'#94CAED',
+    repeatColors: true,
+    defaultFontStyle: 'serif', // used to leave 'font' as sans-serif so other components inherit that by default, but th-text inherits defaultFontStyle
+    font: "'Whitney SSm', 'Helvetica Neue', Helvetica, sans-serif",
+    serifFont: "'Chronicle Display', 'Times Roman', 'Times New Roman', Georgia, serif",
+    sansSerifFont: "'Whitney SSm', 'Helvetica Neue', Helvetica, sans-serif",
+    mapColors: ['rgb(240,249,232)','rgb(204,235,197)','rgb(168,221,181)','rgb(123,204,196)','rgb(78,179,211)','rgb(43,140,190)','rgb(8,88,158)']
+  }
+
+
   Themes.wsjFinance = {
-    friendly: 'Finance',
+    friendly: 'Finance (Light)',
     permittedEnvs: ['wsj'], // WSJ only
     foreground1: '#323232',
     foreground2: '#E1E2E3',
@@ -324,8 +387,28 @@
     mapColors: ['rgb(255,255,204)','rgb(217,240,163)','rgb(173,221,142)','rgb(120,198,121)','rgb(65,171,93)','rgb(35,132,67)','rgb(0,90,50)']
   }
 
+  Themes.wsjFinanceDark = {
+    friendly: 'Finance (dark)',
+    permittedEnvs: ['wsj'], // WSJ only
+    foreground1: '#FFFDF8',
+    foreground2: '#E1E2E3',
+    background: '#333333',
+    accent0: '#52A045',
+    accent1: '#ECC538',  
+    accent2:'#62BB50',
+    accent3: '#E1921F',  
+    accent4:'#C5E1B9',  
+    accent5:'#FFD53C',
+    repeatColors: true,
+    defaultFontStyle: 'serif', // used to leave 'font' as sans-serif so other components inherit that by default, but th-text inherits defaultFontStyle
+    font: "'Whitney SSm', 'Helvetica Neue', Helvetica, sans-serif",
+    serifFont: "'Chronicle Display', 'Times Roman', 'Times New Roman', Georgia, serif",
+    sansSerifFont: "'Whitney SSm', 'Helvetica Neue', Helvetica, sans-serif",
+    mapColors: ['rgb(255,255,204)','rgb(217,240,163)','rgb(173,221,142)','rgb(120,198,121)','rgb(65,171,93)','rgb(35,132,67)','rgb(0,90,50)']
+  }
+
   Themes.wsjArts = {
-    friendly: 'Arts',
+    friendly: 'Arts (light)',
     permittedEnvs: ['wsj'], // WSJ only
     foreground1: '#323232',
     foreground2: '#E1E2E3',
@@ -344,8 +427,28 @@
     mapColors: ['rgb(254,235,226)','rgb(252,197,192)','rgb(250,159,181)','rgb(247,104,161)','rgb(221,52,151)','rgb(174,1,126)']
   }
 
+  Themes.wsjArtsDark = {
+    friendly: 'Arts (dark)',
+    permittedEnvs: ['wsj'], // WSJ only
+    foreground1: '#FFFDF8',
+    foreground2: '#E1E2E3',
+    background: '#333333',
+    accent0: '#BA2A76',
+    accent1: '#94CAED',  
+    accent2:'#FFD53C',
+    accent3: '#BEB87F',  
+    accent4:'#D890B1',  
+    accent5:'#ECC538',
+    repeatColors: true,
+    defaultFontStyle: 'serif', // used to leave 'font' as sans-serif so other components inherit that by default, but th-text inherits defaultFontStyle
+    font: "'Whitney SSm', 'Helvetica Neue', Helvetica, sans-serif",
+    serifFont: "'Chronicle Display', 'Times Roman', 'Times New Roman', Georgia, serif",
+    sansSerifFont: "'Whitney SSm', 'Helvetica Neue', Helvetica, sans-serif",
+    mapColors: ['rgb(254,235,226)','rgb(252,197,192)','rgb(250,159,181)','rgb(247,104,161)','rgb(221,52,151)','rgb(174,1,126)']
+  }
+
   Themes.wsjWorldNews = {
-    friendly: 'World, US, & NY News',
+    friendly: 'World, US, & NY News (light)',
     permittedEnvs: ['wsj'], // WSJ only
     foreground1: '#323232',
     foreground2: '#E1E2E3',
@@ -364,12 +467,52 @@
     mapColors: ['rgb(241,238,246)','rgb(208,209,230)','rgb(166,189,219)','rgb(116,169,207)','rgb(54,144,192)','rgb(5,112,176)','rgb(3,78,123)']
   }
 
+  Themes.wsjWorldNewsDark = {
+    friendly: 'World, US, & NY News (dark)',
+    permittedEnvs: ['wsj'], // WSJ only
+    foreground1: '#FFFDF8',
+    foreground2: '#E1E2E3',
+    background: '#333333',
+    accent0: '#0078AD',
+    accent1: '#E1921F',  
+    accent2:'#0097DA',
+    accent3: '#FCC37B',  
+    accent4:'#94CAED',  
+    accent5:'#BEB87F',
+    repeatColors: true,
+    defaultFontStyle: 'serif', // used to leave 'font' as sans-serif so other components inherit that by default, but th-text inherits defaultFontStyle
+    font: "'Whitney SSm', 'Helvetica Neue', Helvetica, sans-serif",
+    serifFont: "'Chronicle Display', 'Times Roman', 'Times New Roman', Georgia, serif",
+    sansSerifFont: "'Whitney SSm', 'Helvetica Neue', Helvetica, sans-serif",
+    mapColors: ['rgb(241,238,246)','rgb(208,209,230)','rgb(166,189,219)','rgb(116,169,207)','rgb(54,144,192)','rgb(5,112,176)','rgb(3,78,123)']
+  }
+
   Themes.wsjOpinion = {
-    friendly: 'Opinion',
+    friendly: 'Opinion (light)',
     permittedEnvs: ['wsj'], // WSJ only
     foreground1: '#323232',
     foreground2: '#E1E2E3',
     background: '#FFFDF8',
+    accent0: '#C3A730',
+    accent1: '#0078AD',  
+    accent2:'#ECC538',
+    accent3: '#D890B1',  
+    accent4:'#FFD53C',  
+    accent5:'#94CAED',
+    repeatColors: true,
+    defaultFontStyle: 'serif', // used to leave 'font' as sans-serif so other components inherit that by default, but th-text inherits defaultFontStyle
+    font: "'Whitney SSm', 'Helvetica Neue', Helvetica, sans-serif",
+    serifFont: "'Chronicle Display', 'Times Roman', 'Times New Roman', Georgia, serif",
+    sansSerifFont: "'Whitney SSm', 'Helvetica Neue', Helvetica, sans-serif",
+    mapColors: ['rgb(241,238,246)','rgb(208,209,230)','rgb(166,189,219)','rgb(116,169,207)','rgb(54,144,192)','rgb(5,112,176)','rgb(3,78,123)']
+  }
+
+  Themes.wsjOpinionDark = {
+    friendly: 'Opinion (dark)',
+    permittedEnvs: ['wsj'], // WSJ only
+    foreground1: '#FFFDF8',
+    foreground2: '#E1E2E3',
+    background: '#333333',
     accent0: '#C3A730',
     accent1: '#0078AD',  
     accent2:'#ECC538',
@@ -706,41 +849,51 @@
     font-size: 3.5em;
     font-weight: 500;
     line-height: 0.95;
+    font-family: {{g.theme.defaultFontStyle === 'serif' ? g.theme.serifFont : g.theme.font}};
  }
+
+  .medium-headline {
+    font-size: 2.5em;
+    font-weight: 500;
+    line-height: 0.95;
+    font-family: {{g.theme.defaultFontStyle === 'serif' ? g.theme.serifFont : g.theme.font}};
+  }
 
  .headline {
     font-size: 1.7em;
     font-weight: 500;
     line-height: 1;
+    font-family: {{g.theme.defaultFontStyle === 'serif' ? g.theme.serifFont : g.theme.font}};
   }
 
   .mainpoint {
-    font-size: 1.2em;
+    font-size: 1.35em;
     font-weight: 400;
     line-height: 1.3;
-    font-family: {{g.theme.defaultFontStyle === 'serif' ? g.theme.serifFont : g.theme.font}};
+    
   }
 
   .submainpoint { 
     font-size: 1.12em;
     font-weight: 400;
-    line-height: 1.15;
-    font-family: {{g.theme.defaultFontStyle === 'serif' ? g.theme.serifFont : g.theme.font}};
+    line-height: 1.2;
   }
 
-  .serif {
+  .serif, .th-serif {
     font-family: {{g.theme.serifFont}};
   }
 
-  .sans-serif {
+  .sans-serif, .th-sans-serif {
     font-family: {{g.theme.sansSerifFont}};
   }
   
-  :host(.serif), :host(.serif) /deep/ *  { /* applies everything inside of the component with this class */
+  /* applies to everything inside of the component with this class */
+  :host(.serif), :host(.th-serif), :host(.serif) /deep/ *, :host(.th-serif) /deep/ *  { 
     font-family: {{g.theme.serifFont}};
   }
 
-  :host(.sans-serif), :host(.sans-serif) /deep/ *  { /* applies everything inside of the component with this class */
+  /* applies to everything inside of the component with this class */
+  :host(.sans-serif), :host(.th-sans-serif), :host(.sans-serif) /deep/ *, :host(.th-sans-serif) /deep/ *  { 
     font-family: {{g.theme.sansSerifFont}};
   }
 
@@ -754,12 +907,14 @@
     font-size: 0.95em;
     font-weight: 400;
     text-align: center; 
+    line-height: 1.3;
   }
 
 
-  .label, .defaultvalue, .wrapped-values {
+  .label, .defaultvalue, .wrapped-values, .note {
     font-size: 0.85em;
     font-weight: 600;
+    line-height: 1.3;
   }
 
   .xLabel {
@@ -805,6 +960,14 @@
 
   }
 
+  .word-wrap {
+    /* Break text to wrap when very long and not broken (i.e. URLs) */
+    word-wrap: break-word;
+    word-break: break-word;
+    -webkit-hyphens: auto;
+       -moz-hyphens: auto;
+            hyphens: auto;
+  }
 
   /**** CHART STYLES ****/
 

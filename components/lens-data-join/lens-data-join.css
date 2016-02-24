@@ -21,3 +21,9 @@
 div {
   margin: 10px;
 }
+
+.txt {
+  border: 2px solid #eee !important;
+  padding: 3px !important;
+  width:80% !important;
+}

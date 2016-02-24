@@ -1,3 +1,4 @@
+<style is="custom-style">
 #themed::shadow table{
   color: #333;
   border-spacing: 0;
@@ -5,18 +6,18 @@
   font-size: 14px;
   border: 1px solid #a0cfef;
 }
-#themed::shadow .pagination table, 
-#themed::shadow .pagination tr, 
+#themed::shadow .pagination table,
+#themed::shadow .pagination tr,
 #themed::shadow .pagination td{
   border: 0;
 }
-#themed::shadow th.sortable, 
+#themed::shadow th.sortable,
 #themed::shadow .rows td {
   white-space: nowrap;
   padding: 8px 5px;
   border: 1px solid #a0cfef;
 }
-#themed::shadow tbody tr.rows:hover, 
+#themed::shadow tbody tr.rows:hover,
 #themed::shadow .rows.selected {
   background-color: #f3f3f3;
   color: #1B8CCD;
@@ -25,7 +26,7 @@
   background-color: #fbec88;
   border: 1px solid #fad42e;
 }
-#themed::shadow th.searchable input, 
+#themed::shadow th.searchable input,
 #themed::shadow th.searchable select {
   width: 90%;
 }
@@ -97,3 +98,4 @@
 #themed::shadow .move-up-er i:before {
   content:"\f062";
 }
+</style>

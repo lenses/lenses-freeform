@@ -5,7 +5,7 @@
   "main": "thelma-components.html",
   "dependencies": {
     "polymer": "Polymer/polymer#~0.5.1",
-    "firebase": "~1.0.17",
+    "firebase": "^2.2",
     "core-ajax": "polymer/core-ajax#~0.5.1"
   }
 }

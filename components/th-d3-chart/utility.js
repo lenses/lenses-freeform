@@ -42,7 +42,7 @@ Thelma.chartValidation = {
 
 Thelma.BarFamilyPrivateStaticMethods = function() {
 
-    this.setupBarLabelDims = function(dims, chartData, overlap, gap, wrap) {
+    this.setupBarLabelDims = function(dims, chartData, overlap, gap, wrap, polymerObj) {
         
         // bars margin and dims
         dims.bars = {};
@@ -74,9 +74,66 @@ Thelma.BarFamilyPrivateStaticMethods = function() {
         // label margins and dims
         dims.labels = {};
         dims.labels.maxLength = d3.max(chartData, function(d){ return  d.label ? d.label.length : 0;}); 
-        dims.labels.width = dims.labels.maxLength * 5.25; // This calc works with the font-size 13px
-        dims.labels.lines = Math.ceil(dims.labels.maxLength * 8 / dims.bars.width); // Estimates the number of lines for wrapped labels
-        dims.labels.height = dims.labels.lines * 16; // Estimates the size of the div to hold labels
+
+        // find the exact width of labels
+        if(polymerObj) {
+          var mockLabels = d3.select(polymerObj.$.chart).selectAll('.mock').data(chartData);
+          mockLabels.enter().append('text');
+
+          var computedLengths = [];
+
+          mockLabels
+            .style('text-anchor','end')
+            .style('font-size', function(d) { return dims.values.fontSize+'px';})
+          .text(function(d) {return d.label ;})
+            .attr('class', function(d) {
+              return 'label mock';
+            })
+            .attr('mock', function(d) {
+              computedLengths.push(this.getComputedTextLength());
+              return 'mock';
+            });
+
+          d3.select(polymerObj.$.chart).selectAll('.mock').remove();
+         
+
+          var computedMaxLabelWidth = d3.max(computedLengths);
+          var computedLastLabelWidth = computedLengths[computedLengths.length-1];
+
+        }
+ 
+        if(computedMaxLabelWidth) {
+
+          dims.labels.width = computedMaxLabelWidth;
+          dims.labels.lines = Math.ceil(computedMaxLabelWidth  / dims.bars.width) +1; // (over)Estimates the number of lines for wrapped labels
+          dims.labels.height = dims.labels.lines * 16;
+          
+          if(polymerObj.wrapLabels) {
+
+            //calculating div height for wrapped labels.
+            var wrappedHeights = [];
+            d3.select(polymerObj.$.chart).selectAll('.mock').data(chartData).enter()
+            .append("foreignObject")
+            .append('xhtml:div').attr('class', function(d,i){ return "label mock wrapped-labels data"+i;})
+            .html(function(d) {return d.label;})
+            .attr('mock', function(d) {
+              wrappedHeights.push(this.offsetHeight);
+              return 'mock';
+            });
+            d3.select(polymerObj.$.chart).selectAll('.mock').remove();
+
+            dims.labels.height = d3.max(wrappedHeights);
+
+          }
+          
+
+        }
+        else {
+          //TODO this block could be removed if above works for every chart.
+          dims.labels.width = dims.labels.maxLength * 5.25; // if no computedValueWidth, estimate by font-size 13px
+          dims.labels.lines = Math.ceil(computedMaxLabelWidth  / dims.bars.width); // Estimates the number of lines for wrapped labels
+          dims.labels.height = dims.labels.lines * 16; // Estimates the size of the div to hold labels
+        }
 
         // If labels are long, angle them and adjust margins 
         // 1.1 worked with well with different labels but it might be a little bit too aggressive. (larger->more conservative)
@@ -89,9 +146,11 @@ Thelma.BarFamilyPrivateStaticMethods = function() {
           dims.margin.bottom = dims.labels.width/1.7 + dims.margin.label;  
           
           // increase right margin by width of last label
-          var lastLabel = chartData[chartData.length - 1].label,
-              lastLabelLength = lastLabel ? lastLabel.length : 0;
-          dims.margin.right = dims.margin.right + lastLabelLength*5; 
+          var lastLabel = chartData[chartData.length - 1].label;
+
+          // use computedLastLabelWidth calculated by mockLabels if available
+          var lastLabelLength =  (lastLabel ? lastLabel.length : 0);
+          dims.margin.right = dims.margin.right + (computedLastLabelWidth ||lastLabelLength*5); 
           
       } else {
           dims.labels.angle = 0;
@@ -259,46 +318,102 @@ Thelma.chartUtils = {
       dims.labels = {};
       dims.values = {};
 
+
+      var computedMaxLabelWidth, computedMaxLabelWidth,
+          computedMaxValueWidth, computedMaxValueWidth,
+          computedLabelHeight, computedValueHeight;
+
+      var mockLabels = d3.select(polymerObj.$.chart).selectAll('.mock').data(chartData);
+      mockLabels.enter().append('text');
+
+      var computedLengths = [];
+
+      mockLabels
+        .style('text-anchor','end')
+        .style('font-size', function(d) { return dims.values.fontSize+'px';})
+      .text(function(d) {return d.label ;})
+        .attr('class', function(d) {
+          return 'label mock';
+        })
+        .attr('mock', function(d) {
+          computedLabelHeight = this.getBBox().height;
+          computedLengths.push(this.getComputedTextLength());
+          return 'mock';
+        });
+
+      d3.select(polymerObj.$.chart).selectAll('.mock').remove();
+     
+
+      computedMaxLabelWidth = d3.max(computedLengths);
+      computedLastLabelWidth = computedLengths[computedLengths.length-1];
+
+
+      var mockValues = d3.select(polymerObj.$.chart).selectAll('.mock').data(chartData);
+      mockValues.enter().append('text');
+
+      computedLengths = [];
+
+      mockValues
+        .style('text-anchor','end')
+        .style('font-size', function(d) { return dims.values.fontSize+'px';})
+      .text(function(d) {
+          return  d.range_min_display_value + ' - ' +  d.range_max_display_value ||
+                  d.range_min_value + ' - ' +  d.range_max_value ||
+                  d.display_value ||
+                  d.value ;
+        })
+        .attr('class', function(d) {
+          return 'label mock';
+        })
+        .attr('mock', function(d) {
+          computedValueHeight = this.getBBox().height;
+          computedLengths.push(this.getComputedTextLength());
+          dims.labels.height = computedHeight = this.getBBox().height;
+          return 'mock';
+        });
+
+      d3.select(polymerObj.$.chart).selectAll('.mock').remove();
+     
+
+      computedMaxValueWidth = d3.max(computedLengths);
+      computedLastValueWidth = computedLengths[computedLengths.length-1];
+
+      
+
+
       do  {
         //for the first time dims.bar.width is undefined but optimizeSizes takes care of that.
         var newBarWidth = dims.bar.width * 0.8;
-        optimizeSizes(newBarWidth);
+        optimizeSizes(newBarWidth, computedMaxLabelWidth, computedMaxValueWidth, computedLabelHeight, computedValueHeight);
+
       } while (((dims.values.lines > 1 && dims.labels.lines > 1) || dims.labels.lines > 3) && dims.bar.width > BAR_MIN_WIDTH)
       // If both values and labels are wrapping to more than 1 line, attempt to shrink the bar until one side does not have to wrap
 
+      
       // This function attempts to maximize the width of the bar,
       // while reducing the number of lines labels and values wrap
-      function optimizeSizes(barWidth){
+      function optimizeSizes(barWidth, maxLabelWidth, maxValueWidth, labelHeight, valueHeight){
 
         // Set bar width in proportion to total width
         remainingWidth = dims.width;
         dims.bar.width = barWidth || dims.width / 3.25;
         remainingWidth -= dims.margin.label*2 + dims.bar.width + 2; // Additional 2px of extra margin to account for font variation
 
-        // Estimate length of labels and calculate width/height of container given word wrap
-        dims.labels.maxLength = d3.max(chartData, function(d){ return d.label ? d.label.length : 0;}); // in number of characters
-        dims.labels.width = dims.labels.maxLength * 8.25; // in estimated pixels 
+        dims.labels.width = maxLabelWidth;
+
+        
         dims.labels.containerWidth = remainingWidth/2;
-        dims.labels.lines = Math.ceil(dims.labels.width / dims.labels.containerWidth); // estimate # of lines given container width
-        dims.labels.containerHeight = dims.labels.lines * 16; // estimate height given number of lines
+        
+        // times 2: a hack to avoid 2 line labels to be cut-off. there is no harm in having longer foreingObjects        
+        dims.labels.containerHeight = labelHeight * 2; 
+        
         remainingWidth -= dims.labels.containerWidth;
 
+        dims.values.width = maxValueWidth;
+        dims.values.containerWidth = Math.min(dims.values.width, remainingWidth) + 2;
 
-        // Estimate length of values and calculate width/height of container given word wrap
-        dims.values.maxLength = d3.max(chartData, function(d){ 
-          if (d.range_min_display_value && d.range_max_display_value){ // for spectrum
-            return  d.range_min_display_value.length + d.range_max_display_value.length + 3;
-          } else if (d.range_min_value && d.range_max_value){ // for spectrum
-            return  d.range_min_value.toString().length + d.range_max_value.toString().length + 3; // 3 is for the characters separating min and max " - "
-          } else { // for stacked
-            return d.display_value ? d.display_value.length : d.value.toString().length;
-          }
-        });
-        dims.values.width = dims.values.maxLength * 8.25; // in estimated pixels 
-        dims.values.containerWidth = Math.min(dims.values.width, remainingWidth) + 2; // Additional 2px of extra margin to account for font variation  
-        dims.values.lines = Math.ceil(dims.values.width / dims.values.containerWidth);  // estimate # of lines given container width
-        dims.values.containerHeight = dims.values.lines * 16; // estimate height given number of lines
-        
+        dims.values.containerHeight = valueHeight;
+
       }
 
       // TODO: add logic to allocation remainingWidth to labels if they are wrapping or to bar

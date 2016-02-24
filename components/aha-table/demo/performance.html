@@ -25,18 +25,15 @@
         var now = new Date();
         var events = [];
         for (var i = 0; i<1000; i++) {
-            events.push({ 
-                title: titles[Math.ceil(Math.random()*titles.length)-1], 
+            events.push({
+                title: titles[Math.ceil(Math.random()*titles.length)-1],
                 date: dates[Math.ceil(Math.random()*dates.length)-1],
-                type: types[Math.ceil(Math.random()*types.length)-1], 
-                content: contents[Math.ceil(Math.random()*contents.length)-1], 
-                enabled: enableds[Math.ceil(Math.random()*enableds.length)-1] 
+                type: types[Math.ceil(Math.random()*types.length)-1],
+                content: contents[Math.ceil(Math.random()*contents.length)-1],
+                enabled: enableds[Math.ceil(Math.random()*enableds.length)-1]
             });
         };
-        var raw     = document.getElementById("raw");
-        window.addEventListener("polymer-ready", function(){
-            raw.data = events;
-        });
+        document.getElementById("raw").data = events;
     </script>
 </body>
 </html>

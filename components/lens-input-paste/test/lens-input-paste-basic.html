@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>lens-input-paste</title>
+
+  <script src="../../webcomponentsjs/webcomponents.js"></script>
+  <script src="../../web-component-tester/browser.js"></script>
+
+  <!-- Step 1: import the element to test -->
+  <link rel="import" href="../lens-input-paste.html">
+
+</head>
+<body>
+
+  <script type="text/html" id="testTable">
+      <table style="width:100%">
+        <tr>
+          <td>Jill</td>
+          <td>Smith</td> 
+          <td>50</td>
+        </tr>
+        <tr>
+          <td>Eve</td>
+          <td>Jackson</td> 
+          <td>94</td>
+        </tr>
+      </table>
+  </script>
+
+  <lens-input-paste id="component"></lens-input-paste>
+
+  <script>
+    var testTable = document.getElementById('testTable');
+    console.log(testTable);
+    var should = chai.should();
+    var component = document.getElementById("component");
+
+    // the event listener callback will be added / removed in every async test
+    var callback = function() {};
+
+
+    suite("<lens-input-paste>", function() {
+
+      test("component can be created as an object", function(done) {
+        should.exist(component);
+        done();
+      });
+
+      // TO DO: make this test work
+      test("processInput", function(done) {
+        var testInput = document.getElementById('testInput');
+
+        callback = function() {
+          console.log(component.output);
+          should.exist(component.output);
+          done();
+        }
+        component.addEventListener("lens-output-changed", callback);
+
+        component.processInput(testInput)
+
+        flush(function() {
+          should.exist(component.output);
+          done();
+        });
+      });
+
+
+    });
+
+  </script>
+
+</body>
+</html>

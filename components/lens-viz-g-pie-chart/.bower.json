@@ -9,16 +9,16 @@
   "dependencies": {
     "polymer": "Polymer/polymer#~0.5.1",
     "th-animated": "thelmanews/th-animated",
-    "google-chart": "GoogleWebComponents/google-chart#master",
+    "google-chart": "lenses/google-chart#0.2.1",
     "lens-u-data-selector": "lenses/lens-u-data-selector",
     "lens-u-data-utility": "lenses/lens-u-data-utility"
   },
   "homepage": "https://github.com/lenses/lens-viz-g-pie-chart",
-  "_release": "34688b9fba",
+  "_release": "242731b31b",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "34688b9fbaee31730d957ac61e1f894c8dda9a67"
+    "commit": "242731b31b4930a018d8723feb1ffa13512a3cda"
   },
   "_source": "git://github.com/lenses/lens-viz-g-pie-chart.git",
   "_target": "*",

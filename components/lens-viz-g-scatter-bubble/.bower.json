@@ -9,16 +9,16 @@
   "dependencies": {
     "polymer": "Polymer/polymer#~0.5.1",
     "th-animated": "thelmanews/th-animated",
-    "google-chart": "lenses/google-chart#master",
+    "google-chart": "lenses/google-chart#0.2.1",
     "lens-u-data-selector": "lenses/lens-u-data-selector",
     "lens-u-data-utility": "lenses/lens-u-data-utility"
   },
   "homepage": "https://github.com/lenses/lens-viz-g-scatter-bubble",
-  "_release": "7e700b6fd1",
+  "_release": "ca20e204de",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "7e700b6fd1301027fb43eff767dbd61f93f94ad4"
+    "commit": "ca20e204de8d587021291ef3e2972c0f0e61669d"
   },
   "_source": "git://github.com/lenses/lens-viz-g-scatter-bubble.git",
   "_target": "*",

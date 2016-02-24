@@ -10,6 +10,6 @@
   "dependencies": {
     "polymer": "Polymer/polymer#~0.5.1",
     "th-animated": "thelmanews/th-animated",
-    "google-chart": "GoogleWebComponents/google-chart#master"
+    "google-chart": "lenses/google-chart#0.2.1"
   }
 }

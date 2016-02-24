@@ -1,87 +1,90 @@
-<!--
-    @license
-    Copyright (c) 2014 Lenses Project Authors. All rights reserved.
-    This code may only be used under the MIT license found at http://lenses.github.io/LICENSE.txt
-    The complete set of authors may be found at http://lenses.github.io//AUTHORS.txt
-    The complete set of contributors may be found at http://lenses.github.io/CONTRIBUTORS.txt
-
--->
 <!doctype html>
 <html>
-<head>
-  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
-  <title>th-editor Demo</title>
+  <head>
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+    <title>lens-input-enigma Demo</title>
 
-  <script src="../webcomponentsjs/webcomponents.js"></script>
-  <link rel="import" href="lens-input-enigma.html">
-
-  <link rel="import" href="../th-connector/th-connector.html">
-  <link rel="import" href="../th-chart-editor/th-chart-editor.html">
-  <link rel="import" href="../th-chart-data-filter/th-chart-data-filter.html">
-  <link rel="import" href="../th-n-bar-chart/th-n-bar-chart.html">
-  <link rel="import" href="../th-map-us/th-map-us.html">
-  <link rel="import" href="../th-array-function/th-array-function.html">
-  <link rel="import" href="../th-csv/th-csv.html">
-
-    <script>
-
-        document.addEventListener('polymer-ready', function() {
-
-
-
-          var connector = document.querySelector('th-connector');
-          var enigma =  document.querySelector('lens-input-enigma');
-          var chart =  document.querySelector('th-n-bar-chart-horizontal');
-          var filter =  document.querySelector('th-chart-data-filter');
-          var map =  document.querySelector('th-map-us');
-
-          connector.connectAttributes(enigma, 'tableData', filter, 'dataInput');
-          //connector.connectAttributes(filter, 'chartDataOut', chart, 'chartData');
-
-          connector.connectAttributes(filter, 'chartDataOut', map, 'chartData');
-
-        });
-    </script>
+    <script src="../webcomponentsjs/webcomponents.js"></script>
+    <link rel="import" href="lens-input-enigma.html">
 
     <style>
       body {
-        width: 1500px;
+        font-family: sans-serif;
+        font-size: 14px;
       }
-      th-map-us {
-        background-color: #303B49;
+
+      pre {
+        border: 1px solid #EEE;
+        font-size: 12px;
+        max-width: 300px;
+        max-height: 300px;
+        overflow: scroll;
+
+      }
+      #component {
+        border: 1px solid #BBB;
+        margin: 10px;
+        padding: 5px;
+        display: block;
+        width: 300px;
+      }
+
+      .component::before, .component::after {
+        content: '\2794';
+        position: absolute;
+        top: 50%;
+      }
+      .component::before {
+        right: -15px;
+      }
+
+      .component::after {
+        left: -15px;
+      }
+
+      section {
+        display: inline-block;
+        margin: 8px;
+        vertical-align: top;
+        position: relative;
+      }
+      html /deep/ input[is=core-input] {
+        border-bottom: 1px solid #E5E5E5 !important;
+      }
+
+      .count {
+        float: right;
+        font-size: 12px;
       }
 
     </style>
 
+  </head>
+  <body unresolved>
 
-</head>
-<body unresolved>
+    <template id="auto-bind-demo" is="auto-binding">
+      <script>
 
+      PolymerExpressions.prototype.json = function(object) {
+        return JSON.stringify(object, undefined, 2);
+      };
+      </script>
 
+      <p> lens-input-enigma loads data from the <a href="http://enigma.io">Enigma</a> public data API.</p>
 
-    <th-connector>
+      <section class="component">
+        <label>Component:</label><br/>
+          <lens-input-enigma id="component" output="{{myoutput}}"></lens-input-enigma>
+      </section>
 
-      <lens-input-enigma id="enigma"></lens-input-enigma>
+      <section>
+        <label>CSV Output:</label><span class="count">{{myoutput.length}} records</span>
+        <pre>{{myoutput | json}}</pre>
+      </section>
 
-      <th-chart-data-filter></th-chart-data-filter>
+      <script>
+        var component = document.querySelector('#component');
+      </script>
 
-      <br>
-
-       
-      
-      <th-map-us animateOnInit="true" chartWidth="400"></th-map-us>
-      
-      <th-n-bar-chart animateOnInit="true" chartHeight="400" chartWidth="700"> </th-n-bar-chart>
-
-      <br>
-
-      <th-array-function></th-array-function>
-
-      <th-csv></th-csv>
-
-    </th-connector>
-
-
-   
-</body>
+  </body>
 </html>

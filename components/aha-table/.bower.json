@@ -16,14 +16,14 @@
     "bower_components"
   ],
   "dependencies": {
-    "polymer": "Polymer/polymer#~0.5.5"
+    "polymer": "Polymer/polymer#~1.2"
   },
   "homepage": "https://github.com/liuwenchao/aha-table",
-  "_release": "74023808ee",
+  "_release": "5d42bda2c0",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "74023808ee24bd9b356c988bba0223f9308fb3bd"
+    "commit": "5d42bda2c03a6ac7c4723bc9b31b00937f7c87b3"
   },
   "_source": "git://github.com/liuwenchao/aha-table.git",
   "_target": "master",

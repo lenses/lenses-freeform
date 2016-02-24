@@ -6,16 +6,16 @@
     "th-animated": "thelmanews/th-d3-chart",
     "th-theme": "thelmanews/th-theme",
     "polymer": "Polymer/polymer#~0.5.1",
-    "google-chart": "lenses/google-chart#master",
+    "google-chart": "lenses/google-chart#0.2.1",
     "lens-u-data-selector": "lenses/lens-u-data-selector",
     "lens-u-data-utility": "lenses/lens-u-data-utility"
   },
   "homepage": "https://github.com/lenses/lens-viz-g-bar-chart",
-  "_release": "1fb43222f5",
+  "_release": "6e63a00f62",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "1fb43222f55dd81f1ae0d9a7327dea2197a7c2d4"
+    "commit": "6e63a00f62bfec8cdfb132e564fdc874cc285934"
   },
   "_source": "git://github.com/lenses/lens-viz-g-bar-chart.git",
   "_target": "*",

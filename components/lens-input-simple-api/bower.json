@@ -5,7 +5,7 @@
   "main": "lens-input-simple-api.html",
   "dependencies": {  
     "core-input": "Polymer/core-input",
-    "polymer": "Polymer/polymer#~0.5.1"
+    "polymer": "Polymer/polymer#~0.5.5"
   }
 }
 

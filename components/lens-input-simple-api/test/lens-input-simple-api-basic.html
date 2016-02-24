@@ -74,17 +74,17 @@
       test("set api url", function(done) {
 
         // set the event listener callback
-        myEl.removeEventListener("th-output-changed", callback);
+        myEl.removeEventListener("lens-output-changed", callback);
         callback = function(e) {
           myEl.url.should.equal(enigmaURL);
           done();
         };
-        myEl.addEventListener("th-output-changed", callback);
+        myEl.addEventListener("lens-output-changed", callback);
 
         // set input url
         myEl.url = enigmaURL;
 
-        // fire th-outputReady event
+        // fire lens-outputReady event
         flush(function() {
         });
       });
@@ -94,7 +94,7 @@
       });
 
       test("accepts custom callback", function(done) {
-        myEl.removeEventListener("th-output-changed", callback);
+        myEl.removeEventListener("lens-output-changed", callback);
 
         function customCallback(xhr) {
           var data = JSON.parse(xhr.response);
@@ -103,6 +103,7 @@
           firstArray.length.should.equal(myEl.output.length);
           done();
         }
+
         myEl.queryData(customCallback);
       });
 
@@ -110,14 +111,14 @@
         var originalJSON = {};
         var flatJSON = {};
 
-        // set the event listener callback
-        myEl.removeEventListener("th-output-changed", callback);
-        callback = function(e) {
-          myEl.url.should.equal(weatherURL);
-          flatJSON = myEl.output;
-          // done();
-        };
-        myEl.addEventListener("th-output-changed", callback);
+        // // set the event listener callback
+        // myEl.removeEventListener("lens-output-changed", callback);
+        // callback = function(e) {
+        //   myEl.url.should.equal(weatherURL);
+        //   flatJSON = myEl.output;
+        //   // done();
+        // };
+        // myEl.addEventListener("lens-output-changed", callback);
 
         // set input url
         myEl.url = weatherURL;
@@ -125,8 +126,10 @@
         function customCallback(xhr) {
           var data = JSON.parse(xhr.response);
           originalJSON = data;
+
           flush(function() {
-            flatJSON[0]['coord.lon'].should.equal(originalJSON['coord']['lon']);
+            myEl.output.length.should.eql(1)
+            // flatJSON[0]['coord.lon'].should.equal(originalJSON['coord']['lon']);
             done();
           });
         }

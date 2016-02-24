@@ -5,14 +5,14 @@
   "dependencies": {
     "polymer": "Polymer/polymer#~0.5.1",
     "core-selector": "Polymer/core-selector#^0.5",
-    "lens-u-data-utility": "thelmanews/lens-u-data-utility"
+    "lens-u-data-utility": "lenses/lens-u-data-utility"
   },
   "homepage": "https://github.com/lenses/lens-u-data-selector",
-  "_release": "3089cdae82",
+  "_release": "3a9806afcc",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "3089cdae8292e4df75145c6e5b432ceddcbd0de6"
+    "commit": "3a9806afccf0edfed5e78817b40fbef445e28518"
   },
   "_source": "git://github.com/lenses/lens-u-data-selector.git",
   "_target": "*",

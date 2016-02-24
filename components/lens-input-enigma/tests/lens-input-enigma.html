@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+<head>
+  <title>lens-input-enigma</title>
+
+  <script src="../../webcomponentsjs/webcomponents.js"></script>
+  <script src="../../web-component-tester/browser.js"></script>
+
+  <link rel="import" href="../lens-input-enigma.html">
+
+</head>
+<body>
+
+  <lens-input-enigma id="input-enigma"></lens-input-enigma>
+
+  <script>
+    var should = chai.should();
+    var component = document.querySelector("#input-enigma");
+
+    var enigmaURL = "https://api.enigma.io/v2/data/iTX3qf5cwspm7ryII3ii5zqeHqUuoO4MctfLJFf2xU8eletxHvcI4/us.gov.atf.federal-firearms-licenses.complete-listing?limit=200"
+
+    // testing suite
+    suite("<lens-input-enigma>", function() {
+
+      test("component can be created as an object", function(done) {
+        should.exist(component);
+        done();
+      });
+
+      test("set _selectedCols", function(done) {
+        component._selectedCols = 'all';
+
+        flush(function() {
+          component._selectedCols.should.eql('all');
+          done();
+        });
+      });
+
+      test("query metadata", function(done) {
+        callback = function(e) {
+          should.exist(component.output);
+          component.output.length.should.eql(500);
+          done();
+        };
+        component.addEventListener("lens-output-changed", callback);
+
+        component.queryStatData();
+
+        flush(function() {
+        });
+      });
+
+    });
+  </script>
+
+</body>
+</html>

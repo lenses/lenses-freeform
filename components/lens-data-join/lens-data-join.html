@@ -1,6 +1,7 @@
 <link rel="import" href="../polymer/polymer.html"> 
 <link rel="import" href="../th-theme/th-theme.html"> 
 <link rel="import" href="../core-input/core-input.html"> 
+<link rel="import" href="../core-icons/core-icons.html"> 
 
 <!--
 A data component for joining two columns together to create a new column.
@@ -28,14 +29,21 @@ A data component for joining two columns together to create a new column.
         <template repeat="{{key in inputKeys}}">
           <span class="columnName" on-click="{{toggleSelected}}">{{key}}</span>
         </template>
-
+        <br/>
       <label>Join with:</label>
-      <input style="border: 2px solid #eee; padding: 3px; " is="core-input" committedValue="{{joinString}}" placeholder="" type="text">
-
+      <input type="text" class="txt" is="core-input" committedValue="{{joinString}}" placeholder="" type="text">
+      <br/>
       <label>New column name: </label>
-      <input style="border: 2px solid #eee; padding: 3px;" is="core-input" committedValue="{{newColumnName}}">
+      <input type="text" class="txt" is="core-input" committedValue="{{newColumnName}}">
+      <br/>
+      <label>Keep Original Data: </label>
+    <template if="{{!keepOriginalData}}"> <core-icon icon="check-box-outline-blank" on-click="{{toggleKeepOriginalData}}"></core-icon> </template>
+    <template if="{{keepOriginalData}}"> <core-icon icon="check-box" on-click="{{toggleKeepOriginalData}}"></core-icon> </template>
+
+
 
     </div>
+
 
   </template>
   <script>
@@ -111,7 +119,7 @@ A data component for joining two columns together to create a new column.
           if(self.keepOriginalData){
             self.output[i] = self.input[i];
           } else {
-            self.output[i] = {};            
+            self.output[i] = {};
           }
           self.output[i][self.newColumnName] = stringsToJoin.join(self.joinString);
         }
@@ -123,6 +131,12 @@ A data component for joining two columns together to create a new column.
 
         var selected = self.shadowRoot.querySelectorAll('.selected');
         self.selectedColumns = [].map.call(selected, function(item) { return item.textContent});
+      },
+
+      toggleKeepOriginalData: function(e, detail, selection){
+        var self = this;
+        self.keepOriginalData = !self.keepOriginalData;
+        self._calculateOutput();
       },
 
       // CHANGE OBSERVERS

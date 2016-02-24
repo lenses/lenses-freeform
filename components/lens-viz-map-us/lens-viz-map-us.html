@@ -34,18 +34,59 @@
 	      	position: absolute;
 	      	transition: opacity 0.7s;
 	      	opacity: 0;
-	      	bottom: 5px;
+	      	bottom: 25px;
 	      	width: 100%;
+	      	font-size: 0.85em;
 	      }
-	      #legend div {
+	      #label, #value {
 	      	display: inline-block;
 	      	height: 1.2em;
 
 	      }
 
 	      #value {
-	      	float: right;
-	      	margin-right: 15px;
+	      	/*float: right;
+	      	margin-right: 15px;*/
+	      	position: absolute;
+	      	font-size: 1.2em;
+	      	font-weight: bold;
+	      	margin-top: 4px;
+	      	transition: all 0.15s linear;
+	      	left: -20px;
+	      }
+
+	      #value:before {
+	      	content: '';
+	      	width: 0; 
+			height: 0; 
+			border-left: 5px solid transparent;
+			border-right: 5px solid transparent;
+	
+			border-bottom: 5px solid black;
+			top: -3px;
+  			left: 40%;
+  			position: absolute;
+	      }
+
+	      #max_value {
+	      }
+
+	      #legendScale {
+	      	margin: 0 auto;
+	      }
+	      
+	      #legendScale span {
+	      	
+	      	height: 1em;
+	      	display: inline-block;
+	      }
+
+	      #legend .minmax {
+
+		  width: 12%;
+		  display: inline-block;
+		  overflow: hidden;
+	          text-align: center;
 	      }
 
 	      #tip {
@@ -65,7 +106,11 @@
 		<span id="tip">(tap again to zoom out)</span>
 	    <svg id="chart"></svg>
 	    <div id="legend" >
-		    <div id="label"></div>
+	    	<div class="keys">
+	    		<span class="minmax" id="min_value"></span>
+	    		<span id="legendScale"></span>
+	    		<span class="minmax" id="max_value"></span>
+	    	</div>
 		    <div id="value"></div>
 		</div>
 
@@ -217,7 +262,7 @@
             
 	            // projection and path setup
 	            var projection = d3.geo.albersUsa()
-	                .scale(width)
+	                .scale(width * 1.3)
 	                .translate([width / 2, height / 2]);
 	            
 	            self.path = d3.geo.path()
@@ -362,6 +407,25 @@
 			        .domain(domain)
 			        .range(range);
 
+
+				// spare 0.1 of with on each side for min/max values
+				var colorScaleWidth = self.dims.width * 0.7;
+
+			    // colors in legendScale
+			    d3.select(self.$.legendScale).selectAll('span').data(CoreStyle.g.theme.mapColors).enter().append('span')
+			    	.style('width', colorScaleWidth/7+'px')
+			    	.style('background-color', function(d) { return d;});
+
+			    
+			    self.legendScale = d3.scale.linear()
+			    	.domain([minValue, maxValue])
+			    	.range([self.dims.width*0.1, self.dims.width * 0.8]); 
+
+			   	
+			   
+			   self.$.min_value.innerHTML =  minValue.toFixed(2);
+			   self.$.max_value.innerHTML =  maxValue.toFixed(2);
+
 			    if(!self.initialized) {
 
 				    self.initialized = true;
@@ -404,12 +468,14 @@
 
 				    if(self.dataMap) {
 	
-					    // self.$.label.innerText = self.chartData.state_data.label;
-					    // self.$.value.innerText = self.dataMap.get(d.properties.name).toFixed(2);
+					    var val = self.dataMap.get(d.properties.name.toLowerCase());
+					    self.$.value.innerText = val.toFixed(2);
 					    
-					    self.$.label.innerText = self.dataLabel;
-					    var dataPointValue = self.dataMap.get(d.properties.name.toLowerCase());
-					    self.$.value.innerText =  self.$.data_utility.formatNumber(dataPointValue, self.valueFormat.pattern);
+					    // move value under legend scale.
+					    d3.select(self.$.value)
+					    	.style('left', function() {return self.legendScale(val)+'px'});
+					    
+
 
 					    self.$.legend.style.opacity = 1;
 
@@ -477,7 +543,7 @@
             
 	            // projection and path setup
 	            var projection = d3.geo.albersUsa()
-	                .scale(width)
+	                .scale(width * 1.3)
 	                .translate([width / 2, height / 2]);
 	            
 	            self.path = d3.geo.path()

@@ -36,9 +36,17 @@
       .lens-example {
         width: 1000px;
         height: 700px;
-        border: 1px solid black;
+        border: 1px solid #555;
         transform: scale(0.76) translate(0,0) translate(-160px, -100px);
       }
+      
+      .component-example {
+        width: 95%;
+        height: 500px;
+        margin: 10px 0;
+        border: 1px solid #555;
+      }
+
       .container {
         width: 800px;
         margin: 0 auto;
@@ -48,6 +56,9 @@
         padding: 0;
         margin: 0 auto;
         list-style: none;
+      }
+      .examples li {
+        height: 650px;
       }
       .examples h3 {
         margin-bottom: .4em;
@@ -137,9 +148,17 @@
           <iframe src="demo-cars.html" class="lens-example"></iframe>
         </li>
       </ul>
+      <div class="section">
+        Sample Component:
+          <iframe src="../lens-data-crossfilter/demo.html" class="component-example"></iframe>
+          <iframe src="../lens-data-groupby/demo.html" class="component-example"></iframe>
+          <!--<iframe src="../lens-viz-draw/demo.html" class="component-example"></iframe>-->
+          <iframe src="../lens-viz-map-us/demo.html" class="component-example"></iframe>
+      </div>
       <div class="developed">
         <h4>Developed by:<h4>
         <ul>
+          <li><a href="http://github.com/kareemamin">Kareem Amin</a>
           <li><a href="http://github.com/sepans">Sepand Ansari</a>
           <li><a href="http://github.com/nishacodes">Nisha Batra</a>
           <li><a href="http://github.com/therewasaguy">Jason Sigal</a>
